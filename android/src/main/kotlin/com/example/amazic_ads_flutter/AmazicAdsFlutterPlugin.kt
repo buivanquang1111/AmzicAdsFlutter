@@ -5,6 +5,7 @@ import android.preference.PreferenceManager
 import android.util.Log
 import com.example.amazic_ads_flutter.util.NetworkUtil
 
+import com.example.amazic_ads_flutter.ads_banner.BannerAdsPlatformViewFactory;
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -17,6 +18,7 @@ class AmazicAdsFlutterPlugin: FlutterPlugin, MethodCallHandler {
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
+  private lateinit var bannerAdsMethod : MethodChannel
   private lateinit var channel : MethodChannel
   private lateinit var context: Context
 
@@ -25,6 +27,11 @@ class AmazicAdsFlutterPlugin: FlutterPlugin, MethodCallHandler {
     channel.setMethodCallHandler(this)
 
     context = flutterPluginBinding.applicationContext
+
+    bannerAdsMethod = MethodChannel(flutterPluginBinding.binaryMessenger, "banner_ads_detect_test_ads")
+    flutterPluginBinding
+      .platformViewRegistry
+      .registerViewFactory("banner_view_platform", BannerAdsPlatformViewFactory(context,bannerAdsMethod))
   }
 
   override fun onMethodCall(call: MethodCall, result: Result) {
