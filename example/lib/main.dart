@@ -1,7 +1,9 @@
 import 'package:amazic_ads_flutter/admob.dart';
 import 'package:amazic_ads_flutter_example/banner_ad_screen.dart';
 import 'package:amazic_ads_flutter_example/collapse_banner_ad_screen.dart';
+import 'package:amazic_ads_flutter_example/home_screen.dart';
 import 'package:amazic_ads_flutter_example/native_ad_screen.dart';
+import 'package:amazic_ads_flutter_example/splash_screen.dart';
 import 'package:amazic_ads_flutter_example/welcome_back_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -13,17 +15,6 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  await Admob.instance.init(
-    navigatorKey: navigatorKey,
-    idAdsAppOpen: 'ca-app-pub-3940256099942544/9257395921',
-    isShowWelComeScreenAfterAppOpenAds: true,
-    onGotoScreenWelcomeBack: () {
-      Navigator.push(
-        navigatorKey.currentContext!,
-        MaterialPageRoute(builder: (context) => WelcomeBackScreen()),
-      );
-    },
-  );
   runApp(const MyApp());
 }
 
@@ -70,208 +61,7 @@ class _MyAppState extends State<MyApp> {
       navigatorKey: navigatorKey,
       home: Scaffold(
         appBar: AppBar(title: const Text('Plugin example app')),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text('Running on: $_platformVersion\n'),
-            Builder(
-              builder: (context) => GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => BannerAdScreen()),
-                  );
-                },
-                child: Center(
-                  child: Container(
-                    height: 56,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.greenAccent,
-                    ),
-                    child: Center(child: Text('show banner ads', textAlign: TextAlign.center)),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Builder(
-              builder: (context) => GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                  );
-                },
-                child: Center(
-                  child: Container(
-                    height: 56,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.greenAccent,
-                    ),
-                    child: Center(child: Text('show native ads', textAlign: TextAlign.center)),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Builder(
-              builder: (context) => GestureDetector(
-                onTap: () {
-                  Admob.instance.loadAndShowInterAds(
-                    navigatorKey: navigatorKey,
-                    idAds: 'ca-app-pub-3940256099942544/1033173712',
-                    config: true,
-                    onAdDisable: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                      );
-                    },
-                    onAdFailedToLoad: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                      );
-                    },
-                    onAdFailedToShow: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                      );
-                    },
-                    onAdDismiss: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                      );
-                    },
-                  );
-                },
-                child: Center(
-                  child: Container(
-                    height: 56,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.greenAccent,
-                    ),
-                    child: Center(child: Text('show inter ads', textAlign: TextAlign.center)),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Builder(
-              builder: (context) => GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => CollapseBannerAdScreen()),
-                  );
-                },
-                child: Center(
-                  child: Container(
-                    height: 56,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.greenAccent,
-                    ),
-                    child: Center(
-                      child: Text('show collapse banner ads', textAlign: TextAlign.center),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Builder(
-              builder: (context) => GestureDetector(
-                onTap: () {
-                  Admob.instance.loadAndShowRewardAds(
-                    navigatorKey: navigatorKey,
-                    idAds: 'ca-app-pub-3940256099942544/5224354917',
-                    config: true,
-                    onAdDisable: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => CollapseBannerAdScreen()),
-                      );
-                    },
-                    onAdDismiss: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => CollapseBannerAdScreen()),
-                      );
-                    },
-                  );
-                },
-                child: Center(
-                  child: Container(
-                    height: 56,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.greenAccent,
-                    ),
-                    child: Center(child: Text('show reward ads', textAlign: TextAlign.center)),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Builder(
-              builder: (context) => GestureDetector(
-                onTap: () {
-                  Admob.instance.loadAndShowAppOpenAds(
-                    navigatorKey: navigatorKey,
-                    idAds: 'ca-app-pub-3940256099942544/9257395921',
-                    config: true,
-                    onAdDisable: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                      );
-                    },
-                    onAdFailedToLoad: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                      );
-                    },
-                    onAdFailedToShow: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                      );
-                    },
-                    onAdDismiss: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                      );
-                    },
-                  );
-                },
-                child: Center(
-                  child: Container(
-                    height: 56,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.greenAccent,
-                    ),
-                    child: Center(child: Text('show App Open ads', textAlign: TextAlign.center)),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+        body: SplashScreen(),
       ),
     );
   }

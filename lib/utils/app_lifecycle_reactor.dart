@@ -21,6 +21,11 @@ class AppLifecycleReactor {
 
   bool isDisableAdResume = false; // an resume khi click share, hay permisison
   bool isShowScreenWelcomeBack = false; // check Screen WelcomeBack show hay k show
+  bool _onSplashScreen = true; // Screen Splash not show app open
+
+  setOnSplashScreen({required bool value}) {
+    _onSplashScreen = value;
+  }
 
   setDisableAdResume({required bool value}) {
     isDisableAdResume = value;
@@ -42,6 +47,7 @@ class AppLifecycleReactor {
   }
 
   void _onAppStateChanged(AppState appState) async {
+    if (_onSplashScreen) return;
     print('admob_ads --- app_open: start');
     if (config == false) {
       print('admob_ads --- app_open: config = $config');

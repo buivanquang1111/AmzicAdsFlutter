@@ -1,5 +1,6 @@
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
 import 'package:amazic_ads_flutter/utils/ad_foreground_observer.dart';
+import 'package:amazic_ads_flutter/utils/ad_helper.dart';
 import 'package:amazic_ads_flutter/utils/app_lifecycle_reactor.dart';
 import 'package:amazic_ads_flutter/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -33,21 +34,51 @@ class Admob {
 
   Future<void> init({
     required GlobalKey<NavigatorState> navigatorKey,
-    required String idAdsAppOpen,
+    required String idAdsResume,
     required bool isShowWelComeScreenAfterAppOpenAds,
     Function()? onGotoScreenWelcomeBack,
+    required String idAdsAppOpenSplash,
+    required String idAdsInterSplash,
+    required bool configAppOpenSplash,
+    required bool configInterSplash,
+    required String rateAoa,
+    required Function() onNext,
+    required int intervalBetweenInter,
+    required int intervalFromStart,
   }) async {
     //init UMP
     ConsentManager.instance.handleRequestUmp(
       onPostExecute: () {
-        appLifecycleReactor = AppLifecycleReactor(
-          navigatorKey: navigatorKey,
-          idAds: idAdsAppOpen,
-          config: true,
-          isShowWelComeScreenAfterAppOpenAds: isShowWelComeScreenAfterAppOpenAds,
-          onGotoWelcomeBack: onGotoScreenWelcomeBack,
-        );
-        appLifecycleReactor?.listenToAppStateChanges();
+        if(ConsentManager.instance.canRequestAds) {
+          ///init app open resume
+          appLifecycleReactor = AppLifecycleReactor(
+            navigatorKey: navigatorKey,
+            idAds: idAdsResume,
+            config: true,
+            isShowWelComeScreenAfterAppOpenAds: isShowWelComeScreenAfterAppOpenAds,
+            onGotoWelcomeBack: onGotoScreenWelcomeBack,
+          );
+          appLifecycleReactor?.listenToAppStateChanges();
+
+          ///init ads splash
+          AdHelper.init(
+              intervalBetweenInter: intervalBetweenInter * 1000,
+              intervalFromStart: intervalFromStart * 1000,
+              configAppOpen: configAppOpenSplash,
+              configInter: configInterSplash,
+              rateAoa: rateAoa
+          );
+          initAndShowAdSplash(
+            navigatorKey: navigatorKey,
+            idAdsAppOpen: idAdsAppOpenSplash,
+            idAdsInter: idAdsInterSplash,
+            configAppOpen: configAppOpenSplash,
+            configInter: configInterSplash,
+            onNext: onNext,
+          );
+        }else{
+          onNext();
+        }
       },
     );
   }
@@ -136,6 +167,7 @@ class Admob {
                 closeLoadingDialog(context: navigatorKey.currentContext!);
               }
               setFullScreenAdShowing(false);
+              AdHelper.setLastTimeDismissInter();
               ad.dispose();
               onAdDismiss?.call();
             },
@@ -334,5 +366,69 @@ class Admob {
         },
       ),
     );
+  }
+
+  Future<void> initAndShowAdSplash({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required String idAdsAppOpen,
+    required String idAdsInter,
+    required bool configAppOpen,
+    required bool configInter,
+    required Function() onNext,
+  }) async {
+    if (AdHelper.splashType == AdsSplashType.open) {
+      loadAndShowAppOpenAds(
+        navigatorKey: navigatorKey,
+        idAds: idAdsAppOpen,
+        config: configAppOpen,
+        onAdDisable: () {
+          Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
+          onNext();
+        },
+        onAdFailedToShow: () {
+          Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
+          onNext();
+        },
+        onAdFailedToLoad: () {
+          Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
+          onNext();
+        },
+        onAdDismiss: () {
+          Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
+          onNext();
+        },
+        onAdClicked: () {},
+        onAdImpression: () {},
+        onAdLoaded: () {},
+      );
+    } else if (AdHelper.splashType == AdsSplashType.inter) {
+      loadAndShowInterAds(
+        navigatorKey: navigatorKey,
+        idAds: idAdsInter,
+        config: configInter,
+        onAdLoaded: () {},
+        onAdImpression: () {},
+        onAdClicked: () {},
+        onAdDismiss: () {
+          Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
+          onNext();
+        },
+        onAdFailedToLoad: () {
+          Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
+          onNext();
+        },
+        onAdFailedToShow: () {
+          Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
+          onNext();
+        },
+        onAdDisable: () {
+          Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
+          onNext();
+        },
+      );
+    } else {
+      Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
+      onNext();
+    }
   }
 }
