@@ -76,7 +76,7 @@ class _BannerAdsState extends State<BannerAds> {
     final size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
       MediaQuery.sizeOf(context).width.truncate(),
     );
-    print('banner_ads: size= $size');
+    print('admob_ads --- banner_ads: size= $size');
     if (size == null) {
       setState(() {
         _shouldHide = true;
@@ -88,6 +88,7 @@ class _BannerAdsState extends State<BannerAds> {
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
         (await Admob.instance.isNetworkActive()) == false) {
+      print('admob_ads --- banner_ads: hide banner');
       setState(() {
         _shouldHide = true;
       });
@@ -99,12 +100,13 @@ class _BannerAdsState extends State<BannerAds> {
       _isLoading = true;
       _shouldHide = false;
     });
+    print('admob_ads --- banner_ads: start request');
     BannerAd(
       size: size,
       adUnitId: widget.idAds,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          print('banner_ads: onAdLoaded');
+          print('admob_ads --- banner_ads: onAdLoaded');
           setState(() {
             _bannerAd = ad as BannerAd;
             _isLoading = false;
@@ -112,7 +114,7 @@ class _BannerAdsState extends State<BannerAds> {
           widget.onAdLoaded?.call();
         },
         onAdFailedToLoad: (ad, error) {
-          print('banner_ads: onAdFailedToLoad');
+          print('admob_ads --- banner_ads: onAdFailedToLoad');
           ad.dispose();
           setState(() {
             _bannerAd = null;
@@ -122,24 +124,24 @@ class _BannerAdsState extends State<BannerAds> {
           widget.onAdFailedToLoad?.call();
         },
         onAdImpression: (ad) {
-          print('banner_ads: onAdImpression');
+          print('admob_ads --- banner_ads: onAdImpression');
           widget.onAdImpression?.call();
         },
         onAdClicked: (ad) {
-          print('banner_ads: onAdClicked');
+          print('admob_ads --- banner_ads: onAdClicked');
           widget.onAdClicked?.call();
         },
         onAdClosed: (ad) {
-          print('banner_ads: onAdClosed');
+          print('admob_ads --- banner_ads: onAdClosed');
         },
         onAdOpened: (ad) {
-          print('banner_ads: onAdOpened');
+          print('admob_ads --- banner_ads: onAdOpened');
         },
         onAdWillDismissScreen: (ad) {
-          print('banner_ads: onAdWillDismissScreen');
+          print('admob_ads --- banner_ads: onAdWillDismissScreen');
         },
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {
-          print('banner_ads: onPaidEvent');
+          print('admob_ads --- banner_ads: onPaidEvent');
         },
       ),
       request: const AdRequest(),

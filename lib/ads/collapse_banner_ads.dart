@@ -79,7 +79,7 @@ class _CollapseBannerAdsState extends State<CollapseBannerAds> {
     final size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
       MediaQuery.sizeOf(context).width.truncate(),
     );
-    print('collapse_banner: size = $size');
+    print('admob_ads --- collapse_banner: size = $size');
     if (size == null) {
       setState(() {
         _shouldHide = true;
@@ -92,7 +92,7 @@ class _CollapseBannerAdsState extends State<CollapseBannerAds> {
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
         (await Admob.instance.isNetworkActive()) == false) {
-      print('collapse_banner: hide collapse');
+      print('admob_ads --- collapse_banner: hide collapse');
       setState(() {
         _shouldHide = true;
       });
@@ -111,13 +111,13 @@ class _CollapseBannerAdsState extends State<CollapseBannerAds> {
     } else if (widget.type == CollapseBannerType.collapsible_top) {
       adRequest = AdRequest(extras: {"collapsible": "top"});
     }
-    print('collapse_banner: start request');
+    print('admob_ads --- collapse_banner: start request');
     BannerAd(
       size: size,
       adUnitId: widget.idAds,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          print('collapse_banner: onAdLoaded');
+          print('admob_ads --- collapse_banner: onAdLoaded');
           setState(() {
             _bannerAd = ad as BannerAd;
             _isLoading = false;
@@ -125,7 +125,7 @@ class _CollapseBannerAdsState extends State<CollapseBannerAds> {
           widget.onAdLoaded?.call();
         },
         onAdFailedToLoad: (ad, error) {
-          print('collapse_banner: onAdFailedToLoad');
+          print('admob_ads --- collapse_banner: onAdFailedToLoad');
           ad.dispose();
           setState(() {
             _bannerAd = null;
@@ -135,24 +135,24 @@ class _CollapseBannerAdsState extends State<CollapseBannerAds> {
           widget.onAdFailedToLoad?.call();
         },
         onAdImpression: (ad) {
-          print('collapse_banner: onAdImpression');
+          print('admob_ads --- collapse_banner: onAdImpression');
           widget.onAdImpression?.call();
         },
         onAdClicked: (ad) {
-          print('collapse_banner: onAdClicked');
+          print('admob_ads --- collapse_banner: onAdClicked');
           widget.onAdClicked?.call();
         },
         onAdClosed: (ad) {
-          print('collapse_banner: onAdClosed');
+          print('admob_ads --- collapse_banner: onAdClosed');
         },
         onAdOpened: (ad) {
-          print('collapse_banner: onAdOpened');
+          print('admob_ads --- collapse_banner: onAdOpened');
         },
         onAdWillDismissScreen: (ad) {
-          print('collapse_banner: onAdWillDismissScreen');
+          print('admob_ads --- collapse_banner: onAdWillDismissScreen');
         },
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {
-          print('collapse_banner: onPaidEvent');
+          print('admob_ads --- collapse_banner: onPaidEvent');
         },
       ),
       request: adRequest,

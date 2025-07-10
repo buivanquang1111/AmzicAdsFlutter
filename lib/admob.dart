@@ -49,7 +49,7 @@ class Admob {
     //init UMP
     ConsentManager.instance.handleRequestUmp(
       onPostExecute: () {
-        if(ConsentManager.instance.canRequestAds) {
+        if (ConsentManager.instance.canRequestAds) {
           ///init app open resume
           appLifecycleReactor = AppLifecycleReactor(
             navigatorKey: navigatorKey,
@@ -62,11 +62,11 @@ class Admob {
 
           ///init ads splash
           AdHelper.init(
-              intervalBetweenInter: intervalBetweenInter * 1000,
-              intervalFromStart: intervalFromStart * 1000,
-              configAppOpen: configAppOpenSplash,
-              configInter: configInterSplash,
-              rateAoa: rateAoa
+            intervalBetweenInter: intervalBetweenInter * 1000,
+            intervalFromStart: intervalFromStart * 1000,
+            configAppOpen: configAppOpenSplash,
+            configInter: configInterSplash,
+            rateAoa: rateAoa,
           );
           initAndShowAdSplash(
             navigatorKey: navigatorKey,
@@ -76,7 +76,7 @@ class Admob {
             configInter: configInterSplash,
             onNext: onNext,
           );
-        }else{
+        } else {
           onNext();
         }
       },
@@ -124,6 +124,7 @@ class Admob {
     Function()? onAdFailedToLoad,
     Function()? onAdFailedToShow,
     Function()? onAdDismiss,
+    bool isShowAdSplash = false,
   }) async {
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
@@ -167,7 +168,9 @@ class Admob {
                 closeLoadingDialog(context: navigatorKey.currentContext!);
               }
               setFullScreenAdShowing(false);
-              AdHelper.setLastTimeDismissInter();
+              if (isShowAdSplash == false) {
+                AdHelper.setLastTimeDismissInter();
+              }
               ad.dispose();
               onAdDismiss?.call();
             },
@@ -213,11 +216,11 @@ class Admob {
         ConsentManager.instance.canRequestAds == false ||
         isShowAllAds == false ||
         (await isNetworkActive()) == false) {
-      print('reward_ads: not load');
+      print('admob_ads --- reward_ads: not load');
       onAdDisable?.call();
       return;
     }
-    print('reward_ads: start request');
+    print('admob_ads --- reward_ads: start request');
     if (navigatorKey.currentContext != null) {
       showLoadingDialog(context: navigatorKey.currentContext!);
     }
@@ -227,26 +230,26 @@ class Admob {
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
-          print('reward_ads: onAdLoaded');
+          print('admob_ads --- reward_ads: onAdLoaded');
           onAdLoaded?.call();
 
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdShowedFullScreenContent: (ad) {
-              print('reward_ads: onAdShowedFullScreenContent');
+              print('admob_ads --- reward_ads: onAdShowedFullScreenContent');
             },
             onAdImpression: (ad) {
-              print('reward_ads: onAdImpression');
+              print('admob_ads --- reward_ads: onAdImpression');
               setFullScreenAdShowing(true);
               onAdImpression?.call();
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
-              print('reward_ads: onAdFailedToShowFullScreenContent');
+              print('admob_ads --- reward_ads: onAdFailedToShowFullScreenContent');
               setFullScreenAdShowing(false);
               ad.dispose();
               onAdFailedToShow?.call();
             },
             onAdDismissedFullScreenContent: (ad) {
-              print('reward_ads: onAdDismissedFullScreenContent');
+              print('admob_ads --- reward_ads: onAdDismissedFullScreenContent');
               if (navigatorKey.currentContext != null) {
                 closeLoadingDialog(context: navigatorKey.currentContext!);
               }
@@ -255,17 +258,17 @@ class Admob {
               onAdDismiss?.call();
             },
             onAdClicked: (ad) {
-              print('reward_ads: onAdClicked');
+              print('admob_ads --- reward_ads: onAdClicked');
               onAdClicked?.call();
             },
           );
           setFullScreenAdShowing(true);
           checkAndShowAdForeground(
             onShow: () {
-              print('reward_ads: show');
+              print('admob_ads --- reward_ads: show');
               ad.show(
                 onUserEarnedReward: (ad, reward) {
-                  print('reward_ads: onUserEarnedReward');
+                  print('admob_ads --- reward_ads: onUserEarnedReward');
                   onUSerEarnedReward?.call();
                 },
               );
@@ -273,7 +276,7 @@ class Admob {
           );
         },
         onAdFailedToLoad: (error) {
-          print('reward_ads: onAdFailedToLoad');
+          print('admob_ads --- reward_ads: onAdFailedToLoad');
           setFullScreenAdShowing(false);
           if (navigatorKey.currentContext != null) {
             closeLoadingDialog(context: navigatorKey.currentContext!);
@@ -406,6 +409,7 @@ class Admob {
         navigatorKey: navigatorKey,
         idAds: idAdsInter,
         config: configInter,
+        isShowAdSplash: true,
         onAdLoaded: () {},
         onAdImpression: () {},
         onAdClicked: () {},
@@ -429,6 +433,38 @@ class Admob {
     } else {
       Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
       onNext();
+    }
+  }
+
+  Future<void> loadAndShowInterInterval({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required String idAds,
+    required bool config,
+    Function()? onAdDisable,
+    Function()? onAdLoaded,
+    Function()? onAdImpression,
+    Function()? onAdClicked,
+    Function()? onAdFailedToLoad,
+    Function()? onAdFailedToShow,
+    Function()? onAdDismiss,
+  }) async {
+    if (AdHelper.canShowNextInter()) {
+      print('admob_ads --- inter_ads: canShowNextInter = ${AdHelper.canShowNextInter()}');
+      loadAndShowInterAds(
+        navigatorKey: navigatorKey,
+        idAds: idAds,
+        config: config,
+        onAdDisable: onAdDisable,
+        onAdFailedToShow: onAdFailedToShow,
+        onAdFailedToLoad: onAdFailedToLoad,
+        onAdDismiss: onAdDismiss,
+        onAdClicked: onAdClicked,
+        onAdImpression: onAdImpression,
+        onAdLoaded: onAdLoaded,
+      );
+    } else {
+      print('admob_ads --- inter_ads: not canShowNextInter = ${AdHelper.canShowNextInter()}');
+      onAdDisable?.call();
     }
   }
 }

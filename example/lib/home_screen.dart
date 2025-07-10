@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Builder(
             builder: (context) => GestureDetector(
               onTap: () {
-                Admob.instance.loadAndShowInterAds(
+                Admob.instance.loadAndShowInterInterval(
                   navigatorKey: navigatorKey,
                   idAds: 'ca-app-pub-3940256099942544/1033173712',
                   config: true,

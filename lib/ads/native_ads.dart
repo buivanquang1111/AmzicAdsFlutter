@@ -75,6 +75,7 @@ class _NativeAdsState extends State<NativeAds> {
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
         (await Admob.instance.isNetworkActive()) == false) {
+      print('admob_ads --- native_ads: hide native');
       setState(() {
         _shouldHide = true;
       });
@@ -85,18 +86,20 @@ class _NativeAdsState extends State<NativeAds> {
       _isLoading = true;
       _shouldHide = false;
     });
-
+    print('admob_ads --- native_ads: start request');
     _nativeAd = NativeAd(
       adUnitId: widget.idAds,
       factoryId: widget.factoryId,
       listener: NativeAdListener(
         onAdLoaded: (ad) {
+          print('admob_ads --- native_ads: onAdLoaded');
           setState(() {
             _isLoading = false;
           });
           widget.onAdLoaded?.call();
         },
         onAdFailedToLoad: (ad, error) {
+          print('admob_ads --- native_ads: onAdFailedToLoad');
           setState(() {
             _nativeAd = null;
             _isLoading = false;
@@ -104,14 +107,22 @@ class _NativeAdsState extends State<NativeAds> {
           });
           widget.onAdFailedToLoad?.call();
         },
-        onAdOpened: (ad) {},
-        onAdWillDismissScreen: (ad) {},
-        onAdClosed: (ad) {},
+        onAdOpened: (ad) {
+          print('admob_ads --- native_ads: onAdOpened');
+        },
+        onAdWillDismissScreen: (ad) {
+          print('admob_ads --- native_ads: onAdWillDismissScreen');
+        },
+        onAdClosed: (ad) {
+          print('admob_ads --- native_ads: onAdClosed');
+        },
         onAdImpression: (ad) {
+          print('admob_ads --- native_ads: onAdImpression');
           widget.onAdImpression?.call();
         },
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {},
         onAdClicked: (ad) {
+          print('admob_ads --- native_ads: onAdClicked');
           widget.onAdClicked?.call();
         },
       ),
