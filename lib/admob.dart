@@ -1,4 +1,5 @@
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
+import 'package:amazic_ads_flutter/utils/ad_foreground_observer.dart';
 import 'package:amazic_ads_flutter/utils/app_lifecycle_reactor.dart';
 import 'package:amazic_ads_flutter/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -71,6 +72,16 @@ class Admob {
     return isConnected;
   }
 
+  ///dung de check show inter/app open/reward
+  checkAndShowAdForeground({required Function() onShow}) {
+    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      onShow();
+    } else {
+      final observer = AdForegroundObserver(onShow: onShow);
+      observer.attach();
+    }
+  }
+
   Future<void> loadAndShowInterAds({
     required GlobalKey<NavigatorState> navigatorKey,
     required String idAds,
@@ -87,11 +98,11 @@ class Admob {
         ConsentManager.instance.canRequestAds == false ||
         isShowAllAds == false ||
         (await isNetworkActive()) == false) {
-      print('inter_ads: not load');
+      print('admob_ads --- inter_ads: not load');
       onAdDisable?.call();
       return;
     }
-    print('inter_ads: start request');
+    print('admob_ads --- inter_ads: start request');
     if (navigatorKey.currentContext != null) {
       showLoadingDialog(context: navigatorKey.currentContext!);
     }
@@ -101,43 +112,48 @@ class Admob {
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
-          print('inter_ads: onAdLoaded');
+          print('admob_ads --- inter_ads: onAdLoaded');
           onAdLoaded?.call();
-          if (navigatorKey.currentContext != null) {
-            closeLoadingDialog(context: navigatorKey.currentContext!);
-          }
 
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdShowedFullScreenContent: (ad) {
-              print('inter_ads: onAdShowedFullScreenContent');
+              print('admob_ads --- inter_ads: onAdShowedFullScreenContent');
             },
             onAdImpression: (ad) {
-              print('inter_ads: onAdImpression');
+              print('admob_ads --- inter_ads: onAdImpression');
+              setFullScreenAdShowing(true);
               onAdImpression?.call();
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
-              print('inter_ads: onAdFailedToShowFullScreenContent');
+              print('admob_ads --- inter_ads: onAdFailedToShowFullScreenContent');
               setFullScreenAdShowing(false);
               ad.dispose();
               onAdFailedToShow?.call();
             },
             onAdDismissedFullScreenContent: (ad) {
-              print('inter_ads: onAdDismissedFullScreenContent');
+              print('admob_ads --- inter_ads: onAdDismissedFullScreenContent');
+              if (navigatorKey.currentContext != null) {
+                closeLoadingDialog(context: navigatorKey.currentContext!);
+              }
               setFullScreenAdShowing(false);
               ad.dispose();
               onAdDismiss?.call();
             },
             onAdClicked: (ad) {
-              print('inter_ads: onAdClicked');
+              print('admob_ads --- inter_ads: onAdClicked');
               onAdClicked?.call();
             },
           );
-          print('inter_ads: show');
           setFullScreenAdShowing(true);
-          ad.show();
+          checkAndShowAdForeground(
+            onShow: () {
+              print('admob_ads --- inter_ads: show');
+              ad.show();
+            },
+          );
         },
         onAdFailedToLoad: (error) {
-          print('inter_ads: onAdFailedToLoad');
+          print('admob_ads --- inter_ads: onAdFailedToLoad');
           setFullScreenAdShowing(false);
           if (navigatorKey.currentContext != null) {
             closeLoadingDialog(context: navigatorKey.currentContext!);
@@ -181,9 +197,6 @@ class Admob {
         onAdLoaded: (ad) {
           print('reward_ads: onAdLoaded');
           onAdLoaded?.call();
-          if (navigatorKey.currentContext != null) {
-            closeLoadingDialog(context: navigatorKey.currentContext!);
-          }
 
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdShowedFullScreenContent: (ad) {
@@ -191,6 +204,7 @@ class Admob {
             },
             onAdImpression: (ad) {
               print('reward_ads: onAdImpression');
+              setFullScreenAdShowing(true);
               onAdImpression?.call();
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
@@ -201,6 +215,9 @@ class Admob {
             },
             onAdDismissedFullScreenContent: (ad) {
               print('reward_ads: onAdDismissedFullScreenContent');
+              if (navigatorKey.currentContext != null) {
+                closeLoadingDialog(context: navigatorKey.currentContext!);
+              }
               setFullScreenAdShowing(false);
               ad.dispose();
               onAdDismiss?.call();
@@ -210,12 +227,16 @@ class Admob {
               onAdClicked?.call();
             },
           );
-          print('reward_ads: show');
           setFullScreenAdShowing(true);
-          ad.show(
-            onUserEarnedReward: (ad, reward) {
-              print('reward_ads: onUserEarnedReward');
-              onUSerEarnedReward?.call();
+          checkAndShowAdForeground(
+            onShow: () {
+              print('reward_ads: show');
+              ad.show(
+                onUserEarnedReward: (ad, reward) {
+                  print('reward_ads: onUserEarnedReward');
+                  onUSerEarnedReward?.call();
+                },
+              );
             },
           );
         },
@@ -247,12 +268,12 @@ class Admob {
         ConsentManager.instance.canRequestAds == false ||
         isShowAllAds == false ||
         (await isNetworkActive()) == false) {
-      print('app_open_ads: not load');
+      print('admob_ads --- app_open_ads: not load');
       onAdDisable?.call();
       return;
     }
 
-    print('app_open_ads: start request');
+    print('admob_ads --- app_open_ads: start request');
     if (navigatorKey.currentContext != null) {
       showLoadingDialog(context: navigatorKey.currentContext!);
     }
@@ -262,44 +283,49 @@ class Admob {
       request: const AdRequest(),
       adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (ad) {
-          print('app_open_ads: onAdLoaded');
+          print('admob_ads --- app_open_ads: onAdLoaded');
           onAdLoaded?.call();
-          if (navigatorKey.currentContext != null) {
-            closeLoadingDialog(context: navigatorKey.currentContext!);
-          }
 
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdShowedFullScreenContent: (ad) {
-              print('app_open_ads: onAdShowedFullScreenContent');
+              print('admob_ads --- app_open_ads: onAdShowedFullScreenContent');
             },
             onAdImpression: (ad) {
-              print('app_open_ads: onAdImpression');
+              print('admob_ads --- app_open_ads: onAdImpression');
+              setFullScreenAdShowing(true);
               onAdImpression?.call();
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
-              print('app_open_ads: onAdFailedToShowFullScreenContent');
+              print('admob_ads --- app_open_ads: onAdFailedToShowFullScreenContent');
               setFullScreenAdShowing(false);
               ad.dispose();
               onAdFailedToShow?.call();
             },
             onAdDismissedFullScreenContent: (ad) {
-              print('app_open_ads: onAdDismissedFullScreenContent');
+              print('admob_ads --- app_open_ads: onAdDismissedFullScreenContent');
+              if (navigatorKey.currentContext != null) {
+                closeLoadingDialog(context: navigatorKey.currentContext!);
+              }
               setFullScreenAdShowing(false);
               ad.dispose();
               onAdDismiss?.call();
             },
             onAdClicked: (ad) {
-              print('app_open_ads: onAdClicked');
+              print('admob_ads --- app_open_ads: onAdClicked');
               onAdClicked?.call();
             },
           );
 
-          print('app_open_ads: show');
           setFullScreenAdShowing(true);
-          ad.show();
+          checkAndShowAdForeground(
+            onShow: () {
+              print('admob_ads --- app_open_ads: show');
+              ad.show();
+            },
+          );
         },
         onAdFailedToLoad: (error) {
-          print('app_open_ads: onAdFailedToLoad');
+          print('admob_ads --- app_open_ads: onAdFailedToLoad');
           setFullScreenAdShowing(false);
           onAdFailedToLoad?.call();
           if (navigatorKey.currentContext != null) {

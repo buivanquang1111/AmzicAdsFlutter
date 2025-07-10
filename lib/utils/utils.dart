@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 bool _isDialogShow = false;
 
 showLoadingDialog({required BuildContext context}) {
+  print('admob_ads --- showLoadingDialog');
   _isDialogShow = true;
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (context) {
       return LoadingDialog();
     },
@@ -15,6 +17,7 @@ showLoadingDialog({required BuildContext context}) {
 
 closeLoadingDialog({required BuildContext context}) {
   if (_isDialogShow && Navigator.canPop(context)) {
+    print('admob_ads --- closeLoadingDialog');
     Navigator.of(context, rootNavigator: true).pop();
     _isDialogShow = false;
   }

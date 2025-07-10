@@ -34,6 +34,7 @@ class AppLifecycleReactor {
   setShowScreenWelcomeBack() {
     if (onGotoWelcomeBack != null) {
       if (isShowScreenWelcomeBack == false) {
+        print('admob_ads --- app_open: show screen welcomeback');
         isShowScreenWelcomeBack = true;
         onGotoWelcomeBack!();
       }
@@ -41,20 +42,24 @@ class AppLifecycleReactor {
   }
 
   void _onAppStateChanged(AppState appState) async {
+    print('admob_ads --- app_open: start');
     if (config == false) {
+      print('admob_ads --- app_open: config = $config');
       setShowScreenWelcomeBack();
       return;
     }
 
     if (appState == AppState.foreground) {
       if (isDisableAdResume == false) {
-        if (Admob.instance.isFullScreenAdShowing ||
+        if (Admob.instance.isFullScreenAdShowing == true ||
             Admob.instance.isShowAllAds == false ||
             (await Admob.instance.isNetworkActive()) == false ||
             ConsentManager.instance.canRequestAds == false) {
+          print('admob_ads --- app_open: not show');
           return;
         }
         if (isShowWelComeScreenAfterAppOpenAds) {
+          print('admob_ads --- app_open: show ads before screen welcomeback');
           Admob.instance.loadAndShowAppOpenAds(
             navigatorKey: navigatorKey,
             idAds: idAds,
@@ -73,9 +78,11 @@ class AppLifecycleReactor {
             },
           );
         } else {
+          print('admob_ads --- app_open: show welcomeback before ads');
           setShowScreenWelcomeBack();
         }
       } else {
+        print('admob_ads --- app_open: disable ads resume');
         isDisableAdResume = false;
       }
     }
