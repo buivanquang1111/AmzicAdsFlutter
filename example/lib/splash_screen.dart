@@ -43,6 +43,9 @@ class _SplashScreenState extends State<SplashScreen> {
           MaterialPageRoute(builder: (context) => WelcomeBackScreen()),
         );
       },
+      onStartLoadBanner: () {
+
+      },
     );
   }
 

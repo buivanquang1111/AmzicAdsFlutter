@@ -45,11 +45,13 @@ class Admob {
     required Function() onNext,
     required int intervalBetweenInter,
     required int intervalFromStart,
+    required Function() onStartLoadBanner,
   }) async {
     //init UMP
     ConsentManager.instance.handleRequestUmp(
       onPostExecute: () {
         if (ConsentManager.instance.canRequestAds) {
+          onStartLoadBanner();
           ///init app open resume
           appLifecycleReactor = AppLifecycleReactor(
             navigatorKey: navigatorKey,
