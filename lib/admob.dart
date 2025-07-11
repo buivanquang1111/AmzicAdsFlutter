@@ -210,7 +210,7 @@ class Admob {
     Function()? onAdFailedToLoad,
     Function()? onAdFailedToShow,
     Function()? onAdDismiss,
-    Function()? onUSerEarnedReward,
+    Function()? onUserEarnedReward,
   }) async {
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
@@ -269,7 +269,7 @@ class Admob {
               ad.show(
                 onUserEarnedReward: (ad, reward) {
                   print('admob_ads --- reward_ads: onUserEarnedReward');
-                  onUSerEarnedReward?.call();
+                  onUserEarnedReward?.call();
                 },
               );
             },
@@ -465,6 +465,89 @@ class Admob {
     } else {
       print('admob_ads --- inter_ads: not canShowNextInter = ${AdHelper.canShowNextInter()}');
       onAdDisable?.call();
+    }
+  }
+
+  Future<void> loadRewardAd({
+    required String idAds,
+    required bool config,
+    required Function(RewardedAd) onAdLoaded,
+    required Function() onAdFailedToLoad,
+  }) async {
+    if (config == false ||
+        ConsentManager.instance.canRequestAds == false ||
+        isShowAllAds == false ||
+        (await isNetworkActive()) == false) {
+      print('admob_ads --- reward_ads - load_before: not load');
+      return;
+    }
+
+    print('admob_ads --- reward_ads - load_before: start request');
+
+    RewardedAd.load(
+      adUnitId: idAds,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          print('admob_ads --- reward_ads - load_before: onAdLoaded');
+          onAdLoaded.call(ad);
+        },
+        onAdFailedToLoad: (error) {
+          print('admob_ads --- reward_ads - load_before: onAdFailedToLoad - $error}');
+          onAdFailedToLoad.call();
+        },
+      ),
+    );
+  }
+
+  Future<void> showRewardAd({
+    required RewardedAd? rewardedAd,
+    required bool config,
+    required Function() onAdImpression,
+    required Function() onAdClicked,
+    required Function() onAdFailedToShow,
+    required Function() onAdDismiss,
+    required Function() onUserEarnedReward,
+  }) async {
+    if (config == false ||
+        ConsentManager.instance.canRequestAds == false ||
+        isShowAllAds == false ||
+        (await isNetworkActive()) == false) {
+      print('admob_ads --- reward_ads - load_before: not show');
+      return;
+    }
+    if (rewardedAd != null) {
+      rewardedAd.fullScreenContentCallback = FullScreenContentCallback(
+        onAdImpression: (ad) {
+          print('admob_ads --- reward_ads - load_before: onAdImpression');
+          onAdImpression.call();
+        },
+        onAdClicked: (ad) {
+          print('admob_ads --- reward_ads - load_before: onAdClicked');
+          onAdClicked.call();
+        },
+        onAdDismissedFullScreenContent: (ad) {
+          print('admob_ads --- reward_ads - load_before: onAdDismissedFullScreenContent');
+          onAdDismiss.call();
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          print('admob_ads --- reward_ads - load_before: onAdFailedToShowFullScreenContent');
+          onAdFailedToShow.call();
+        },
+        onAdShowedFullScreenContent: (ad) {
+          print('admob_ads --- reward_ads - load_before: onAdShowedFullScreenContent');
+        },
+        onAdWillDismissFullScreenContent: (ad) {
+          print('admob_ads --- reward_ads - load_before: onAdWillDismissFullScreenContent');
+        },
+      );
+      print('admob_ads --- reward_ads - load_before: show');
+      rewardedAd.show(onUserEarnedReward: (ad, reward) {
+        print('admob_ads --- reward_ads - load_before: onUserEarnedReward');
+        onUserEarnedReward.call();
+      });
+    } else {
+      print('admob_ads --- reward_ads - load_before: not show rewardAd - null');
     }
   }
 }

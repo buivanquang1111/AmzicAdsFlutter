@@ -1,4 +1,5 @@
 import 'package:amazic_ads_flutter/admob.dart';
+import 'package:amazic_ads_flutter/amazic_ads_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -21,6 +22,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     initPlatformState();
+
+    //load truoc ads reward all
+    RewardAdManager.instance.loadRewardAd(
+      idAds: 'ca-app-pub-3940256099942544/5224354917',
+      config: true,
+    );
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -43,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _platformVersion = platformVersion;
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,10 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Builder(
             builder: (context) => GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => BannerAdScreen()),
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => BannerAdScreen()));
               },
               child: Center(
                 child: Container(
@@ -76,10 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Builder(
             builder: (context) => GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => NativeAdScreen()));
               },
               child: Center(
                 child: Container(
@@ -243,6 +245,40 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.greenAccent,
                   ),
                   child: Center(child: Text('show App Open ads', textAlign: TextAlign.center)),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Builder(
+            builder: (context) => GestureDetector(
+              onTap: () {
+                RewardAdManager.instance.showRewardConsecutive(
+                  idAds: 'ca-app-pub-3940256099942544/5224354917',
+                  config: true,
+                  count: 2,
+                  onCompleted: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => NativeAdScreen()),
+                    );
+                  },
+                );
+                // RewardAdManager.instance.showRewardAd(
+                //   idAds: 'ca-app-pub-3940256099942544/5224354917',
+                //   config: true,
+                //   isLoadAdsBeforeNext: true,
+                // );
+              },
+              child: Center(
+                child: Container(
+                  height: 56,
+                  width: 100,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.greenAccent,
+                  ),
+                  child: Center(child: Text('show 2 reward ads', textAlign: TextAlign.center)),
                 ),
               ),
             ),
