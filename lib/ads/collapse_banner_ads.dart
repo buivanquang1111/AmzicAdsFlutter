@@ -27,10 +27,10 @@ class CollapseBannerAds extends StatefulWidget {
   });
 
   @override
-  State<CollapseBannerAds> createState() => _CollapseBannerAdsState();
+  State<CollapseBannerAds> createState() => CollapseBannerAdsState();
 }
 
-class _CollapseBannerAdsState extends State<CollapseBannerAds> {
+class CollapseBannerAdsState extends State<CollapseBannerAds> {
   BannerAd? _bannerAd;
   bool _isLoading = false;
   bool _shouldHide = false;
@@ -46,6 +46,10 @@ class _CollapseBannerAdsState extends State<CollapseBannerAds> {
   @override
   void dispose() {
     super.dispose();
+    _bannerAd?.dispose();
+  }
+
+  Future<void> closeCollapse() async {
     _bannerAd?.dispose();
   }
 
