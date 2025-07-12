@@ -9,6 +9,7 @@ class NativeAds extends StatefulWidget {
   final bool config;
   final double height;
   final String factoryId;
+  final Widget? shimmer;
   final Function()? onAdLoaded;
   final Function()? onAdFailedToLoad;
   final Function()? onAdImpression;
@@ -20,6 +21,7 @@ class NativeAds extends StatefulWidget {
     required this.config,
     required this.height,
     required this.factoryId,
+    this.shimmer,
     this.onAdLoaded,
     this.onAdFailedToLoad,
     this.onAdImpression,
@@ -56,7 +58,7 @@ class _NativeAdsState extends State<NativeAds> {
     }
 
     if (_isLoading) {
-      return ShimmerNativeAds(height: widget.height);
+      return widget.shimmer ?? ShimmerNativeAds(height: widget.height);
     }
 
     if (_nativeAd != null) {

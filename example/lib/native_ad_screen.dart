@@ -8,16 +8,11 @@ class NativeAdScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Native example app')),
-      body: Column(
-        children: [
-          Expanded(child: Text('Native ads')),
-          NativeAds(
-            idAds: 'ca-app-pub-3940256099942544/2247696110',
-            config: true,
-            height: 320,
-            factoryId: 'native_ad',
-          ),
-        ],
+      body: NativeAds(
+        idAds: 'ca-app-pub-3940256099942544/2247696110',
+        config: true,
+        height: 300,
+        factoryId: 'native_ad',
       ),
     );
   }
