@@ -78,16 +78,20 @@ class _NativeAdsState extends State<NativeAds> {
         Admob.instance.isShowAllAds == false ||
         (await Admob.instance.isNetworkActive()) == false) {
       print('admob_ads --- native_ads: hide native');
-      setState(() {
-        _shouldHide = true;
-      });
+      if (mounted) {
+        setState(() {
+          _shouldHide = true;
+        });
+      }
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-      _shouldHide = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _shouldHide = false;
+      });
+    }
     print('admob_ads --- native_ads: start request');
     _nativeAd = NativeAd(
       adUnitId: widget.idAds,
@@ -95,18 +99,22 @@ class _NativeAdsState extends State<NativeAds> {
       listener: NativeAdListener(
         onAdLoaded: (ad) {
           print('admob_ads --- native_ads: onAdLoaded');
-          setState(() {
-            _isLoading = false;
-          });
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
           widget.onAdLoaded?.call();
         },
         onAdFailedToLoad: (ad, error) {
           print('admob_ads --- native_ads: onAdFailedToLoad');
-          setState(() {
-            _nativeAd = null;
-            _isLoading = false;
-            _shouldHide = true;
-          });
+          if (mounted) {
+            setState(() {
+              _nativeAd = null;
+              _isLoading = false;
+              _shouldHide = true;
+            });
+          }
           widget.onAdFailedToLoad?.call();
         },
         onAdOpened: (ad) {
