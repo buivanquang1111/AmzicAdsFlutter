@@ -32,6 +32,7 @@ class _CollapseBannerAdScreenState extends State<CollapseBannerAdScreen> {
       idAds: 'ca-app-pub-3940256099942544/2014213617',
       type: CollapseBannerType.collapsible_bottom,
       config: true,
+      refreshSec: 10,
     );
   }
 

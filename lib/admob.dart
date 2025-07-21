@@ -1,6 +1,7 @@
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
 import 'package:amazic_ads_flutter/utils/ad_foreground_observer.dart';
 import 'package:amazic_ads_flutter/utils/ad_helper.dart';
+import 'package:amazic_ads_flutter/utils/adjust_util.dart';
 import 'package:amazic_ads_flutter/utils/app_lifecycle_reactor.dart';
 import 'package:amazic_ads_flutter/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,13 @@ class Admob {
   ///ads app open
   AppLifecycleReactor? appLifecycleReactor;
 
+  ///token event tracking Adjust
+  String _eventTracking = '';
+
+  setEventTracking(String value) => _eventTracking = value;
+
+  String get eventTrackingAdjust => _eventTracking;
+
   Future<void> init({
     required GlobalKey<NavigatorState> navigatorKey,
     required String idAdsResume,
@@ -46,12 +54,19 @@ class Admob {
     required int intervalBetweenInter,
     required int intervalFromStart,
     required Function() onStartLoadBanner,
+    String? eventAdjustTracking,
   }) async {
+    ///set event adjust
+    if (eventAdjustTracking != null) {
+      setEventTracking(eventAdjustTracking);
+    }
+
     //init UMP
     ConsentManager.instance.handleRequestUmp(
       onPostExecute: () {
         if (ConsentManager.instance.canRequestAds) {
           onStartLoadBanner();
+
           ///init app open resume
           appLifecycleReactor = AppLifecycleReactor(
             navigatorKey: navigatorKey,
@@ -149,6 +164,15 @@ class Admob {
           print('admob_ads --- inter_ads: onAdLoaded');
           onAdLoaded?.call();
 
+          ad.onPaidEvent = (ad, valueMicros, precision, currencyCode) {
+            print('admob_ads --- inter_ads: onPaidEvent');
+            AdjustUtil.instance.trackRevenue(
+              network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
+              revenue: valueMicros,
+              currency: currencyCode,
+            );
+          };
+
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdShowedFullScreenContent: (ad) {
               print('admob_ads --- inter_ads: onAdShowedFullScreenContent');
@@ -185,6 +209,7 @@ class Admob {
           checkAndShowAdForeground(
             onShow: () {
               print('admob_ads --- inter_ads: show');
+              ad.setImmersiveMode(true);
               ad.show();
             },
           );
@@ -235,6 +260,15 @@ class Admob {
           print('admob_ads --- reward_ads: onAdLoaded');
           onAdLoaded?.call();
 
+          ad.onPaidEvent = (ad, valueMicros, precision, currencyCode) {
+            print('admob_ads --- reward_ads: onPaidEvent');
+            AdjustUtil.instance.trackRevenue(
+              network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
+              revenue: valueMicros,
+              currency: currencyCode,
+            );
+          };
+
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdShowedFullScreenContent: (ad) {
               print('admob_ads --- reward_ads: onAdShowedFullScreenContent');
@@ -268,6 +302,7 @@ class Admob {
           checkAndShowAdForeground(
             onShow: () {
               print('admob_ads --- reward_ads: show');
+              ad.setImmersiveMode(true);
               ad.show(
                 onUserEarnedReward: (ad, reward) {
                   print('admob_ads --- reward_ads: onUserEarnedReward');
@@ -322,6 +357,15 @@ class Admob {
         onAdLoaded: (ad) {
           print('admob_ads --- app_open_ads: onAdLoaded');
           onAdLoaded?.call();
+
+          ad.onPaidEvent = (ad, valueMicros, precision, currencyCode) {
+            print('admob_ads --- app_open_ads: onPaidEvent');
+            AdjustUtil.instance.trackRevenue(
+              network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
+              revenue: valueMicros,
+              currency: currencyCode,
+            );
+          };
 
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdShowedFullScreenContent: (ad) {
@@ -493,6 +537,14 @@ class Admob {
         onAdLoaded: (ad) {
           print('admob_ads --- reward_ads - load_before: onAdLoaded');
           onAdLoaded.call(ad);
+          ad.onPaidEvent = (ad, valueMicros, precision, currencyCode) {
+            print('admob_ads --- reward_ads - load_before: onPaidEvent');
+            AdjustUtil.instance.trackRevenue(
+              network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
+              revenue: valueMicros,
+              currency: currencyCode,
+            );
+          };
         },
         onAdFailedToLoad: (error) {
           print('admob_ads --- reward_ads - load_before: onAdFailedToLoad - $error}');
@@ -544,10 +596,12 @@ class Admob {
         },
       );
       print('admob_ads --- reward_ads - load_before: show');
-      rewardedAd.show(onUserEarnedReward: (ad, reward) {
-        print('admob_ads --- reward_ads - load_before: onUserEarnedReward');
-        onUserEarnedReward.call();
-      });
+      rewardedAd.show(
+        onUserEarnedReward: (ad, reward) {
+          print('admob_ads --- reward_ads - load_before: onUserEarnedReward');
+          onUserEarnedReward.call();
+        },
+      );
     } else {
       print('admob_ads --- reward_ads - load_before: not show rewardAd - null');
     }

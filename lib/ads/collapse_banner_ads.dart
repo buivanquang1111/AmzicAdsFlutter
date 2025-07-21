@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:amazic_ads_flutter/amazic_ads_flutter.dart';
 import 'package:amazic_ads_flutter/shimmer/shimmer_banner_ads.dart';
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
+import 'package:amazic_ads_flutter/utils/adjust_util.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -13,12 +16,14 @@ class CollapseBannerAds extends StatefulWidget {
   final Function()? onAdImpression;
   final Function()? onAdClicked;
   final Function()? onAdDisable;
+  final int refreshSec;
 
   const CollapseBannerAds({
     super.key,
     required this.idAds,
     required this.type,
     required this.config,
+    required this.refreshSec,
     this.onAdLoaded,
     this.onAdFailedToLoad,
     this.onAdImpression,
@@ -30,14 +35,17 @@ class CollapseBannerAds extends StatefulWidget {
   State<CollapseBannerAds> createState() => CollapseBannerAdsState();
 }
 
-class CollapseBannerAdsState extends State<CollapseBannerAds> {
+class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindingObserver {
   BannerAd? _bannerAd;
   bool _isLoading = false;
   bool _shouldHide = false;
 
+  Timer? _timerRefresh;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       loadCollapseAds();
     });
@@ -45,8 +53,22 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> {
 
   @override
   void dispose() {
-    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     _bannerAd?.dispose();
+    stopRefreshTime();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused) {
+      print('admob_ads --- collapse_banner: AppLifecycleState.paused');
+      stopRefreshTime();
+    } else if (state == AppLifecycleState.resumed) {
+      print('admob_ads --- collapse_banner: AppLifecycleState.resumed');
+      startRefreshTime();
+    }
   }
 
   Future<void> closeCollapse() async {
@@ -79,6 +101,13 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> {
     return const SizedBox.shrink();
   }
 
+  Future<bool> canShowAds() async {
+    return widget.config &&
+        ConsentManager.instance.canRequestAds &&
+        Admob.instance.isShowAllAds &&
+        (await Admob.instance.isNetworkActive()) == true;
+  }
+
   loadCollapseAds() async {
     final size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
       MediaQuery.sizeOf(context).width.truncate(),
@@ -92,10 +121,7 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> {
       return;
     }
 
-    if (widget.config == false ||
-        ConsentManager.instance.canRequestAds == false ||
-        Admob.instance.isShowAllAds == false ||
-        (await Admob.instance.isNetworkActive()) == false) {
+    if (!await canShowAds()) {
       print('admob_ads --- collapse_banner: hide collapse');
       setState(() {
         _shouldHide = true;
@@ -108,6 +134,8 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> {
       _isLoading = true;
       _shouldHide = false;
     });
+
+    _bannerAd?.dispose();
 
     AdRequest adRequest = AdRequest();
     if (widget.type == CollapseBannerType.collapsible_bottom) {
@@ -136,10 +164,12 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> {
             _isLoading = false;
             _shouldHide = true;
           });
+          startRefreshTime();
           widget.onAdFailedToLoad?.call();
         },
         onAdImpression: (ad) {
           print('admob_ads --- collapse_banner: onAdImpression');
+          startRefreshTime();
           widget.onAdImpression?.call();
         },
         onAdClicked: (ad) {
@@ -157,9 +187,33 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> {
         },
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {
           print('admob_ads --- collapse_banner: onPaidEvent');
+          AdjustUtil.instance.trackRevenue(
+            network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
+            revenue: valueMicros,
+            currency: currencyCode,
+          );
         },
       ),
       request: adRequest,
     ).load();
+  }
+
+  ///reload native width interval time
+  void startRefreshTime() {
+    if (widget.refreshSec == 0) {
+      return;
+    }
+
+    stopRefreshTime();
+    print('admob_ads --- collapse_banner: startRefreshTime');
+    _timerRefresh = Timer.periodic(Duration(seconds: widget.refreshSec), (timer) {
+      print('admob_ads --- collapse_banner: RefreshSec - ${widget.refreshSec} Done');
+      loadCollapseAds();
+    });
+  }
+
+  void stopRefreshTime() {
+    _timerRefresh?.cancel();
+    _timerRefresh = null;
   }
 }

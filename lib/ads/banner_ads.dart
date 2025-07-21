@@ -4,6 +4,8 @@ import 'package:amazic_ads_flutter/ump/consent_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../utils/adjust_util.dart';
+
 class BannerAds extends StatefulWidget {
   final String idAds;
   final Function()? onAdLoaded;
@@ -142,6 +144,11 @@ class _BannerAdsState extends State<BannerAds> {
         },
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {
           print('admob_ads --- banner_ads: onPaidEvent');
+          AdjustUtil.instance.trackRevenue(
+            network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
+            revenue: valueMicros,
+            currency: currencyCode,
+          );
         },
       ),
       request: const AdRequest(),
