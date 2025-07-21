@@ -32,6 +32,7 @@ class _SplashScreenState extends State<SplashScreen> {
       configInterSplash: true,
       intervalBetweenInter: 20,
       intervalFromStart: 10,
+      intervalInterAll: 30,
       rateAoa: '0_100',
       onNext: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));

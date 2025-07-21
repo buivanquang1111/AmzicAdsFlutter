@@ -53,6 +53,7 @@ class Admob {
     required Function() onNext,
     required int intervalBetweenInter,
     required int intervalFromStart,
+    required int intervalInterAll,
     required Function() onStartLoadBanner,
     String? eventAdjustTracking,
   }) async {
@@ -81,6 +82,7 @@ class Admob {
           AdHelper.init(
             intervalBetweenInter: intervalBetweenInter * 1000,
             intervalFromStart: intervalFromStart * 1000,
+            intervalInterAll: intervalInterAll * 1000,
             configAppOpen: configAppOpenSplash,
             configInter: configInterSplash,
             rateAoa: rateAoa,
@@ -486,6 +488,7 @@ class Admob {
     required GlobalKey<NavigatorState> navigatorKey,
     required String idAds,
     required bool config,
+    required bool isInterAll,
     Function()? onAdDisable,
     Function()? onAdLoaded,
     Function()? onAdImpression,
@@ -494,8 +497,10 @@ class Admob {
     Function()? onAdFailedToShow,
     Function()? onAdDismiss,
   }) async {
-    if (AdHelper.canShowNextInter()) {
-      print('admob_ads --- inter_ads: canShowNextInter = ${AdHelper.canShowNextInter()}');
+    if (AdHelper.canShowNextInter(isInterAll: isInterAll)) {
+      print(
+        'admob_ads --- inter_ads: canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
+      );
       loadAndShowInterAds(
         navigatorKey: navigatorKey,
         idAds: idAds,
@@ -509,7 +514,9 @@ class Admob {
         onAdLoaded: onAdLoaded,
       );
     } else {
-      print('admob_ads --- inter_ads: not canShowNextInter = ${AdHelper.canShowNextInter()}');
+      print(
+        'admob_ads --- inter_ads: not canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
+      );
       onAdDisable?.call();
     }
   }

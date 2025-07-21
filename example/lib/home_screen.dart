@@ -104,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   navigatorKey: navigatorKey,
                   idAds: 'ca-app-pub-3940256099942544/1033173712',
                   config: true,
+                  isInterAll: true,
                   onAdDisable: () {
                     Navigator.push(
                       context,

@@ -10,6 +10,9 @@ class AdHelper {
   ///interval time from start
   static int _intervalInterFromStart = 0;
 
+  ///interval inter all
+  static int _intervalInterAll = 0;
+
   ///time start open app
   static int _timeStartApp = -1;
 
@@ -21,6 +24,7 @@ class AdHelper {
   static void init({
     required int intervalBetweenInter,
     required int intervalFromStart,
+    required int intervalInterAll,
     required bool configAppOpen,
     required bool configInter,
     required String rateAoa,
@@ -32,6 +36,7 @@ class AdHelper {
     setConfigAppOpen(value: configAppOpen);
     setConfigInter(value: configInter);
     setRateAoa(rateAoa: rateAoa);
+    setIntervalInterAll(value: intervalInterAll);
   }
 
   static void setConfigAppOpen({required bool value}) {
@@ -54,11 +59,15 @@ class AdHelper {
     _intervalInterFromStart = value;
   }
 
+  static void setIntervalInterAll({required int value}) {
+    _intervalInterAll = value;
+  }
+
   static void setLastTimeDismissInter() {
     _lastTimeDismissInter = DateTime.now().millisecondsSinceEpoch;
   }
 
-  static bool canShowNextInter() {
+  static bool canShowNextInter({required bool isInterAll}) {
     if (_timeStartApp == -1) {
       return false;
     }
@@ -72,6 +81,12 @@ class AdHelper {
     if (_lastTimeDismissInter == -1) {
       return true;
     }
+
+    ///check TH inter all
+    // if (isInterAll &&
+    //     (currentDatetime.millisecondsSinceEpoch - _lastTimeDismissInter) >= _intervalInterAll) {
+    //   return true;
+    // }
 
     if ((currentDatetime.millisecondsSinceEpoch - _lastTimeDismissInter) >= _intervalBetweenInter) {
       return true;
