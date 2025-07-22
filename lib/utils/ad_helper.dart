@@ -81,14 +81,29 @@ class AdHelper {
     if (_lastTimeDismissInter == -1) {
       return true;
     }
+    print(
+      'admob_ads --- inter_ads:0. isInterAll = $isInterAll , tt = ${(currentDatetime.millisecondsSinceEpoch - _lastTimeDismissInter)} , ',
+    );
 
     ///check TH inter all
-    // if (isInterAll &&
-    //     (currentDatetime.millisecondsSinceEpoch - _lastTimeDismissInter) >= _intervalInterAll) {
-    //   return true;
-    // }
+    if (isInterAll && _intervalInterAll > 0) {
+      if ((currentDatetime.millisecondsSinceEpoch - _lastTimeDismissInter) >= _intervalInterAll) {
+        print(
+          'admob_ads --- inter_ads: TH inter all. _intervalInterAll = $_intervalInterAll , _lastTimeDismissInter = $_lastTimeDismissInter, _intervalBetweenInter = $_intervalBetweenInter}',
+        );
+        return true;
+      } else {
+        print(
+          'admob_ads --- inter_ads: TH inter all. _intervalInterAll = $_intervalInterAll , _lastTimeDismissInter = $_lastTimeDismissInter, _intervalBetweenInter = $_intervalBetweenInter}',
+        );
+        return false;
+      }
+    }
 
     if ((currentDatetime.millisecondsSinceEpoch - _lastTimeDismissInter) >= _intervalBetweenInter) {
+      print(
+        'admob_ads --- inter_ads: TH interBetween. _intervalInterAll = $_intervalInterAll , _lastTimeDismissInter = $_lastTimeDismissInter, _intervalBetweenInter = $_intervalBetweenInter}',
+      );
       return true;
     }
 

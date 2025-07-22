@@ -54,7 +54,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Home example app')),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
