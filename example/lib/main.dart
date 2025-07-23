@@ -5,6 +5,7 @@ import 'package:amazic_ads_flutter_example/home_screen.dart';
 import 'package:amazic_ads_flutter_example/native_ad_screen.dart';
 import 'package:amazic_ads_flutter_example/splash_screen.dart';
 import 'package:amazic_ads_flutter_example/welcome_back_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -14,6 +15,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const MyApp());
 }

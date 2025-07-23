@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:amazic_ads_flutter/admob.dart';
+import 'package:amazic_ads_flutter/utils/remote_config.dart';
 import 'package:amazic_ads_flutter_example/home_screen.dart';
 import 'package:amazic_ads_flutter_example/welcome_back_screen.dart';
 import 'package:flutter/material.dart';
@@ -22,31 +23,69 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   init() async {
-    await Future.delayed(Duration(seconds: 2));
+    // await Admob.instance.init(
+    //   navigatorKey: navigatorKey,
+    //   idAdsResume: 'ca-app-pub-3940256099942544/9257395921',
+    //   idAdsAppOpenSplash: 'ca-app-pub-3940256099942544/9257395921',
+    //   idAdsInterSplash: 'ca-app-pub-3940256099942544/1033173712',
+    //   configAppOpenSplash: true,
+    //   configInterSplash: true,
+    //   intervalBetweenInter: 20,
+    //   intervalFromStart: 10,
+    //   intervalInterAll: 0,
+    //   rateAoa: '0_100',
+    //   onNext: () {
+    //     Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    //   },
+    //   isShowWelComeScreenAfterAppOpenAds: true,
+    //   onGotoScreenWelcomeBack: () {
+    //     Navigator.push(
+    //       navigatorKey.currentContext!,
+    //       MaterialPageRoute(builder: (context) => WelcomeBackScreen()),
+    //     );
+    //   },
+    //   onStartLoadBanner: () {},
+    //   linkServer: null,
+    //   appId: null,
+    //   packageName: null,
+    //   remoteConfigKeys: [],
+    // );
+
     await Admob.instance.init(
+      linkServer: null,
+      appId: null,
+      packageName: null,
       navigatorKey: navigatorKey,
-      idAdsResume: 'ca-app-pub-3940256099942544/9257395921',
-      idAdsAppOpenSplash: 'ca-app-pub-3940256099942544/9257395921',
-      idAdsInterSplash: 'ca-app-pub-3940256099942544/1033173712',
-      configAppOpenSplash: true,
-      configInterSplash: true,
-      intervalBetweenInter: 20,
-      intervalFromStart: 10,
-      intervalInterAll: 0,
-      rateAoa: '0_100',
+      nameIddAdsResume: 'resume_wb',
+      isShowWelComeScreenAfterAppOpenAds: true,
+      nameIdAdsAppOpenSplash: 'open_splash',
+      nameIdAdsInterSplash: 'inter_splash',
+      nameConfigAppOpenSplash: 'open_splash',
+      nameConfigInterSplash: 'inter_splash',
+      nameRateAoa: 'rate_aoa_inter_splash',
       onNext: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
       },
-      isShowWelComeScreenAfterAppOpenAds: true,
-      onGotoScreenWelcomeBack: () {
-        Navigator.push(
-          navigatorKey.currentContext!,
-          MaterialPageRoute(builder: (context) => WelcomeBackScreen()),
-        );
-      },
-      onStartLoadBanner: () {
-
-      },
+      nameIntervalBetweenInter: 'interval_between_interstitial',
+      nameIntervalFromStart: 'interval_interstitial_from_start',
+      nameIntervalInterAll: 'interval_inter_all',
+      onStartLoadBanner: () {},
+      remoteConfigKeys: [
+        RemoteConfigKey(name: 'show_ads', defaultValue: true, valueType: bool),
+        RemoteConfigKey(name: 'banner_ads', defaultValue: true, valueType: bool),
+        RemoteConfigKey(name: 'collap_reload_interval', defaultValue: 10, valueType: int),
+        RemoteConfigKey(name: 'collapse_banner', defaultValue: true, valueType: bool),
+        RemoteConfigKey(name: 'inter_ads', defaultValue: true, valueType: bool),
+        RemoteConfigKey(name: 'inter_splash', defaultValue: true, valueType: bool),
+        RemoteConfigKey(name: 'interval_between_interstitial', defaultValue: 20, valueType: int),
+        RemoteConfigKey(name: 'interval_inter_all', defaultValue: 30, valueType: int),
+        RemoteConfigKey(name: 'interval_interstitial_from_start', defaultValue: 5, valueType: int),
+        RemoteConfigKey(name: 'interval_reload_native', defaultValue: 5, valueType: int),
+        RemoteConfigKey(name: 'native_ads', defaultValue: true, valueType: bool),
+        RemoteConfigKey(name: 'open_splash', defaultValue: true, valueType: bool),
+        RemoteConfigKey(name: 'rate_aoa_inter_splash', defaultValue: '0_100', valueType: String),
+        RemoteConfigKey(name: 'resume_wb', defaultValue: true, valueType: bool),
+      ],
     );
   }
 

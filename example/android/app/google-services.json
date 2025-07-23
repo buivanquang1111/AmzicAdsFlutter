@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "190248196554",
+    "project_id": "amazic-ads-flutter",
+    "storage_bucket": "amazic-ads-flutter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:190248196554:android:905561c0fb9e9054cfd733",
+        "android_client_info": {
+          "package_name": "com.example.amazic_ads_flutter_example"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgXm2Ku4Q9zoYBnvKWA_Z7a5KSpJoaTiY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
