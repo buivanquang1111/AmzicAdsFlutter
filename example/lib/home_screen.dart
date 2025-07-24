@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
     initPlatformState();
 
     //load truoc ads reward all
-    RewardAdManager.instance.loadRewardAd(
+    Admob.instance.loadRewardAdConsecutive(
       idAds: 'ca-app-pub-3940256099942544/5224354917',
       config: true,
     );
@@ -253,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Builder(
             builder: (context) => GestureDetector(
               onTap: () {
-                RewardAdManager.instance.showRewardConsecutive(
+                Admob.instance.showRewardConsecutive(
                   idAds: 'ca-app-pub-3940256099942544/5224354917',
                   config: true,
                   count: 2,
@@ -264,11 +264,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 );
-                // RewardAdManager.instance.showRewardAd(
-                //   idAds: 'ca-app-pub-3940256099942544/5224354917',
-                //   config: true,
-                //   isLoadAdsBeforeNext: true,
-                // );
               },
               child: Center(
                 child: Container(

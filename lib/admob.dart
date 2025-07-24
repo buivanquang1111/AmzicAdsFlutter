@@ -1,6 +1,9 @@
 import 'dart:async';
 
+import 'package:amazic_ads_flutter/amazic_ads_flutter.dart';
 import 'package:amazic_ads_flutter/call_api/call_api.dart';
+import 'package:amazic_ads_flutter/manager_ad/app_open_manager.dart';
+import 'package:amazic_ads_flutter/manager_ad/inter_ads_manager.dart';
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
 import 'package:amazic_ads_flutter/utils/ad_foreground_observer.dart';
 import 'package:amazic_ads_flutter/utils/ad_helper.dart';
@@ -101,9 +104,7 @@ class Admob {
       onResponse: () {
         callIdAdsDoneCompleter.complete();
       },
-      onError: (p0) {
-
-      },
+      onError: (p0) {},
     );
 
     final Map<String, Future<void>> tasks = {
@@ -143,7 +144,7 @@ class Admob {
         print('admob_ads --- ❌ Task chưa xong: $task');
       }
     } else {
-      print('admob_ads --- 🎉 Tất cả task đã hoàn thành trong vòng 12 giây');
+      print('admob_ads --- 🎉 Tất cả task đã hoàn thành trong vòng <= 12 giây');
     }
 
     // runConcurrentTasksWithDependency();
@@ -339,88 +340,18 @@ class Admob {
     Function()? onAdFailedToLoad,
     Function()? onAdFailedToShow,
     Function()? onAdDismiss,
-    bool isShowAdSplash = false,
   }) async {
-    if (config == false ||
-        ConsentManager.instance.canRequestAds == false ||
-        isShowAllAds == false ||
-        (await isNetworkActive()) == false) {
-      print('admob_ads --- inter_ads: not load');
-      onAdDisable?.call();
-      return;
-    }
-    print('admob_ads --- inter_ads: start request');
-    if (navigatorKey.currentContext != null) {
-      showLoadingDialog(context: navigatorKey.currentContext!);
-    }
-
-    InterstitialAd.load(
-      adUnitId: idAds,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          print('admob_ads --- inter_ads: onAdLoaded');
-          onAdLoaded?.call();
-
-          ad.onPaidEvent = (ad, valueMicros, precision, currencyCode) {
-            print('admob_ads --- inter_ads: onPaidEvent');
-            AdjustUtil.instance.trackRevenue(
-              network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
-              revenue: valueMicros,
-              currency: currencyCode,
-            );
-          };
-
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdShowedFullScreenContent: (ad) {
-              print('admob_ads --- inter_ads: onAdShowedFullScreenContent');
-            },
-            onAdImpression: (ad) {
-              print('admob_ads --- inter_ads: onAdImpression');
-              setFullScreenAdShowing(true);
-              onAdImpression?.call();
-            },
-            onAdFailedToShowFullScreenContent: (ad, error) {
-              print('admob_ads --- inter_ads: onAdFailedToShowFullScreenContent ${error.message}');
-              setFullScreenAdShowing(false);
-              ad.dispose();
-              onAdFailedToShow?.call();
-            },
-            onAdDismissedFullScreenContent: (ad) {
-              print('admob_ads --- inter_ads: onAdDismissedFullScreenContent');
-              if (navigatorKey.currentContext != null) {
-                closeLoadingDialog(context: navigatorKey.currentContext!);
-              }
-              setFullScreenAdShowing(false);
-              if (isShowAdSplash == false) {
-                AdHelper.setLastTimeDismissInter();
-              }
-              ad.dispose();
-              onAdDismiss?.call();
-            },
-            onAdClicked: (ad) {
-              print('admob_ads --- inter_ads: onAdClicked');
-              onAdClicked?.call();
-            },
-          );
-          setFullScreenAdShowing(true);
-          checkAndShowAdForeground(
-            onShow: () {
-              print('admob_ads --- inter_ads: show');
-              ad.setImmersiveMode(true);
-              ad.show();
-            },
-          );
-        },
-        onAdFailedToLoad: (error) {
-          print('admob_ads --- inter_ads: onAdFailedToLoad ${error.message}');
-          setFullScreenAdShowing(false);
-          if (navigatorKey.currentContext != null) {
-            closeLoadingDialog(context: navigatorKey.currentContext!);
-          }
-          onAdFailedToLoad?.call();
-        },
-      ),
+    InterAdsManager.instance.loadAndShowInterAds(
+      navigatorKey: navigatorKey,
+      idAds: idAds,
+      config: config,
+      onAdDisable: onAdDisable,
+      onAdLoaded: onAdLoaded,
+      onAdImpression: onAdImpression,
+      onAdClicked: onAdClicked,
+      onAdFailedToLoad: onAdFailedToLoad,
+      onAdFailedToShow: onAdFailedToShow,
+      onAdDismiss: onAdDismiss,
     );
   }
 
@@ -437,88 +368,36 @@ class Admob {
     Function()? onAdDismiss,
     Function()? onUserEarnedReward,
   }) async {
-    if (config == false ||
-        ConsentManager.instance.canRequestAds == false ||
-        isShowAllAds == false ||
-        (await isNetworkActive()) == false) {
-      print('admob_ads --- reward_ads: not load');
-      onAdDisable?.call();
-      return;
-    }
-    print('admob_ads --- reward_ads: start request');
-    if (navigatorKey.currentContext != null) {
-      showLoadingDialog(context: navigatorKey.currentContext!);
-    }
+    RewardAdManager.instance.loadAndShowRewardAds(
+      navigatorKey: navigatorKey,
+      idAds: idAds,
+      config: config,
+      onAdDisable: onAdDisable,
+      onAdLoaded: onAdLoaded,
+      onAdImpression: onAdImpression,
+      onAdClicked: onAdClicked,
+      onAdFailedToLoad: onAdFailedToLoad,
+      onAdFailedToShow: onAdFailedToShow,
+      onAdDismiss: onAdDismiss,
+      onUserEarnedReward: onUserEarnedReward,
+    );
+  }
 
-    RewardedAd.load(
-      adUnitId: idAds,
-      request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) {
-          print('admob_ads --- reward_ads: onAdLoaded');
-          onAdLoaded?.call();
+  Future<void> loadRewardAdConsecutive({required String idAds, required bool config}) async {
+    RewardAdManager.instance.loadRewardAdConsecutive(idAds: idAds, config: config);
+  }
 
-          ad.onPaidEvent = (ad, valueMicros, precision, currencyCode) {
-            print('admob_ads --- reward_ads: onPaidEvent');
-            AdjustUtil.instance.trackRevenue(
-              network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
-              revenue: valueMicros,
-              currency: currencyCode,
-            );
-          };
-
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdShowedFullScreenContent: (ad) {
-              print('admob_ads --- reward_ads: onAdShowedFullScreenContent');
-            },
-            onAdImpression: (ad) {
-              print('admob_ads --- reward_ads: onAdImpression');
-              setFullScreenAdShowing(true);
-              onAdImpression?.call();
-            },
-            onAdFailedToShowFullScreenContent: (ad, error) {
-              print('admob_ads --- reward_ads: onAdFailedToShowFullScreenContent');
-              setFullScreenAdShowing(false);
-              ad.dispose();
-              onAdFailedToShow?.call();
-            },
-            onAdDismissedFullScreenContent: (ad) {
-              print('admob_ads --- reward_ads: onAdDismissedFullScreenContent');
-              if (navigatorKey.currentContext != null) {
-                closeLoadingDialog(context: navigatorKey.currentContext!);
-              }
-              setFullScreenAdShowing(false);
-              ad.dispose();
-              onAdDismiss?.call();
-            },
-            onAdClicked: (ad) {
-              print('admob_ads --- reward_ads: onAdClicked');
-              onAdClicked?.call();
-            },
-          );
-          setFullScreenAdShowing(true);
-          checkAndShowAdForeground(
-            onShow: () {
-              print('admob_ads --- reward_ads: show');
-              ad.setImmersiveMode(true);
-              ad.show(
-                onUserEarnedReward: (ad, reward) {
-                  print('admob_ads --- reward_ads: onUserEarnedReward');
-                  onUserEarnedReward?.call();
-                },
-              );
-            },
-          );
-        },
-        onAdFailedToLoad: (error) {
-          print('admob_ads --- reward_ads: onAdFailedToLoad');
-          setFullScreenAdShowing(false);
-          if (navigatorKey.currentContext != null) {
-            closeLoadingDialog(context: navigatorKey.currentContext!);
-          }
-          onAdFailedToLoad?.call();
-        },
-      ),
+  Future<void> showRewardConsecutive({
+    required String idAds,
+    required bool config,
+    required int count,
+    required VoidCallback onCompleted,
+  }) async {
+    RewardAdManager.instance.showRewardConsecutive(
+      idAds: idAds,
+      config: config,
+      count: count,
+      onCompleted: onCompleted,
     );
   }
 
@@ -534,84 +413,17 @@ class Admob {
     Function()? onAdFailedToShow,
     Function()? onAdDismiss,
   }) async {
-    if (config == false ||
-        ConsentManager.instance.canRequestAds == false ||
-        isShowAllAds == false ||
-        (await isNetworkActive()) == false) {
-      print('admob_ads --- app_open_ads: not load');
-      onAdDisable?.call();
-      return;
-    }
-
-    print('admob_ads --- app_open_ads: start request');
-    if (navigatorKey.currentContext != null) {
-      showLoadingDialog(context: navigatorKey.currentContext!);
-    }
-
-    AppOpenAd.load(
-      adUnitId: idAds,
-      request: const AdRequest(),
-      adLoadCallback: AppOpenAdLoadCallback(
-        onAdLoaded: (ad) {
-          print('admob_ads --- app_open_ads: onAdLoaded');
-          onAdLoaded?.call();
-
-          ad.onPaidEvent = (ad, valueMicros, precision, currencyCode) {
-            print('admob_ads --- app_open_ads: onPaidEvent');
-            AdjustUtil.instance.trackRevenue(
-              network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
-              revenue: valueMicros,
-              currency: currencyCode,
-            );
-          };
-
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdShowedFullScreenContent: (ad) {
-              print('admob_ads --- app_open_ads: onAdShowedFullScreenContent');
-            },
-            onAdImpression: (ad) {
-              print('admob_ads --- app_open_ads: onAdImpression');
-              setFullScreenAdShowing(true);
-              onAdImpression?.call();
-            },
-            onAdFailedToShowFullScreenContent: (ad, error) {
-              print('admob_ads --- app_open_ads: onAdFailedToShowFullScreenContent');
-              setFullScreenAdShowing(false);
-              ad.dispose();
-              onAdFailedToShow?.call();
-            },
-            onAdDismissedFullScreenContent: (ad) {
-              print('admob_ads --- app_open_ads: onAdDismissedFullScreenContent');
-              if (navigatorKey.currentContext != null) {
-                closeLoadingDialog(context: navigatorKey.currentContext!);
-              }
-              setFullScreenAdShowing(false);
-              ad.dispose();
-              onAdDismiss?.call();
-            },
-            onAdClicked: (ad) {
-              print('admob_ads --- app_open_ads: onAdClicked');
-              onAdClicked?.call();
-            },
-          );
-
-          setFullScreenAdShowing(true);
-          checkAndShowAdForeground(
-            onShow: () {
-              print('admob_ads --- app_open_ads: show');
-              ad.show();
-            },
-          );
-        },
-        onAdFailedToLoad: (error) {
-          print('admob_ads --- app_open_ads: onAdFailedToLoad');
-          setFullScreenAdShowing(false);
-          onAdFailedToLoad?.call();
-          if (navigatorKey.currentContext != null) {
-            closeLoadingDialog(context: navigatorKey.currentContext!);
-          }
-        },
-      ),
+    AppOpenManager.instance.loadAndShowAppOpenAds(
+      navigatorKey: navigatorKey,
+      idAds: idAds,
+      config: config,
+      onAdDisable: onAdDisable,
+      onAdLoaded: onAdLoaded,
+      onAdImpression: onAdImpression,
+      onAdClicked: onAdClicked,
+      onAdFailedToLoad: onAdFailedToLoad,
+      onAdFailedToShow: onAdFailedToShow,
+      onAdDismiss: onAdDismiss,
     );
   }
 
@@ -624,7 +436,7 @@ class Admob {
     required Function() onNext,
   }) async {
     if (AdHelper.splashType == AdsSplashType.open) {
-      loadAndShowAppOpenAds(
+      AppOpenManager.instance.loadAndShowAppOpenSplash(
         navigatorKey: navigatorKey,
         idAds: idAdsAppOpen,
         config: configAppOpen,
@@ -632,11 +444,14 @@ class Admob {
           Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
           onNext();
         },
-        onAdFailedToShow: () {
+        onAdLoaded: () {},
+        onAdImpression: () {},
+        onAdClicked: () {},
+        onAdFailedToLoad: () {
           Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
           onNext();
         },
-        onAdFailedToLoad: () {
+        onAdFailedToShow: () {
           Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
           onNext();
         },
@@ -644,16 +459,12 @@ class Admob {
           Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
           onNext();
         },
-        onAdClicked: () {},
-        onAdImpression: () {},
-        onAdLoaded: () {},
       );
     } else if (AdHelper.splashType == AdsSplashType.inter) {
-      loadAndShowInterAds(
+      InterAdsManager.instance.loadAndShowInterSplash(
         navigatorKey: navigatorKey,
         idAds: idAdsInter,
         config: configInter,
-        isShowAdSplash: true,
         onAdLoaded: () {},
         onAdImpression: () {},
         onAdClicked: () {},
@@ -714,99 +525,6 @@ class Admob {
         'admob_ads --- inter_ads: not canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
       );
       onAdDisable?.call();
-    }
-  }
-
-  Future<void> loadRewardAd({
-    required String idAds,
-    required bool config,
-    required Function(RewardedAd) onAdLoaded,
-    required Function() onAdFailedToLoad,
-  }) async {
-    if (config == false ||
-        ConsentManager.instance.canRequestAds == false ||
-        isShowAllAds == false ||
-        (await isNetworkActive()) == false) {
-      print('admob_ads --- reward_ads - load_before: not load');
-      return;
-    }
-
-    print('admob_ads --- reward_ads - load_before: start request');
-
-    RewardedAd.load(
-      adUnitId: idAds,
-      request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) {
-          print('admob_ads --- reward_ads - load_before: onAdLoaded');
-          onAdLoaded.call(ad);
-          ad.onPaidEvent = (ad, valueMicros, precision, currencyCode) {
-            print('admob_ads --- reward_ads - load_before: onPaidEvent');
-            AdjustUtil.instance.trackRevenue(
-              network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
-              revenue: valueMicros,
-              currency: currencyCode,
-            );
-          };
-        },
-        onAdFailedToLoad: (error) {
-          print('admob_ads --- reward_ads - load_before: onAdFailedToLoad - $error}');
-          onAdFailedToLoad.call();
-        },
-      ),
-    );
-  }
-
-  Future<void> showRewardAd({
-    required RewardedAd? rewardedAd,
-    required bool config,
-    required Function() onAdImpression,
-    required Function() onAdClicked,
-    required Function() onAdFailedToShow,
-    required Function() onAdDismiss,
-    required Function() onUserEarnedReward,
-  }) async {
-    if (config == false ||
-        ConsentManager.instance.canRequestAds == false ||
-        isShowAllAds == false ||
-        (await isNetworkActive()) == false) {
-      print('admob_ads --- reward_ads - load_before: not show');
-      return;
-    }
-    if (rewardedAd != null) {
-      rewardedAd.fullScreenContentCallback = FullScreenContentCallback(
-        onAdImpression: (ad) {
-          print('admob_ads --- reward_ads - load_before: onAdImpression');
-          onAdImpression.call();
-        },
-        onAdClicked: (ad) {
-          print('admob_ads --- reward_ads - load_before: onAdClicked');
-          onAdClicked.call();
-        },
-        onAdDismissedFullScreenContent: (ad) {
-          print('admob_ads --- reward_ads - load_before: onAdDismissedFullScreenContent');
-          onAdDismiss.call();
-        },
-        onAdFailedToShowFullScreenContent: (ad, error) {
-          print('admob_ads --- reward_ads - load_before: onAdFailedToShowFullScreenContent');
-          onAdFailedToShow.call();
-        },
-        onAdShowedFullScreenContent: (ad) {
-          print('admob_ads --- reward_ads - load_before: onAdShowedFullScreenContent');
-        },
-        onAdWillDismissFullScreenContent: (ad) {
-          print('admob_ads --- reward_ads - load_before: onAdWillDismissFullScreenContent');
-        },
-      );
-      print('admob_ads --- reward_ads - load_before: show');
-      rewardedAd.show(
-        onUserEarnedReward: (ad, reward) {
-          print('admob_ads --- reward_ads - load_before: onUserEarnedReward');
-          onUserEarnedReward.call();
-        },
-      );
-    } else {
-      print('admob_ads --- reward_ads - load_before: not show rewardAd - null');
     }
   }
 }

@@ -4,4 +4,6 @@ export 'package:amazic_ads_flutter/ads/native_ads.dart';
 export 'package:amazic_ads_flutter/ads/collapse_banner_ads.dart';
 export 'package:amazic_ads_flutter/ads/banner_detect_test_ads.dart';
 export 'package:amazic_ads_flutter/enum/collapse_banner_type.dart';
-export 'package:amazic_ads_flutter/manager/reward_ad_manager.dart';
+export 'package:amazic_ads_flutter/manager_ad/reward_ad_manager.dart';
+export 'package:amazic_ads_flutter/manager_ad/app_open_manager.dart';
+export 'package:amazic_ads_flutter/manager_ad/inter_ads_manager.dart';
