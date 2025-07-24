@@ -6,6 +6,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../ump/consent_manager.dart';
 import '../utils/adjust_util.dart';
+import '../utils/event_log.dart';
 import '../utils/utils.dart';
 
 class AppOpenManager {
@@ -40,6 +41,7 @@ class AppOpenManager {
     Future.delayed(const Duration(seconds: 12), () {
       if (!adHasShown) {
         print('admob_ads --- app_open_ads_splash: Timeout 12s - cancel show ads splash');
+        EventLog.logEvent('inter_splash_id_timeout');
         timeoutCompleter.complete();
         onAdDisable?.call();
       }
@@ -67,6 +69,8 @@ class AppOpenManager {
     if (navigatorKey.currentContext != null) {
       showLoadingDialog(context: navigatorKey.currentContext!);
     }
+
+    EventLog.logEvent('inter_splash_true');
 
     AppOpenAd.load(
       adUnitId: idAds,
@@ -111,7 +115,7 @@ class AppOpenManager {
     );
     print('admob_ads --- app_open_ads_splash: đợi timeout xem đã Xong hay được Huỷ chưa');
     await timeoutCompleter.future;
-    print('admob_ads --- app_open_ads_splash: timeout đã Xong tiếp tục xử lý');
+    print('admob_ads --- app_open_ads_splash: timeout ads splash đã Xong tiếp tục xử lý');
   }
 
   Future<void> showAppOpenAdsSplash({
@@ -185,6 +189,7 @@ class AppOpenManager {
     required Function()? onAdFailedToLoad,
     required Function()? onAdFailedToShow,
     required Function()? onAdDismiss,
+    required String name,
   }) async {
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
@@ -225,6 +230,7 @@ class AppOpenManager {
               print('admob_ads --- app_open_ads: onAdImpression');
               Admob.instance.setFullScreenAdShowing(true);
               onAdImpression?.call();
+              EventLog.logEvent('${name}_view');
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
               print('admob_ads --- app_open_ads: onAdFailedToShowFullScreenContent');
@@ -247,6 +253,7 @@ class AppOpenManager {
             onAdClicked: (ad) {
               print('admob_ads --- app_open_ads: onAdClicked');
               onAdClicked?.call();
+              EventLog.logEvent('${name}_view');
             },
           );
 

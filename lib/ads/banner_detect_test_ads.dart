@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:amazic_ads_flutter/admob.dart';
 import 'package:amazic_ads_flutter/shimmer/shimmer_banner_ads.dart';
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
+import 'package:amazic_ads_flutter/utils/event_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -18,6 +19,8 @@ class BannerDetectTestAds extends StatefulWidget {
   final Function()? onAdDisable;
   final Function()? onAdClosed;
   final Function() onCoreTechnologyTestAd;
+  /// dùng trong việc log event của tên quảng cáo vd: banner_all
+  final String name;
 
   const BannerDetectTestAds({
     super.key,
@@ -31,6 +34,7 @@ class BannerDetectTestAds extends StatefulWidget {
     this.onAdDisable,
     this.onAdClosed,
     required this.onCoreTechnologyTestAd,
+    required this.name,
   });
 
   @override
@@ -77,6 +81,7 @@ class _BannerDetectTestAdsState extends State<BannerDetectTestAds> {
           case 'onAdClicked':
             print('banner_splash_platform --- Ad Clicked');
             widget.onAdClicked?.call();
+            EventLog.logEvent('${widget.name}_click');
             break;
           case 'onAdFailedToLoad':
             print('banner_splash_platform --- Ad Failed to Load: ${event?['error']}');
@@ -89,6 +94,7 @@ class _BannerDetectTestAdsState extends State<BannerDetectTestAds> {
           case 'onAdImpression':
             print('banner_splash_platform --- Ad Impression');
             widget.onAdImpression?.call();
+            EventLog.logEvent('${widget.name}_view');
             setState(() {
               isShowAd = true;
             });

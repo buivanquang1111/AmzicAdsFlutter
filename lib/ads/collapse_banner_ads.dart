@@ -4,6 +4,7 @@ import 'package:amazic_ads_flutter/amazic_ads_flutter.dart';
 import 'package:amazic_ads_flutter/shimmer/shimmer_banner_ads.dart';
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
 import 'package:amazic_ads_flutter/utils/adjust_util.dart';
+import 'package:amazic_ads_flutter/utils/event_log.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -17,6 +18,8 @@ class CollapseBannerAds extends StatefulWidget {
   final Function()? onAdClicked;
   final Function()? onAdDisable;
   final int refreshSec;
+  /// dùng trong việc log event của tên quảng cáo vd: banner_all
+  final String name;
 
   const CollapseBannerAds({
     super.key,
@@ -29,6 +32,7 @@ class CollapseBannerAds extends StatefulWidget {
     this.onAdImpression,
     this.onAdClicked,
     this.onAdDisable,
+    required this.name,
   });
 
   @override
@@ -171,10 +175,12 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
           print('admob_ads --- collapse_banner: onAdImpression');
           startRefreshTime();
           widget.onAdImpression?.call();
+          EventLog.logEvent('${widget.name}_view');
         },
         onAdClicked: (ad) {
           print('admob_ads --- collapse_banner: onAdClicked');
           widget.onAdClicked?.call();
+          EventLog.logEvent('${widget.name}_click');
         },
         onAdClosed: (ad) {
           print('admob_ads --- collapse_banner: onAdClosed');

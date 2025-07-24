@@ -16,6 +16,7 @@ class WelcomeBackScreen extends StatelessWidget {
             builder: (context) => GestureDetector(
               onTap: () {
                 Admob.instance.appLifecycleReactor?.loadAndShowAppOpenAds(
+                  name: 'app_open_welcome',
                   onAdDisable: () {
                     Navigator.pop(context);
                   },

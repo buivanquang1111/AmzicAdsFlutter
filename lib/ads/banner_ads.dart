@@ -1,6 +1,7 @@
 import 'package:amazic_ads_flutter/admob.dart';
 import 'package:amazic_ads_flutter/shimmer/shimmer_banner_ads.dart';
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
+import 'package:amazic_ads_flutter/utils/event_log.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -14,6 +15,8 @@ class BannerAds extends StatefulWidget {
   final Function()? onAdClicked;
   final Function()? onAdDisable;
   final bool config;
+  /// dùng trong việc log event của tên quảng cáo vd: banner_all
+  final String name;
 
   const BannerAds({
     super.key,
@@ -24,6 +27,7 @@ class BannerAds extends StatefulWidget {
     this.onAdClicked,
     this.onAdDisable,
     required this.config,
+    required this.name,
   });
 
   @override
@@ -76,7 +80,10 @@ class _BannerAdsState extends State<BannerAds> {
 
   loadAds() async {
     final size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-      MediaQuery.sizeOf(context).width.truncate(),
+      MediaQuery
+          .sizeOf(context)
+          .width
+          .truncate(),
     );
     print('admob_ads --- banner_ads: size= $size');
     if (size == null) {
@@ -128,10 +135,12 @@ class _BannerAdsState extends State<BannerAds> {
         onAdImpression: (ad) {
           print('admob_ads --- banner_ads: onAdImpression');
           widget.onAdImpression?.call();
+          EventLog.logEvent('${widget.name}_view');
         },
         onAdClicked: (ad) {
           print('admob_ads --- banner_ads: onAdClicked');
           widget.onAdClicked?.call();
+          EventLog.logEvent('${widget.name}_click');
         },
         onAdClosed: (ad) {
           print('admob_ads --- banner_ads: onAdClosed');

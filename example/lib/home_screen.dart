@@ -104,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   idAds: 'ca-app-pub-3940256099942544/1033173712',
                   config: true,
                   isInterAll: true,
+                  name: 'inter_all',
                   onAdDisable: () {
                     Navigator.push(
                       context,
@@ -175,6 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   navigatorKey: navigatorKey,
                   idAds: 'ca-app-pub-3940256099942544/5224354917',
                   config: true,
+                  name: 'reward_all',
                   onAdDisable: () {
                     Navigator.push(
                       context,
@@ -210,6 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   navigatorKey: navigatorKey,
                   idAds: 'ca-app-pub-3940256099942544/9257395921',
                   config: true,
+                  name: 'app_open_all',
                   onAdDisable: () {
                     Navigator.push(
                       context,
@@ -257,6 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   idAds: 'ca-app-pub-3940256099942544/5224354917',
                   config: true,
                   count: 2,
+                  name: 'reward2_all',
                   onCompleted: () {
                     Navigator.push(
                       context,

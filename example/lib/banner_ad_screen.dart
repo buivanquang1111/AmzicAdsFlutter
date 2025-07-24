@@ -16,10 +16,15 @@ class BannerAdScreen extends StatelessWidget {
           BannerDetectTestAds(
             idAds: 'ca-app-pub-3940256099942544/6300978111',
             config: true,
+            name: 'banner_test_ad',
             onCoreTechnologyTestAd: () {},
           ),
           Text('banner ads'),
-          BannerAds(idAds: 'ca-app-pub-3940256099942544/6300978111', config: true),
+          BannerAds(
+            idAds: 'ca-app-pub-3940256099942544/6300978111',
+            config: true,
+            name: 'banner_all',
+          ),
         ],
       ),
     );

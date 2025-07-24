@@ -14,6 +14,7 @@ class NativeAdScreen extends StatelessWidget {
         height: 300,
         factoryId: 'native_ad',
         refreshSec: 10,
+        name: 'native_all',
       ),
     );
   }

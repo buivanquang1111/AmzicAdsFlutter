@@ -9,6 +9,8 @@ import 'package:amazic_ads_flutter/utils/ad_foreground_observer.dart';
 import 'package:amazic_ads_flutter/utils/ad_helper.dart';
 import 'package:amazic_ads_flutter/utils/adjust_util.dart';
 import 'package:amazic_ads_flutter/utils/app_lifecycle_reactor.dart';
+import 'package:amazic_ads_flutter/utils/event_log.dart';
+import 'package:amazic_ads_flutter/utils/preferences_util.dart';
 import 'package:amazic_ads_flutter/utils/remote_config.dart';
 import 'package:amazic_ads_flutter/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +49,22 @@ class Admob {
 
   String get eventTrackingAdjust => _eventTracking;
 
+  ///timeout check 12s
+  bool isNextTimeout = false; // biến check xem đã chuyển màn trong timeout splash
+  bool isTimeoutSplash = false;
+  final timeoutSplashCompleter = Completer<void>();
+
+  void handleTimeOut() {
+    if (!isTimeoutSplash) {
+      isTimeoutSplash = true;
+      print('admob_ads --- handle Timeout kết thúc check timeout');
+      if (!timeoutSplashCompleter.isCompleted) timeoutSplashCompleter.complete();
+    }
+  }
+
+  ///đếm thời gian từ lúc vào màn đến khi show ads splash
+  final stopWatch = Stopwatch();
+
   Future<void> init({
     required String? linkServer,
     required String? appId,
@@ -68,6 +86,18 @@ class Admob {
     required List<RemoteConfigKey> remoteConfigKeys,
     String? eventAdjustTracking,
   }) async {
+    ///start count time show ads
+    stopWatch.start();
+
+    ///init Preferences
+    await PreferencesUtil.init();
+    PreferencesUtil.increaseCountOpenApp();
+
+    ///logevent internet
+    if (await isNetworkActive() == true) {
+      EventLog.logEvent('splash_have_internet');
+    }
+
     ///set event adjust
     if (eventAdjustTracking != null) {
       setEventTrackingAdjust(eventAdjustTracking);
@@ -133,7 +163,15 @@ class Admob {
     });
 
     // Đợi 12 giây
-    await Future.delayed(const Duration(seconds: 12));
+    await Future.delayed(const Duration(seconds: 12), () {
+      if (!isTimeoutSplash) {
+        print('admob_ads --- Timeout Splash 12s');
+        EventLog.logEvent('timeout_splash_12s');
+        timeoutSplashCompleter.complete();
+        isNextTimeout = true;
+        onNext();
+      }
+    });
 
     // Kiểm tra tiến trình chưa hoàn thành
     final notFinished = taskCompleted.entries.where((e) => !e.value).map((e) => e.key).toList();
@@ -244,6 +282,7 @@ class Admob {
             config: true,
             isShowWelComeScreenAfterAppOpenAds: isShowWelComeScreenAfterAppOpenAds,
             onGotoWelcomeBack: onGotoScreenWelcomeBack,
+            name: nameIdAdsResume
           );
           appLifecycleReactor?.listenToAppStateChanges();
 
@@ -256,14 +295,20 @@ class Admob {
             configInter: RemoteConfig.getBool(nameConfigInterSplash),
             rateAoa: RemoteConfig.getString(nameRateAoa),
           );
-          initAndShowAdSplash(
-            navigatorKey: navigatorKey,
-            idAdsAppOpen: CallApi.instance.getListIDByName(nameIdAdsAppOpenSplash)[0],
-            idAdsInter: CallApi.instance.getListIDByName(nameIdAdsInterSplash)[0],
-            configAppOpen: RemoteConfig.getBool(nameConfigAppOpenSplash),
-            configInter: RemoteConfig.getBool(nameConfigInterSplash),
-            onNext: onNext,
-          );
+
+          handleTimeOut();
+
+          if (!isNextTimeout) {
+            initAndShowAdSplash(
+              navigatorKey: navigatorKey,
+              idAdsAppOpen: CallApi.instance.getListIDByName(nameIdAdsAppOpenSplash)[0],
+              idAdsInter: CallApi.instance.getListIDByName(nameIdAdsInterSplash)[0],
+              configAppOpen: RemoteConfig.getBool(nameConfigAppOpenSplash),
+              configInter: RemoteConfig.getBool(nameConfigInterSplash),
+              rateAoa: RemoteConfig.getString(nameRateAoa),
+              onNext: onNext,
+            );
+          }
         } else {
           onNext();
         }
@@ -287,6 +332,7 @@ class Admob {
     required Function(String) onError,
   }) async {
     print('admob_ads --- ▶️ Bắt đầu CALL_ID_ADS');
+    // await Future.delayed(const Duration(seconds: 14));
     await CallApi.instance.callAds(
       linkServer: linkServer,
       appId: appId,
@@ -340,6 +386,7 @@ class Admob {
     Function()? onAdFailedToLoad,
     Function()? onAdFailedToShow,
     Function()? onAdDismiss,
+    required String name,
   }) async {
     InterAdsManager.instance.loadAndShowInterAds(
       navigatorKey: navigatorKey,
@@ -352,6 +399,7 @@ class Admob {
       onAdFailedToLoad: onAdFailedToLoad,
       onAdFailedToShow: onAdFailedToShow,
       onAdDismiss: onAdDismiss,
+      name: name,
     );
   }
 
@@ -367,6 +415,7 @@ class Admob {
     Function()? onAdFailedToShow,
     Function()? onAdDismiss,
     Function()? onUserEarnedReward,
+    required String name,
   }) async {
     RewardAdManager.instance.loadAndShowRewardAds(
       navigatorKey: navigatorKey,
@@ -380,6 +429,7 @@ class Admob {
       onAdFailedToShow: onAdFailedToShow,
       onAdDismiss: onAdDismiss,
       onUserEarnedReward: onUserEarnedReward,
+      name: name,
     );
   }
 
@@ -392,12 +442,14 @@ class Admob {
     required bool config,
     required int count,
     required VoidCallback onCompleted,
+    required String name,
   }) async {
     RewardAdManager.instance.showRewardConsecutive(
       idAds: idAds,
       config: config,
       count: count,
       onCompleted: onCompleted,
+      name: name
     );
   }
 
@@ -412,6 +464,7 @@ class Admob {
     Function()? onAdFailedToLoad,
     Function()? onAdFailedToShow,
     Function()? onAdDismiss,
+    required String name,
   }) async {
     AppOpenManager.instance.loadAndShowAppOpenAds(
       navigatorKey: navigatorKey,
@@ -424,6 +477,7 @@ class Admob {
       onAdFailedToLoad: onAdFailedToLoad,
       onAdFailedToShow: onAdFailedToShow,
       onAdDismiss: onAdDismiss,
+      name: name
     );
   }
 
@@ -433,6 +487,7 @@ class Admob {
     required String idAdsInter,
     required bool configAppOpen,
     required bool configInter,
+    required String rateAoa,
     required Function() onNext,
   }) async {
     if (AdHelper.splashType == AdsSplashType.open) {
@@ -445,8 +500,21 @@ class Admob {
           onNext();
         },
         onAdLoaded: () {},
-        onAdImpression: () {},
-        onAdClicked: () {},
+        onAdImpression: () {
+          ///stop dem time show ads
+          stopWatch.stop();
+          final secondsShowAds = stopWatch.elapsed.inSeconds;
+          print('admob_ads --- open_splash: time show ads splash - $secondsShowAds');
+          EventLog.logEvent(
+            'inter_splash_showad_time',
+            parameters: {'showad_time': '${configAppOpen}_$secondsShowAds'},
+          );
+
+          EventLog.logEvent('inter_splash_impression_${PreferencesUtil.getCountOpenApp()}');
+        },
+        onAdClicked: () {
+          EventLog.logEvent('inter_splash_click_${PreferencesUtil.getCountOpenApp()}');
+        },
         onAdFailedToLoad: () {
           Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
           onNext();
@@ -466,8 +534,21 @@ class Admob {
         idAds: idAdsInter,
         config: configInter,
         onAdLoaded: () {},
-        onAdImpression: () {},
-        onAdClicked: () {},
+        onAdImpression: () {
+          ///stop dem time show ads
+          stopWatch.stop();
+          final secondsShowAds = stopWatch.elapsed.inSeconds;
+          print('admob_ads --- inter_splash: time show ads splash - $secondsShowAds');
+          EventLog.logEvent(
+            'inter_splash_showad_time',
+            parameters: {'showad_time': '${configAppOpen}_$secondsShowAds'},
+          );
+
+          EventLog.logEvent('inter_splash_impression_${PreferencesUtil.getCountOpenApp()}');
+        },
+        onAdClicked: () {
+          EventLog.logEvent('inter_splash_click_${PreferencesUtil.getCountOpenApp()}');
+        },
         onAdDismiss: () {
           Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
           onNext();
@@ -489,6 +570,20 @@ class Admob {
       Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
       onNext();
     }
+
+    ///logEvent
+    final isHaveInternet = await isNetworkActive();
+    final ump = await getConsentResult();
+    EventLog.logEvent(
+      'inter_splash_tracking',
+      parameters: {
+        'splash_detail': '${ump}_${isHaveInternet}_${isShowAllAds}_$rateAoa',
+        'ump': '$ump',
+        'haveinternet': '$isHaveInternet',
+        'showallad': '$isShowAllAds',
+        'interremote_openremote_aoavalue': '${configInter}_${configAppOpen}_$rateAoa',
+      },
+    );
   }
 
   Future<void> loadAndShowInterInterval({
@@ -503,6 +598,7 @@ class Admob {
     Function()? onAdFailedToLoad,
     Function()? onAdFailedToShow,
     Function()? onAdDismiss,
+    required String name
   }) async {
     if (AdHelper.canShowNextInter(isInterAll: isInterAll)) {
       print(
@@ -519,6 +615,7 @@ class Admob {
         onAdClicked: onAdClicked,
         onAdImpression: onAdImpression,
         onAdLoaded: onAdLoaded,
+        name: name,
       );
     } else {
       print(

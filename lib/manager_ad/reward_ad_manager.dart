@@ -6,6 +6,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../ump/consent_manager.dart';
 import '../utils/adjust_util.dart';
+import '../utils/event_log.dart';
 import '../utils/utils.dart';
 
 class RewardAdManager {
@@ -42,6 +43,7 @@ class RewardAdManager {
     Function()? onAdFailedToShow,
     Function()? onAdDismiss,
     Function()? onUserEarnedReward,
+    required String name,
   }) {
     showRewardAd(
       rewardedAd: rewardAds[idAds],
@@ -61,6 +63,7 @@ class RewardAdManager {
       onUserEarnedReward: () {
         onUserEarnedReward?.call();
       },
+      name: name
     );
     rewardAds[idAds] = null;
     if (isLoadAdsBeforeNext == true) {
@@ -73,6 +76,7 @@ class RewardAdManager {
     required bool config,
     required int count,
     required VoidCallback onCompleted,
+    required String name,
   }) {
     int current = 0;
     bool isRewardEarned =
@@ -90,6 +94,7 @@ class RewardAdManager {
         idAds: idAds,
         config: config,
         isLoadAdsBeforeNext: true,
+        name: name,
         onUserEarnedReward: () {
           isRewardEarned = true;
           print(
@@ -173,6 +178,7 @@ class RewardAdManager {
     required Function() onAdFailedToShow,
     required Function() onAdDismiss,
     required Function() onUserEarnedReward,
+    required String name,
   }) async {
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
@@ -186,10 +192,12 @@ class RewardAdManager {
         onAdImpression: (ad) {
           print('admob_ads --- reward_ads - load_before: onAdImpression');
           onAdImpression.call();
+          EventLog.logEvent('${name}_view');
         },
         onAdClicked: (ad) {
           print('admob_ads --- reward_ads - load_before: onAdClicked');
           onAdClicked.call();
+          EventLog.logEvent('${name}_click');
         },
         onAdDismissedFullScreenContent: (ad) {
           print('admob_ads --- reward_ads - load_before: onAdDismissedFullScreenContent');
@@ -231,6 +239,7 @@ class RewardAdManager {
     required Function()? onAdFailedToShow,
     required Function()? onAdDismiss,
     required Function()? onUserEarnedReward,
+    required String name,
   }) async {
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
@@ -270,6 +279,7 @@ class RewardAdManager {
               print('admob_ads --- reward_ads: onAdImpression');
               Admob.instance.setFullScreenAdShowing(true);
               onAdImpression?.call();
+              EventLog.logEvent('${name}_view');
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
               print('admob_ads --- reward_ads: onAdFailedToShowFullScreenContent');
@@ -292,6 +302,7 @@ class RewardAdManager {
             onAdClicked: (ad) {
               print('admob_ads --- reward_ads: onAdClicked');
               onAdClicked?.call();
+              EventLog.logEvent('${name}_click');
             },
           );
           Admob.instance.setFullScreenAdShowing(true);

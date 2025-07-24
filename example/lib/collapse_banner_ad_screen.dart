@@ -33,6 +33,7 @@ class _CollapseBannerAdScreenState extends State<CollapseBannerAdScreen> {
       type: CollapseBannerType.collapsible_bottom,
       config: true,
       refreshSec: 10,
+      name: 'collapse_banner_all',
     );
   }
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:amazic_ads_flutter/admob.dart';
+import 'package:amazic_ads_flutter/utils/event_log.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -41,6 +42,7 @@ class InterAdsManager {
     Future.delayed(const Duration(seconds: 12), () {
       if (!adHasShown) {
         print('admob_ads --- inter_ads_splash: Timeout 12s - cancel show ads splash');
+        EventLog.logEvent('inter_splash_id_timeout');
         timeoutCompleter.complete();
         onAdDisable?.call();
       }
@@ -67,6 +69,8 @@ class InterAdsManager {
     if (navigatorKey.currentContext != null) {
       showLoadingDialog(context: navigatorKey.currentContext!);
     }
+
+    EventLog.logEvent('inter_splash_true');
 
     InterstitialAd.load(
       adUnitId: idAds,
@@ -111,7 +115,7 @@ class InterAdsManager {
 
     print('admob_ads --- inter_ads_splash: đợi timeout xem đã xong hay được huỷ chưa');
     await timeoutCompleter.future;
-    print('admob_ads --- inter_ads_splash: timeout đã xong tiếp tục xử lý');
+    print('admob_ads --- inter_ads_splash: timeout ads splash đã xong tiếp tục xử lý');
   }
 
   Future<void> showInterAdsSplash({
@@ -185,6 +189,7 @@ class InterAdsManager {
     required Function()? onAdFailedToLoad,
     required Function()? onAdFailedToShow,
     required Function()? onAdDismiss,
+    required String name,
   }) async {
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
@@ -224,6 +229,7 @@ class InterAdsManager {
               print('admob_ads --- inter_ads: onAdImpression');
               Admob.instance.setFullScreenAdShowing(true);
               onAdImpression?.call();
+              EventLog.logEvent('${name}_view');
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
               print('admob_ads --- inter_ads: onAdFailedToShowFullScreenContent ${error.message}');
@@ -247,6 +253,7 @@ class InterAdsManager {
             onAdClicked: (ad) {
               print('admob_ads --- inter_ads: onAdClicked');
               onAdClicked?.call();
+              EventLog.logEvent('${name}_click');
             },
           );
           Admob.instance.setFullScreenAdShowing(true);

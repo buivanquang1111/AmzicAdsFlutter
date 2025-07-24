@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:amazic_ads_flutter/admob.dart';
 import 'package:amazic_ads_flutter/shimmer/shimmer_native_ads.dart';
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
+import 'package:amazic_ads_flutter/utils/event_log.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -19,6 +20,8 @@ class NativeAds extends StatefulWidget {
   final Function()? onAdImpression;
   final Function()? onAdClicked;
   final int refreshSec;
+  /// dùng trong việc log event của tên quảng cáo vd: banner_all
+  final String name;
 
   const NativeAds({
     super.key,
@@ -32,6 +35,7 @@ class NativeAds extends StatefulWidget {
     this.onAdFailedToLoad,
     this.onAdImpression,
     this.onAdClicked,
+    required this.name,
   });
 
   @override
@@ -70,6 +74,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
       stopRefreshTime();
     }else if(state == AppLifecycleState.resumed){
       print('admob_ads --- native_ads: AppLifecycleState.resumed');
+      print('admob_ads --- native_ads: AppLifecycleState.resumed - startRefreshTime');
       startRefreshTime();
     }
   }
@@ -143,6 +148,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
               _shouldHide = true;
             });
           }
+          print('admob_ads --- native_ads: onAdFailedToLoad - startRefreshTime');
           startRefreshTime();
           widget.onAdFailedToLoad?.call();
         },
@@ -157,8 +163,10 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
         },
         onAdImpression: (ad) {
           print('admob_ads --- native_ads: onAdImpression');
+          print('admob_ads --- native_ads: onAdImpression - startRefreshTime');
           startRefreshTime();
           widget.onAdImpression?.call();
+          EventLog.logEvent('${widget.name}_view');
         },
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {
           print('admob_ads --- native_ads: onPaidEvent');
@@ -171,6 +179,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
         onAdClicked: (ad) {
           print('admob_ads --- native_ads: onAdClicked');
           widget.onAdClicked?.call();
+          EventLog.logEvent('${widget.name}_click');
         },
       ),
       request: const AdRequest(),
@@ -233,6 +242,11 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
         },
         onAdImpression: (ad) {
           print('admob_ads --- native_ads: Quietly - onAdImpression');
+          EventLog.logEvent('${widget.name}_view');
+        },
+        onAdClicked: (ad) {
+          print('admob_ads --- native_ads: Quietly - onAdClicked');
+          EventLog.logEvent('${widget.name}_click');
         },
       ),
       request: const AdRequest(),

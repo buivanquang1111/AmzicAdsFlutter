@@ -10,12 +10,14 @@ class AppLifecycleReactor {
   isShowWelComeScreenAfterAppOpenAds; // false - show WelcomeBackScreen truoc ads, true - show WelcomeBack sau ads
   bool config;
   Function()? onGotoWelcomeBack;
+  String name;
 
   AppLifecycleReactor({
     required this.navigatorKey,
     required this.idAds,
     required this.config,
     required this.isShowWelComeScreenAfterAppOpenAds,
+    required this.name,
     this.onGotoWelcomeBack,
   });
 
@@ -70,6 +72,7 @@ class AppLifecycleReactor {
             navigatorKey: navigatorKey,
             idAds: idAds,
             config: config,
+            name: name,
             onAdDismiss: () {
               setShowScreenWelcomeBack();
             },
@@ -99,12 +102,14 @@ class AppLifecycleReactor {
     required Function() onAdFailedToLoad,
     required Function() onAdFailedToShow,
     required Function() onAdDismiss,
+    required String name,
   }) {
     if (isShowWelComeScreenAfterAppOpenAds == false) {
       Admob.instance.loadAndShowAppOpenAds(
         navigatorKey: navigatorKey,
         idAds: idAds,
         config: config,
+        name: name,
         onAdDismiss: () {
           isShowScreenWelcomeBack = false;
           onAdDismiss.call();
