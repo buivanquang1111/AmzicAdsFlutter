@@ -141,6 +141,7 @@ class Admob {
       nameIntervalFromStart: nameIntervalFromStart,
       nameIntervalInterAll: nameIntervalInterAll,
       onStartLoadBanner: onStartLoadBanner,
+      onGotoScreenWelcomeBack: onGotoScreenWelcomeBack
     );
     callIDAdsTask = fetchApiAds(
       linkServer: linkServer,

@@ -18,6 +18,7 @@ class CollapseBannerAds extends StatefulWidget {
   final Function()? onAdClicked;
   final Function()? onAdDisable;
   final int refreshSec;
+
   /// dùng trong việc log event của tên quảng cáo vd: banner_all
   final String name;
 
@@ -47,9 +48,11 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
   Timer? _timerRefresh;
   bool isCanRefreshAd = true;
 
-  void setIsCanRefreshAd({required bool isCan}){
+  void setIsCanRefreshAd({required bool isCan}) {
     isCanRefreshAd = isCan;
-    loadCollapseAds();
+    if (isCan) {
+      loadCollapseAds();
+    }
   }
 
   @override
@@ -219,10 +222,10 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
     stopRefreshTime();
     print('admob_ads --- collapse_banner: startRefreshTime');
     _timerRefresh = Timer.periodic(Duration(seconds: widget.refreshSec), (timer) {
-      if(isCanRefreshAd) {
+      if (isCanRefreshAd) {
         print('admob_ads --- collapse_banner: RefreshSec - ${widget.refreshSec} Done');
         loadCollapseAds();
-      }else{
+      } else {
         print('admob_ads --- collapse_banner: Can not refresh ad isCanRefreshAd = $isCanRefreshAd');
       }
     });

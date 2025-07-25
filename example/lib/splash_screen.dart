@@ -58,6 +58,12 @@ class _SplashScreenState extends State<SplashScreen> {
       navigatorKey: navigatorKey,
       nameIddAdsResume: 'resume_wb',
       isShowWelComeScreenAfterAppOpenAds: true,
+      onGotoScreenWelcomeBack: () {
+        Navigator.push(
+          navigatorKey.currentContext!,
+          MaterialPageRoute(builder: (context) => WelcomeBackScreen()),
+        );
+      },
       nameIdAdsAppOpenSplash: 'open_splash',
       nameIdAdsInterSplash: 'inter_splash',
       nameConfigAppOpenSplash: 'open_splash',
