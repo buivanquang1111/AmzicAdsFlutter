@@ -45,6 +45,11 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
   bool _shouldHide = false;
 
   Timer? _timerRefresh;
+  bool isCanRefreshAd = true;
+
+  void setIsCanRefreshAd({required bool isCan}){
+    isCanRefreshAd = isCan;
+  }
 
   @override
   void initState() {
@@ -213,8 +218,12 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
     stopRefreshTime();
     print('admob_ads --- collapse_banner: startRefreshTime');
     _timerRefresh = Timer.periodic(Duration(seconds: widget.refreshSec), (timer) {
-      print('admob_ads --- collapse_banner: RefreshSec - ${widget.refreshSec} Done');
-      loadCollapseAds();
+      if(isCanRefreshAd) {
+        print('admob_ads --- collapse_banner: RefreshSec - ${widget.refreshSec} Done');
+        loadCollapseAds();
+      }else{
+        print('admob_ads --- collapse_banner: Can not refresh ad isCanRefreshAd = $isCanRefreshAd');
+      }
     });
   }
 
