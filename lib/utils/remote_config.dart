@@ -1,3 +1,4 @@
+import 'package:amazic_ads_flutter/admob.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 class RemoteConfigKey {
@@ -5,11 +6,7 @@ class RemoteConfigKey {
   final dynamic defaultValue;
   final Type valueType;
 
-  RemoteConfigKey({
-    required this.name,
-    required this.defaultValue,
-    required this.valueType,
-  });
+  RemoteConfigKey({required this.name, required this.defaultValue, required this.valueType});
 }
 
 class RemoteConfig {
@@ -28,16 +25,11 @@ class RemoteConfig {
     }
 
     await _remoteConfig.setConfigSettings(
-      RemoteConfigSettings(
-        fetchTimeout: fetchTimeout,
-        minimumFetchInterval: minimumFetchInterval,
-      ),
+      RemoteConfigSettings(fetchTimeout: fetchTimeout, minimumFetchInterval: minimumFetchInterval),
     );
 
     // Set default values
-    final defaultValues = {
-      for (final key in _keyMap.values) key.name: key.defaultValue,
-    };
+    final defaultValues = {for (final key in _keyMap.values) key.name: key.defaultValue};
     await _remoteConfig.setDefaults(defaultValues);
 
     try {
@@ -54,6 +46,9 @@ class RemoteConfig {
 
   /// Get bool config value
   static bool getBool(String keyName) {
+    if (Admob.instance.isAdUnitDetected(keyName) == true) {
+      return false;
+    }
     return _remoteConfig.getBool(keyName) && _remoteConfig.getBool('show_ads');
   }
 

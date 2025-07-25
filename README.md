@@ -7,10 +7,7 @@ A new Flutter plugin project.
 AdjustUtil.instance.setUpAdjust(adjustToken: AdsManager.adjustToken);
 ```
 
-## khởi tạo Adjust tai main()
-`AdjustUtil.instance.setUpAdjust(adjustToken: AdsManager.adjustToken);`
-
-## khởi tạo ads
+## khởi tạo ads tai Splash
 ```dart
 void init() async{
   await Admob.instance.init(
@@ -31,7 +28,9 @@ void init() async{
     nameIntervalBetweenInter: 'interval_between_interstitial',
     nameIntervalFromStart: 'interval_interstitial_from_start',
     nameIntervalInterAll: 'interval_inter_all',
-    onStartLoadBanner: () {},
+    onStartLoadBanner: () {
+      setState(() {});
+    },
     remoteConfigKeys: [
       RemoteConfigKey(name: 'show_ads', defaultValue: true, valueType: bool),
       RemoteConfigKey(name: 'banner_ads', defaultValue: true, valueType: bool),

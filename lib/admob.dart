@@ -65,6 +65,21 @@ class Admob {
   ///đếm thời gian từ lúc vào màn đến khi show ads splash
   final stopWatch = Stopwatch();
 
+  ///list danh sách các vị trí remote config false khi là Detect Test Ad
+  List<String> _detectedTestAds = [];
+
+  void addDetectedTestAd(String adUnitId) {
+    if (!_detectedTestAds.contains(adUnitId)) {
+      _detectedTestAds.add(adUnitId);
+    }
+  }
+
+  List<String> get detectedTestAds => _detectedTestAds;
+
+  bool isAdUnitDetected(String adUnitId) {
+    return _detectedTestAds.contains(adUnitId);
+  }
+
   Future<void> init({
     required String? linkServer,
     required String? appId,
