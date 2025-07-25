@@ -189,63 +189,62 @@ class Admob {
   }
 
   ///test call dong thoi
-  Future<void> runConcurrentTasksWithDependency() async {
-    final Completer<void> remoteDoneCompleter = Completer<void>();
-
-    late Future<void> imageTask;
-    late Future<void> remoteTask;
-    late Future<void> otherTask;
-
-    imageTask = fetchImageData(remoteDoneCompleter.future); // truyền Future
-    remoteTask = fetchRemote().then((_) {
-      print('✅ [FIREBASE_REMOTE] Done');
-      remoteDoneCompleter.complete(); // thông báo là đã xong
-    });
-    otherTask = fetchOtherApi();
-
-    // Chạy đồng thời cả 3 task
-    final tasks = {'API_IMAGE': imageTask, 'FIREBASE_REMOTE': remoteTask, 'API_OTHER': otherTask};
-
-    final taskCompleted = {'API_IMAGE': false, 'FIREBASE_REMOTE': false, 'API_OTHER': false};
-    print('✅ start all');
-    for (final entry in tasks.entries) {
-      entry.value.then((_) {
-        taskCompleted[entry.key] = true;
-      });
-    }
-
-    await Future.delayed(Duration(seconds: 12));
-
-    final notFinished = taskCompleted.entries.where((e) => !e.value).map((e) => e.key).toList();
-
-    if (notFinished.isNotEmpty) {
-      for (var task in notFinished) {
-        print('❌ Task chưa xong: $task');
-      }
-    } else {
-      print('✅ Tất cả task đã xong trong 12s');
-    }
-  }
-
-  Future<void> fetchImageData(Future remoteDone) async {
-    print('➡️ [API_IMAGE] Start fetch');
-    await Future.delayed(Duration(seconds: 5)); // giả lập fetch ảnh
-    print('✅ [API_IMAGE] Done fetch, đợi remote...');
-    await remoteDone; // Đợi firebase xong mới làm tiếp
-    print('🚀 [API_IMAGE] Tiếp tục xử lý sau khi có dữ liệu remote');
-  }
-
-  Future<void> fetchRemote() async {
-    print('➡️ [FIREBASE_REMOTE] Start fetch');
-    await Future.delayed(Duration(seconds: 14));
-  }
-
-  Future<void> fetchOtherApi() async {
-    print('➡️ [API_OTHER] Start fetch');
-    await Future.delayed(Duration(seconds: 8));
-    print('✅ [API_OTHER] Done');
-  }
-
+  // Future<void> runConcurrentTasksWithDependency() async {
+  //   final Completer<void> remoteDoneCompleter = Completer<void>();
+  //
+  //   late Future<void> imageTask;
+  //   late Future<void> remoteTask;
+  //   late Future<void> otherTask;
+  //
+  //   imageTask = fetchImageData(remoteDoneCompleter.future); // truyền Future
+  //   remoteTask = fetchRemote().then((_) {
+  //     print('✅ [FIREBASE_REMOTE] Done');
+  //     remoteDoneCompleter.complete(); // thông báo là đã xong
+  //   });
+  //   otherTask = fetchOtherApi();
+  //
+  //   // Chạy đồng thời cả 3 task
+  //   final tasks = {'API_IMAGE': imageTask, 'FIREBASE_REMOTE': remoteTask, 'API_OTHER': otherTask};
+  //
+  //   final taskCompleted = {'API_IMAGE': false, 'FIREBASE_REMOTE': false, 'API_OTHER': false};
+  //   print('✅ start all');
+  //   for (final entry in tasks.entries) {
+  //     entry.value.then((_) {
+  //       taskCompleted[entry.key] = true;
+  //     });
+  //   }
+  //
+  //   await Future.delayed(Duration(seconds: 12));
+  //
+  //   final notFinished = taskCompleted.entries.where((e) => !e.value).map((e) => e.key).toList();
+  //
+  //   if (notFinished.isNotEmpty) {
+  //     for (var task in notFinished) {
+  //       print('❌ Task chưa xong: $task');
+  //     }
+  //   } else {
+  //     print('✅ Tất cả task đã xong trong 12s');
+  //   }
+  // }
+  //
+  // Future<void> fetchImageData(Future remoteDone) async {
+  //   print('➡️ [API_IMAGE] Start fetch');
+  //   await Future.delayed(Duration(seconds: 5)); // giả lập fetch ảnh
+  //   print('✅ [API_IMAGE] Done fetch, đợi remote...');
+  //   await remoteDone; // Đợi firebase xong mới làm tiếp
+  //   print('🚀 [API_IMAGE] Tiếp tục xử lý sau khi có dữ liệu remote');
+  // }
+  //
+  // Future<void> fetchRemote() async {
+  //   print('➡️ [FIREBASE_REMOTE] Start fetch');
+  //   await Future.delayed(Duration(seconds: 14));
+  // }
+  //
+  // Future<void> fetchOtherApi() async {
+  //   print('➡️ [API_OTHER] Start fetch');
+  //   await Future.delayed(Duration(seconds: 8));
+  //   print('✅ [API_OTHER] Done');
+  // }
   ///end call dong thoi
 
   Future<void> fetchUMP(
@@ -282,7 +281,7 @@ class Admob {
             config: true,
             isShowWelComeScreenAfterAppOpenAds: isShowWelComeScreenAfterAppOpenAds,
             onGotoWelcomeBack: onGotoScreenWelcomeBack,
-            name: nameIdAdsResume
+            name: nameIdAdsResume,
           );
           appLifecycleReactor?.listenToAppStateChanges();
 
@@ -449,7 +448,7 @@ class Admob {
       config: config,
       count: count,
       onCompleted: onCompleted,
-      name: name
+      name: name,
     );
   }
 
@@ -477,7 +476,7 @@ class Admob {
       onAdFailedToLoad: onAdFailedToLoad,
       onAdFailedToShow: onAdFailedToShow,
       onAdDismiss: onAdDismiss,
-      name: name
+      name: name,
     );
   }
 
@@ -586,6 +585,43 @@ class Admob {
     );
   }
 
+  ///show cho trường hợp bị timeout id ads splash => thuong se show tai nut tick man Language
+  Future<void> showAdsSplash({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required Function() onNext,
+  }) async {
+    if (InterAdsManager.instance.mInterstitialAdSplash == null &&
+        AppOpenManager.instance.mAppOpenAdSplash == null) {
+      onNext();
+    } else {
+      if (InterAdsManager.instance.mInterstitialAdSplash != null) {
+        InterAdsManager.instance.showInterAdsSplash(
+          navigatorKey: navigatorKey,
+          onAdImpression: () {},
+          onAdClicked: () {},
+          onAdFailedToShow: () {
+            onNext();
+          },
+          onAdDismiss: () {
+            onNext();
+          },
+        );
+      } else if (AppOpenManager.instance.mAppOpenAdSplash != null) {
+        AppOpenManager.instance.showAppOpenAdsSplash(
+          navigatorKey: navigatorKey,
+          onAdImpression: () {},
+          onAdClicked: () {},
+          onAdFailedToShow: () {
+            onNext();
+          },
+          onAdDismiss: () {
+            onNext();
+          },
+        );
+      }
+    }
+  }
+
   Future<void> loadAndShowInterInterval({
     required GlobalKey<NavigatorState> navigatorKey,
     required String idAds,
@@ -598,7 +634,7 @@ class Admob {
     Function()? onAdFailedToLoad,
     Function()? onAdFailedToShow,
     Function()? onAdDismiss,
-    required String name
+    required String name,
   }) async {
     if (AdHelper.canShowNextInter(isInterAll: isInterAll)) {
       print(

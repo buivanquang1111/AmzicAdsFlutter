@@ -61,7 +61,19 @@ class _HomeScreenState extends State<HomeScreen> {
           Builder(
             builder: (context) => GestureDetector(
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => BannerAdScreen()));
+                print(
+                  'check_ads_splash --- inter: ${InterAdsManager.instance.mInterstitialAdSplash}, open: ${AppOpenManager.instance.mAppOpenAdSplash}',
+                );
+
+                Admob.instance.showAdsSplash(
+                  navigatorKey: navigatorKey,
+                  onNext: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => BannerAdScreen()),
+                    );
+                  },
+                );
               },
               child: Center(
                 child: Container(

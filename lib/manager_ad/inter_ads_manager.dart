@@ -22,6 +22,9 @@ class InterAdsManager {
 
   InterstitialAd? get mInterstitialAdSplash => _mInterstitialAdSplash;
 
+  ///biến check xem đã chuyển màn trong timeout Ads chua
+  bool isNextTimeoutAd = false;
+
   ///preload inter splash
   Future<void> loadAndShowInterSplash({
     required GlobalKey<NavigatorState> navigatorKey,
@@ -43,7 +46,12 @@ class InterAdsManager {
       if (!adHasShown) {
         print('admob_ads --- inter_ads_splash: Timeout 12s - cancel show ads splash');
         EventLog.logEvent('inter_splash_id_timeout');
+        Admob.instance.setFullScreenAdShowing(false);
+        if (navigatorKey.currentContext != null) {
+          closeLoadingDialog(context: navigatorKey.currentContext!);
+        }
         timeoutCompleter.complete();
+        isNextTimeoutAd = true;
         onAdDisable?.call();
       }
     });
@@ -90,16 +98,19 @@ class InterAdsManager {
               currency: currencyCode,
             );
           };
-          showInterAdsSplash(
-            navigatorKey: navigatorKey,
-            onAdImpression: () {
-              handleAdsShown();
-              onAdImpression?.call();
-            },
-            onAdClicked: onAdClicked,
-            onAdFailedToShow: onAdFailedToShow,
-            onAdDismiss: onAdDismiss,
-          );
+
+          if (!isNextTimeoutAd) {
+            showInterAdsSplash(
+              navigatorKey: navigatorKey,
+              onAdImpression: () {
+                handleAdsShown();
+                onAdImpression?.call();
+              },
+              onAdClicked: onAdClicked,
+              onAdFailedToShow: onAdFailedToShow,
+              onAdDismiss: onAdDismiss,
+            );
+          }
         },
         onAdFailedToLoad: (error) {
           print('admob_ads --- inter_ads_splash: onAdFailedToLoad ${error.message}');
@@ -142,6 +153,7 @@ class InterAdsManager {
       onAdImpression: (ad) {
         print('admob_ads --- inter_ads_splash: onAdImpression');
         Admob.instance.setFullScreenAdShowing(true);
+        _mInterstitialAdSplash = null;
         onAdImpression?.call();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {

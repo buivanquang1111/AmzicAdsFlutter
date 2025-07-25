@@ -21,6 +21,9 @@ class AppOpenManager {
 
   AppOpenAd? get mAppOpenAdSplash => _mAppOpenAdSplash;
 
+  ///biến check xem đã chuyển màn trong timeout Ads chua
+  bool isNextTimeoutAd = false;
+
   ///preload app open splash
   Future<void> loadAndShowAppOpenSplash({
     required GlobalKey<NavigatorState> navigatorKey,
@@ -42,7 +45,12 @@ class AppOpenManager {
       if (!adHasShown) {
         print('admob_ads --- app_open_ads_splash: Timeout 12s - cancel show ads splash');
         EventLog.logEvent('inter_splash_id_timeout');
+        Admob.instance.setFullScreenAdShowing(false);
+        if (navigatorKey.currentContext != null) {
+          closeLoadingDialog(context: navigatorKey.currentContext!);
+        }
         timeoutCompleter.complete();
+        isNextTimeoutAd = true;
         onAdDisable?.call();
       }
     });
@@ -91,16 +99,18 @@ class AppOpenManager {
             );
           };
 
-          showAppOpenAdsSplash(
-            navigatorKey: navigatorKey,
-            onAdImpression: () {
-              handleAdShown();
-              onAdImpression?.call();
-            },
-            onAdClicked: onAdClicked,
-            onAdFailedToShow: onAdFailedToShow,
-            onAdDismiss: onAdDismiss,
-          );
+          if (!isNextTimeoutAd) {
+            showAppOpenAdsSplash(
+              navigatorKey: navigatorKey,
+              onAdImpression: () {
+                handleAdShown();
+                onAdImpression?.call();
+              },
+              onAdClicked: onAdClicked,
+              onAdFailedToShow: onAdFailedToShow,
+              onAdDismiss: onAdDismiss,
+            );
+          }
         },
         onAdFailedToLoad: (error) {
           print('admob_ads --- app_open_ads_splash: onAdFailedToLoad $error');
@@ -142,6 +152,7 @@ class AppOpenManager {
       onAdImpression: (ad) {
         print('admob_ads --- app_open_ads_splash: onAdImpression');
         Admob.instance.setFullScreenAdShowing(true);
+        _mAppOpenAdSplash = null;
         onAdImpression?.call();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
