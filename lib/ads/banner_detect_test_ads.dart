@@ -72,27 +72,27 @@ class _BannerDetectTestAdsState extends State<BannerDetectTestAds> {
         final Map<String, dynamic>? event = call.arguments;
         switch (call.method) {
           case 'onRequestAds':
-            print('banner_splash_platform --- Ad request');
+            print('admob_ads --- banner_splash_platform --- Ad request');
             break;
           case 'onAdLoaded':
-            print('banner_splash_platform --- Ad Loaded');
+            print('admob_ads --- banner_splash_platform --- Ad Loaded');
             widget.onAdLoaded?.call();
             break;
           case 'onAdClicked':
-            print('banner_splash_platform --- Ad Clicked');
+            print('admob_ads --- banner_splash_platform --- Ad Clicked');
             widget.onAdClicked?.call();
             EventLog.logEvent('${widget.name}_click');
             break;
           case 'onAdFailedToLoad':
-            print('banner_splash_platform --- Ad Failed to Load: ${event?['error']}');
+            print('admob_ads --- banner_splash_platform --- Ad Failed to Load: ${event?['error']}');
             widget.onAdFailedToLoad?.call();
             break;
           case 'onAdClosed':
-            print('banner_splash_platform --- Ad Closed');
+            print('admob_ads --- banner_splash_platform --- Ad Closed');
             widget.onAdClosed?.call();
             break;
           case 'onAdImpression':
-            print('banner_splash_platform --- Ad Impression');
+            print('admob_ads --- banner_splash_platform --- Ad Impression');
             widget.onAdImpression?.call();
             EventLog.logEvent('${widget.name}_view');
             setState(() {
@@ -100,15 +100,15 @@ class _BannerDetectTestAdsState extends State<BannerDetectTestAds> {
             });
             break;
           case 'coreTechnologyTestAd':
-            print('banner_splash_platform --- coreTechnologyTestAd');
+            print('admob_ads --- banner_splash_platform --- coreTechnologyTestAd');
             widget.onCoreTechnologyTestAd?.call();
             break;
           default:
-            print('banner_splash_platform --- Unknown event: ${call.method}');
+            print('admob_ads --- banner_splash_platform --- Unknown event: ${call.method}');
         }
       });
     } catch (e) {
-      print('banner_splash_platform --- Error listening to ad events: $e');
+      print('admob_ads --- banner_splash_platform --- Error listening to ad events: $e');
     }
   }
 
