@@ -49,6 +49,7 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
 
   void setIsCanRefreshAd({required bool isCan}){
     isCanRefreshAd = isCan;
+    loadCollapseAds();
   }
 
   @override
