@@ -74,20 +74,25 @@ class AppLifecycleReactor {
             config: config,
             name: name,
             onAdDismiss: () {
+              isShowScreenWelcomeBack = false;
               setShowScreenWelcomeBack();
             },
             onAdFailedToLoad: () {
+              isShowScreenWelcomeBack = false;
               setShowScreenWelcomeBack();
             },
             onAdFailedToShow: () {
+              isShowScreenWelcomeBack = false;
               setShowScreenWelcomeBack();
             },
             onAdDisable: () {
+              isShowScreenWelcomeBack = false;
               setShowScreenWelcomeBack();
             },
           );
         } else {
           print('admob_ads --- app_open: show welcomeback before ads');
+          isShowScreenWelcomeBack = false;
           setShowScreenWelcomeBack();
         }
       } else {
