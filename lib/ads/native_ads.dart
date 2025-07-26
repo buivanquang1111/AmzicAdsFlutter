@@ -6,6 +6,7 @@ import 'package:amazic_ads_flutter/ump/consent_manager.dart';
 import 'package:amazic_ads_flutter/utils/event_log.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import '../utils/adjust_util.dart';
 
@@ -70,11 +71,11 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if(state == AppLifecycleState.paused){
-      print('admob_ads --- native_ads: AppLifecycleState.paused');
+      print('admob_ads --- native_ads: ${widget.name} AppLifecycleState.paused');
       stopRefreshTime();
     }else if(state == AppLifecycleState.resumed){
-      print('admob_ads --- native_ads: AppLifecycleState.resumed');
-      print('admob_ads --- native_ads: AppLifecycleState.resumed - startRefreshTime');
+      print('admob_ads --- native_ads: ${widget.name} AppLifecycleState.resumed');
+      print('admob_ads --- native_ads: ${widget.name} AppLifecycleState.resumed - startRefreshTime');
       startRefreshTime();
     }
   }
@@ -90,10 +91,22 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
     }
 
     if (_nativeAd != null) {
-      return SizedBox(
-        width: MediaQuery.of(context).size.width,
-        height: widget.height,
-        child: AdWidget(key: ValueKey(_nativeAd), ad: _nativeAd!),
+      return VisibilityDetector(
+        key: const Key('native_ads'),
+        onVisibilityChanged: (info) {
+          if(info.visibleFraction == 0){
+            print('admob_ads --- native_ads: ${widget.name} HIDDEN');
+            stopRefreshTime();
+          }else{
+            print('admob_ads --- native_ads: ${widget.name} SHOW');
+            startRefreshTime();
+          }
+        },
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: widget.height,
+          child: AdWidget(key: ValueKey(_nativeAd), ad: _nativeAd!),
+        ),
       );
     }
 
@@ -109,7 +122,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
 
   loadAds() async {
     if (!await canShowAds()) {
-      print('admob_ads --- native_ads: hide native');
+      print('admob_ads --- native_ads: ${widget.name} hide native');
       if (mounted) {
         setState(() {
           _shouldHide = true;
@@ -125,13 +138,13 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
       });
     }
     _nativeAd?.dispose();
-    print('admob_ads --- native_ads: start request');
+    print('admob_ads --- native_ads: ${widget.name} start request');
     _nativeAd = NativeAd(
       adUnitId: widget.idAds,
       factoryId: widget.factoryId,
       listener: NativeAdListener(
         onAdLoaded: (ad) {
-          print('admob_ads --- native_ads: onAdLoaded');
+          print('admob_ads --- native_ads: ${widget.name} onAdLoaded');
           if (mounted) {
             setState(() {
               _isLoading = false;
@@ -140,7 +153,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
           widget.onAdLoaded?.call();
         },
         onAdFailedToLoad: (ad, error) {
-          print('admob_ads --- native_ads: onAdFailedToLoad');
+          print('admob_ads --- native_ads: ${widget.name} onAdFailedToLoad');
           if (mounted) {
             setState(() {
               _nativeAd = null;
@@ -148,28 +161,28 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
               _shouldHide = true;
             });
           }
-          print('admob_ads --- native_ads: onAdFailedToLoad - startRefreshTime');
+          print('admob_ads --- native_ads: ${widget.name} onAdFailedToLoad - startRefreshTime');
           startRefreshTime();
           widget.onAdFailedToLoad?.call();
         },
         onAdOpened: (ad) {
-          print('admob_ads --- native_ads: onAdOpened');
+          print('admob_ads --- native_ads: ${widget.name} onAdOpened');
         },
         onAdWillDismissScreen: (ad) {
-          print('admob_ads --- native_ads: onAdWillDismissScreen');
+          print('admob_ads --- native_ads: ${widget.name} onAdWillDismissScreen');
         },
         onAdClosed: (ad) {
-          print('admob_ads --- native_ads: onAdClosed');
+          print('admob_ads --- native_ads: ${widget.name} onAdClosed');
         },
         onAdImpression: (ad) {
-          print('admob_ads --- native_ads: onAdImpression');
-          print('admob_ads --- native_ads: onAdImpression - startRefreshTime');
+          print('admob_ads --- native_ads: ${widget.name} onAdImpression');
+          print('admob_ads --- native_ads: ${widget.name} onAdImpression - startRefreshTime');
           startRefreshTime();
           widget.onAdImpression?.call();
           EventLog.logEvent('${widget.name}_view');
         },
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {
-          print('admob_ads --- native_ads: onPaidEvent');
+          print('admob_ads --- native_ads: ${widget.name} onPaidEvent');
           AdjustUtil.instance.trackRevenue(
             network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
             revenue: valueMicros,
@@ -177,7 +190,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
           );
         },
         onAdClicked: (ad) {
-          print('admob_ads --- native_ads: onAdClicked');
+          print('admob_ads --- native_ads: ${widget.name} onAdClicked');
           widget.onAdClicked?.call();
           EventLog.logEvent('${widget.name}_click');
         },
@@ -192,14 +205,15 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
       return;
     }
     stopRefreshTime();
-    print('admob_ads --- native_ads: startRefreshTime');
+    print('admob_ads --- native_ads: ${widget.name} startRefreshTime');
     _timerRefresh = Timer.periodic(Duration(seconds: widget.refreshSec), (timer) {
-      print('admob_ads --- native_ads: RefreshSec - ${widget.refreshSec} Done');
+      print('admob_ads --- native_ads: ${widget.name} RefreshSec - ${widget.refreshSec} Done');
       loadAdsQuietly();
     });
   }
 
   void stopRefreshTime() {
+    print('admob_ads --- native_ads: ${widget.name} stopRefreshTime');
     _timerRefresh?.cancel();
     _timerRefresh = null;
   }
@@ -207,7 +221,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
   ///load ads before show
   loadAdsQuietly() async {
     if (!await canShowAds()) {
-      print('admob_ads --- native_ads: Quietly - hide native');
+      print('admob_ads --- native_ads: ${widget.name} Quietly - hide native');
       return;
     }
     late NativeAd tempAd;
@@ -226,14 +240,14 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
               _shouldHide = false;
             });
           }
-          print('admob_ads --- native_ads: Quietly - onAdLoaded $_nativeAd');
+          print('admob_ads --- native_ads: ${widget.name} Quietly - onAdLoaded $_nativeAd');
         },
         onAdFailedToLoad: (ad, error) {
-          print('admob_ads --- native_ads: Quietly - onAdFailedToLoad');
+          print('admob_ads --- native_ads: ${widget.name} Quietly - onAdFailedToLoad');
           ad.dispose();
         },
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {
-          print('admob_ads --- native_ads: Quietly - onPaidEvent');
+          print('admob_ads --- native_ads: ${widget.name} Quietly - onPaidEvent');
           AdjustUtil.instance.trackRevenue(
             network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
             revenue: valueMicros,
@@ -241,11 +255,11 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
           );
         },
         onAdImpression: (ad) {
-          print('admob_ads --- native_ads: Quietly - onAdImpression');
+          print('admob_ads --- native_ads: ${widget.name} Quietly - onAdImpression');
           EventLog.logEvent('${widget.name}_view');
         },
         onAdClicked: (ad) {
-          print('admob_ads --- native_ads: Quietly - onAdClicked');
+          print('admob_ads --- native_ads: ${widget.name} Quietly - onAdClicked');
           EventLog.logEvent('${widget.name}_click');
         },
       ),

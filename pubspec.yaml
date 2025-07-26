@@ -20,6 +20,7 @@ dependencies:
   firebase_analytics: ^11.6.0
   firebase_remote_config: ^5.5.0
   shared_preferences: ^2.5.3
+  visibility_detector: ^0.4.0+2
 
 dev_dependencies:
   flutter_test:

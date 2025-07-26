@@ -2,6 +2,8 @@ import 'package:amazic_ads_flutter/ads/collapse_banner_ads.dart';
 import 'package:amazic_ads_flutter/amazic_ads_flutter.dart';
 import 'package:flutter/material.dart';
 
+import 'detail_screen.dart';
+
 class CollapseBannerAdScreen extends StatefulWidget {
   const CollapseBannerAdScreen({super.key});
 
@@ -20,6 +22,7 @@ class _CollapseBannerAdScreenState extends State<CollapseBannerAdScreen> {
     }
     canClick = false;
     await collapseKey.currentState?.closeCollapse();
+    collapseKey.currentState?.setIsCanRefreshAd(isCan: false);
     await Future.delayed(const Duration(milliseconds: 800));
     canClick = true;
   }
@@ -44,7 +47,7 @@ class _CollapseBannerAdScreenState extends State<CollapseBannerAdScreen> {
         title: const Text('Collapse banner example'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () async{
+          onPressed: () async {
             // ✅ Xử lý tại đây
             print('Custom back button pressed');
             await dismissCollapse();
@@ -54,7 +57,17 @@ class _CollapseBannerAdScreenState extends State<CollapseBannerAdScreen> {
       ),
       body: Column(
         children: [
-          Expanded(child: Text('Collapse banner ads')),
+          Expanded(
+            child: GestureDetector(
+              onTap: () async{
+                await dismissCollapse();
+                Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen())).then((value) {
+                  collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
+                },);
+              },
+              child: Text('Collapse banner ads'),
+            ),
+          ),
           collapseBannerAds ?? Container(),
         ],
       ),
