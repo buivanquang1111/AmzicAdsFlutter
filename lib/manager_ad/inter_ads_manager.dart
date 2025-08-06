@@ -42,9 +42,9 @@ class InterAdsManager {
     bool adHasShown = false;
     final timeoutCompleter = Completer<void>(); //kiểm soát timeout 12s
 
-    Future.delayed(const Duration(seconds: 12), () {
+    Future.delayed(const Duration(seconds: 20), () {
       if (!adHasShown) {
-        print('admob_ads --- inter_ads_splash: Timeout 12s - cancel show ads splash');
+        print('admob_ads --- inter_ads_splash: Timeout 20s - cancel show ads splash');
         EventLog.logEvent('inter_splash_id_timeout');
         Admob.instance.setFullScreenAdShowing(false);
         if (navigatorKey.currentContext != null) {
