@@ -55,244 +55,260 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text('Running on: $_platformVersion\n'),
-          Builder(
-            builder: (context) => GestureDetector(
-              onTap: () {
-                print(
-                  'check_ads_splash --- inter: ${InterAdsManager.instance.mInterstitialAdSplash}, open: ${AppOpenManager.instance.mAppOpenAdSplash}',
-                );
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('Running on: $_platformVersion\n'),
+                  Builder(
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        print(
+                          'check_ads_splash --- inter: ${InterAdsManager.instance.mInterstitialAdSplash}, open: ${AppOpenManager.instance.mAppOpenAdSplash}',
+                        );
 
-                Admob.instance.showAdsSplash(
-                  navigatorKey: navigatorKey,
-                  onNext: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => BannerAdScreen()),
-                    );
-                  },
-                );
-              },
-              child: Center(
-                child: Container(
-                  height: 56,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.greenAccent,
+                        Admob.instance.showAdsSplash(
+                          navigatorKey: navigatorKey,
+                          onNext: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => BannerAdScreen()),
+                            );
+                          },
+                        );
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 56,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.greenAccent,
+                          ),
+                          child: Center(child: Text('show banner ads', textAlign: TextAlign.center)),
+                        ),
+                      ),
+                    ),
                   ),
-                  child: Center(child: Text('show banner ads', textAlign: TextAlign.center)),
-                ),
+                  const SizedBox(height: 12),
+                  Builder(
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => NativeAdScreen()));
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 56,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.greenAccent,
+                          ),
+                          child: Center(child: Text('show native ads', textAlign: TextAlign.center)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Builder(
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        Admob.instance.loadAndShowInterInterval(
+                          navigatorKey: navigatorKey,
+                          idAds: 'ca-app-pub-3940256099942544/1033173712',
+                          config: true,
+                          isInterAll: true,
+                          name: 'inter_all',
+                          onAdDisable: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => NativeAdScreen()),
+                            );
+                          },
+                          onAdFailedToLoad: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => NativeAdScreen()),
+                            );
+                          },
+                          onAdFailedToShow: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => NativeAdScreen()),
+                            );
+                          },
+                          onAdDismiss: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => NativeAdScreen()),
+                            );
+                          },
+                        );
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 56,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.greenAccent,
+                          ),
+                          child: Center(child: Text('show inter ads', textAlign: TextAlign.center)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Builder(
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CollapseBannerAdScreen()),
+                        );
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 56,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.greenAccent,
+                          ),
+                          child: Center(
+                            child: Text('show collapse banner ads', textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Builder(
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        Admob.instance.loadAndShowRewardAds(
+                          navigatorKey: navigatorKey,
+                          idAds: 'ca-app-pub-3940256099942544/5224354917',
+                          config: true,
+                          name: 'reward_all',
+                          onAdDisable: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => CollapseBannerAdScreen()),
+                            );
+                          },
+                          onAdDismiss: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => CollapseBannerAdScreen()),
+                            );
+                          },
+                        );
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 56,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.greenAccent,
+                          ),
+                          child: Center(child: Text('show reward ads', textAlign: TextAlign.center)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Builder(
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        Admob.instance.loadAndShowAppOpenAds(
+                          navigatorKey: navigatorKey,
+                          idAds: 'ca-app-pub-3940256099942544/9257395921',
+                          config: true,
+                          name: 'app_open_all',
+                          onAdDisable: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => NativeAdScreen()),
+                            );
+                          },
+                          onAdFailedToLoad: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => NativeAdScreen()),
+                            );
+                          },
+                          onAdFailedToShow: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => NativeAdScreen()),
+                            );
+                          },
+                          onAdDismiss: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => NativeAdScreen()),
+                            );
+                          },
+                        );
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 56,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.greenAccent,
+                          ),
+                          child: Center(child: Text('show App Open ads', textAlign: TextAlign.center)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Builder(
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        Admob.instance.showRewardConsecutive(
+                          idAds: 'ca-app-pub-3940256099942544/5224354917',
+                          config: true,
+                          count: 2,
+                          name: 'reward2_all',
+                          onCompleted: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => NativeAdScreen()),
+                            );
+                          },
+                        );
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 56,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.greenAccent,
+                          ),
+                          child: Center(child: Text('show 2 reward ads', textAlign: TextAlign.center)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          Builder(
-            builder: (context) => GestureDetector(
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => NativeAdScreen()));
-              },
-              child: Center(
-                child: Container(
-                  height: 56,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.greenAccent,
-                  ),
-                  child: Center(child: Text('show native ads', textAlign: TextAlign.center)),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Builder(
-            builder: (context) => GestureDetector(
-              onTap: () {
-                Admob.instance.loadAndShowInterInterval(
-                  navigatorKey: navigatorKey,
-                  idAds: 'ca-app-pub-3940256099942544/1033173712',
-                  config: true,
-                  isInterAll: true,
-                  name: 'inter_all',
-                  onAdDisable: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                    );
-                  },
-                  onAdFailedToLoad: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                    );
-                  },
-                  onAdFailedToShow: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                    );
-                  },
-                  onAdDismiss: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                    );
-                  },
-                );
-              },
-              child: Center(
-                child: Container(
-                  height: 56,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.greenAccent,
-                  ),
-                  child: Center(child: Text('show inter ads', textAlign: TextAlign.center)),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Builder(
-            builder: (context) => GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CollapseBannerAdScreen()),
-                );
-              },
-              child: Center(
-                child: Container(
-                  height: 56,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.greenAccent,
-                  ),
-                  child: Center(
-                    child: Text('show collapse banner ads', textAlign: TextAlign.center),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Builder(
-            builder: (context) => GestureDetector(
-              onTap: () {
-                Admob.instance.loadAndShowRewardAds(
-                  navigatorKey: navigatorKey,
-                  idAds: 'ca-app-pub-3940256099942544/5224354917',
-                  config: true,
-                  name: 'reward_all',
-                  onAdDisable: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CollapseBannerAdScreen()),
-                    );
-                  },
-                  onAdDismiss: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CollapseBannerAdScreen()),
-                    );
-                  },
-                );
-              },
-              child: Center(
-                child: Container(
-                  height: 56,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.greenAccent,
-                  ),
-                  child: Center(child: Text('show reward ads', textAlign: TextAlign.center)),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Builder(
-            builder: (context) => GestureDetector(
-              onTap: () {
-                Admob.instance.loadAndShowAppOpenAds(
-                  navigatorKey: navigatorKey,
-                  idAds: 'ca-app-pub-3940256099942544/9257395921',
-                  config: true,
-                  name: 'app_open_all',
-                  onAdDisable: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                    );
-                  },
-                  onAdFailedToLoad: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                    );
-                  },
-                  onAdFailedToShow: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                    );
-                  },
-                  onAdDismiss: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                    );
-                  },
-                );
-              },
-              child: Center(
-                child: Container(
-                  height: 56,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.greenAccent,
-                  ),
-                  child: Center(child: Text('show App Open ads', textAlign: TextAlign.center)),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Builder(
-            builder: (context) => GestureDetector(
-              onTap: () {
-                Admob.instance.showRewardConsecutive(
-                  idAds: 'ca-app-pub-3940256099942544/5224354917',
-                  config: true,
-                  count: 2,
-                  name: 'reward2_all',
-                  onCompleted: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NativeAdScreen()),
-                    );
-                  },
-                );
-              },
-              child: Center(
-                child: Container(
-                  height: 56,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.greenAccent,
-                  ),
-                  child: Center(child: Text('show 2 reward ads', textAlign: TextAlign.center)),
-                ),
-              ),
-            ),
+          NativeAds(
+            idAds: 'ca-app-pub-3940256099942544/2247696110',
+            config: true,
+            height: 300,
+            factoryId: 'native_ad',
+            refreshSec: 10,
+            name: 'native_home',
           ),
         ],
       ),
