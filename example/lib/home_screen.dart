@@ -308,7 +308,7 @@ class _HomeScreenState extends State<HomeScreen> {
             height: 300,
             factoryId: 'native_ad',
             refreshSec: 10,
-            name: 'native_home',
+            name: 'native_all',
           ),
         ],
       ),

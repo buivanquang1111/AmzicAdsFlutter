@@ -91,7 +91,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
 
     if (_nativeAd != null) {
       return VisibilityDetector(
-        key: const Key('native_ads'),
+        key: Key('${widget.name}_${DateTime.now().millisecondsSinceEpoch}'),
         onVisibilityChanged: (info) {
           if(info.visibleFraction == 0){
             print('admob_ads --- native_ads: ${widget.name} HIDDEN');
