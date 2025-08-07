@@ -88,19 +88,19 @@ class AdHelper {
       return true;
     }
     print(
-      'admob_ads --- inter_ads:0. isInterAll = $isInterAll , tt = ${(currentDatetime.millisecondsSinceEpoch - _lastTimeDismissInter)} , ',
+      'admob_ads --- inter_ads: check - isFirstShowInterAll = $isFirstShowInterAll, isInterAll = $isInterAll , tt = ${(currentDatetime.millisecondsSinceEpoch - _lastTimeDismissInter)} , ',
     );
 
     ///check TH inter all
     if (isInterAll && _intervalInterAll > 0 && isFirstShowInterAll) {
       if ((currentDatetime.millisecondsSinceEpoch - _lastTimeDismissInter) >= _intervalInterAll) {
         print(
-          'admob_ads --- inter_ads: TH inter all. _intervalInterAll = $_intervalInterAll , _lastTimeDismissInter = $_lastTimeDismissInter, _intervalBetweenInter = $_intervalBetweenInter}',
+          'admob_ads --- inter_ads: TH inter all. SHOW : isFirstShowInterAll = $isFirstShowInterAll, _intervalInterAll = $_intervalInterAll , _lastTimeDismissInter = $_lastTimeDismissInter, _intervalBetweenInter = $_intervalBetweenInter}',
         );
         return true;
       } else {
         print(
-          'admob_ads --- inter_ads: TH inter all. _intervalInterAll = $_intervalInterAll , _lastTimeDismissInter = $_lastTimeDismissInter, _intervalBetweenInter = $_intervalBetweenInter}',
+          'admob_ads --- inter_ads: TH inter all. NOT SHOW : isFirstShowInterAll = $isFirstShowInterAll, _intervalInterAll = $_intervalInterAll , _lastTimeDismissInter = $_lastTimeDismissInter, _intervalBetweenInter = $_intervalBetweenInter}',
         );
         return false;
       }

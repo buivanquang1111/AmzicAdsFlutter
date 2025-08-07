@@ -661,19 +661,27 @@ class Admob {
         idAds: idAds,
         config: config,
         onAdDisable: () {
-          AdHelper.isFirstShowInterAll = true;
+          if (isInterAll == true) {
+            AdHelper.isFirstShowInterAll = true;
+          }
           onAdDisable?.call();
         },
         onAdFailedToShow: () {
-          AdHelper.isFirstShowInterAll = true;
+          if (isInterAll == true) {
+            AdHelper.isFirstShowInterAll = true;
+          }
           onAdFailedToShow?.call();
         },
         onAdFailedToLoad: () {
-          AdHelper.isFirstShowInterAll = true;
+          if (isInterAll == true) {
+            AdHelper.isFirstShowInterAll = true;
+          }
           onAdFailedToLoad?.call();
         },
         onAdDismiss: () {
-          AdHelper.isFirstShowInterAll = true;
+          if (isInterAll == true) {
+            AdHelper.isFirstShowInterAll = true;
+          }
           onAdDismiss?.call();
         },
         onAdClicked: onAdClicked,
