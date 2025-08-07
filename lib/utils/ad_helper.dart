@@ -21,6 +21,11 @@ class AdHelper {
   static bool _configInter = true;
   static String _rateAoa = '0_100';
 
+  ///kiểm tra lần đầu check interval inter all,
+  /// ví dụ chuyển từ inter_intro sang home thì show inter_all thì vẫn phải tính inter_between
+  /// sau lần show đầu tiên của inter_all mới bắt đầu tính  interval_inter_all
+  static bool isFirstShowInterAll = false;
+
   static void init({
     required int intervalBetweenInter,
     required int intervalFromStart,
@@ -37,6 +42,7 @@ class AdHelper {
     setConfigInter(value: configInter);
     setRateAoa(rateAoa: rateAoa);
     setIntervalInterAll(value: intervalInterAll);
+    isFirstShowInterAll = false;
   }
 
   static void setConfigAppOpen({required bool value}) {
@@ -86,7 +92,7 @@ class AdHelper {
     );
 
     ///check TH inter all
-    if (isInterAll && _intervalInterAll > 0) {
+    if (isInterAll && _intervalInterAll > 0 && isFirstShowInterAll) {
       if ((currentDatetime.millisecondsSinceEpoch - _lastTimeDismissInter) >= _intervalInterAll) {
         print(
           'admob_ads --- inter_ads: TH inter all. _intervalInterAll = $_intervalInterAll , _lastTimeDismissInter = $_lastTimeDismissInter, _intervalBetweenInter = $_intervalBetweenInter}',

@@ -141,7 +141,7 @@ class Admob {
       nameIntervalFromStart: nameIntervalFromStart,
       nameIntervalInterAll: nameIntervalInterAll,
       onStartLoadBanner: onStartLoadBanner,
-      onGotoScreenWelcomeBack: onGotoScreenWelcomeBack
+      onGotoScreenWelcomeBack: onGotoScreenWelcomeBack,
     );
     callIDAdsTask = fetchApiAds(
       linkServer: linkServer,
@@ -660,10 +660,22 @@ class Admob {
         navigatorKey: navigatorKey,
         idAds: idAds,
         config: config,
-        onAdDisable: onAdDisable,
-        onAdFailedToShow: onAdFailedToShow,
-        onAdFailedToLoad: onAdFailedToLoad,
-        onAdDismiss: onAdDismiss,
+        onAdDisable: () {
+          AdHelper.isFirstShowInterAll = true;
+          onAdDisable?.call();
+        },
+        onAdFailedToShow: () {
+          AdHelper.isFirstShowInterAll = true;
+          onAdFailedToShow?.call();
+        },
+        onAdFailedToLoad: () {
+          AdHelper.isFirstShowInterAll = true;
+          onAdFailedToLoad?.call();
+        },
+        onAdDismiss: () {
+          AdHelper.isFirstShowInterAll = true;
+          onAdDismiss?.call();
+        },
         onAdClicked: onAdClicked,
         onAdImpression: onAdImpression,
         onAdLoaded: onAdLoaded,
