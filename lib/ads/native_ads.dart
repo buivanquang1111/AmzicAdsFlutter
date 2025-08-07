@@ -21,6 +21,7 @@ class NativeAds extends StatefulWidget {
   final Function()? onAdImpression;
   final Function()? onAdClicked;
   final int refreshSec;
+
   /// dùng trong việc log event của tên quảng cáo vd: banner_all
   final String name;
 
@@ -43,7 +44,7 @@ class NativeAds extends StatefulWidget {
   State<NativeAds> createState() => _NativeAdsState();
 }
 
-class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
+class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
   NativeAd? _nativeAd;
   bool _isLoading = false;
   bool _shouldHide = false;
@@ -70,10 +71,10 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if(state == AppLifecycleState.paused){
+    if (state == AppLifecycleState.paused) {
       print('admob_ads --- native_ads: ${widget.name} AppLifecycleState.paused');
       stopRefreshTime();
-    }else if(state == AppLifecycleState.resumed){
+    } else if (state == AppLifecycleState.resumed) {
       print('admob_ads --- native_ads: ${widget.name} AppLifecycleState.resumed');
       startRefreshTime();
     }
@@ -93,10 +94,10 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
       return VisibilityDetector(
         key: Key('${widget.name}_${DateTime.now().millisecondsSinceEpoch}'),
         onVisibilityChanged: (info) {
-          if(info.visibleFraction == 0){
+          if (info.visibleFraction == 0) {
             print('admob_ads --- native_ads: ${widget.name} HIDDEN');
             stopRefreshTime();
-          }else{
+          } else {
             print('admob_ads --- native_ads: ${widget.name} SHOW');
             startRefreshTime();
           }
@@ -104,7 +105,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver{
         child: SizedBox(
           width: MediaQuery.of(context).size.width,
           height: widget.height,
-          child: AdWidget(key: ValueKey(_nativeAd), ad: _nativeAd!),
+          child: AdWidget(key: ValueKey('${widget.name}_${_nativeAd.hashCode}'), ad: _nativeAd!),
         ),
       );
     }
