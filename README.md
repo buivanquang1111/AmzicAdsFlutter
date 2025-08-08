@@ -50,6 +50,40 @@ void init() async{
   );
 }
 ```
+
+## CollapseBanner ad
+khởi tạo
+```html
+CollapseBannerAds? collapseBannerAds;
+var canClick = true;
+final collapseKey = GlobalKey<CollapseBannerAdsState>();
+    @override
+    void initState() {
+        super.initState();
+        collapseBannerAds = CollapseBannerAds(
+        key: collapseKey,
+        idAds: 'ca-app-pub-3940256099942544/2014213617',
+        type: CollapseBannerType.collapsible_bottom,
+        config: true,
+        refreshSec: 5,
+        name: 'collapse_banner_all',
+        );
+    }
+```
+ẩn Collapse ads trước khi chuyển qua màn mới
+```html
+Future<void> dismissCollapse() async {
+    if (collapseBannerAds == null) {
+      return;
+    }
+    canClick = false;
+    await collapseKey.currentState?.closeCollapse();
+    collapseKey.currentState?.setIsCanRefreshAd(isCan: false);
+    await Future.delayed(const Duration(milliseconds: 800));
+    canClick = true;
+  }
+```
+
 ## Banner ad
 ```html
 BannerAds(
@@ -58,4 +92,77 @@ BannerAds(
     name: 'banner_all',
 ),
 ```
+
+## Native ad
+```html
+NativeAds(
+    idAds: 'ca-app-pub-3940256099942544/2247696110',
+    config: true,
+    height: 300,
+    factoryId: 'native_ad',
+    refreshSec: 5,
+    name: 'native_all',
+),
+```
+
+## Inter ad
+```html
+Admob.instance.loadAndShowInterInterval(
+    navigatorKey: navigatorKey,
+    idAds: 'ca-app-pub-3940256099942544/1033173712',
+    config: true,
+    isInterAll: true,
+    name: 'inter_all',
+    onAdDisable: () {
+
+    },
+    onAdFailedToLoad: () {
+
+    },
+    onAdFailedToShow: () {
+
+    },
+    onAdDismiss: () {
+
+    },
+);
+```
+
+## Reward ad
+```html
+Admob.instance.loadAndShowRewardAds(
+    navigatorKey: navigatorKey,
+    idAds: 'ca-app-pub-3940256099942544/5224354917',
+    config: true,
+    name: 'reward_all',
+    onAdDisable: () {
+    
+    },
+    onAdDismiss: () {
+                            
+    },
+);
+```
+
+## Reward ad show with count
+cần load trước khi dùng
+```html
+ Admob.instance.loadRewardAdConsecutive(
+      idAds: 'ca-app-pub-3940256099942544/5224354917',
+      config: true,
+);
+```
+call show
+```html
+Admob.instance.showRewardConsecutive(
+    idAds: 'ca-app-pub-3940256099942544/5224354917',
+    config: true,
+    count: 2,
+    name: 'reward2_all',
+    onCompleted: () {
+                            
+    },
+);
+```
+
 
