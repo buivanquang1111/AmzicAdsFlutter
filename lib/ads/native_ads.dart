@@ -92,7 +92,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
 
     if (_nativeAd != null) {
       return VisibilityDetector(
-        key: Key('${widget.name}_${DateTime.now().millisecondsSinceEpoch}'),
+        key: Key('${widget.name}_${_nativeAd.hashCode}'),
         onVisibilityChanged: (info) {
           if (info.visibleFraction == 0) {
             print('admob_ads --- native_ads: ${widget.name} HIDDEN');
@@ -105,7 +105,10 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
         child: SizedBox(
           width: MediaQuery.of(context).size.width,
           height: widget.height,
-          child: AdWidget(key: ValueKey('${widget.name}_${_nativeAd.hashCode}'), ad: _nativeAd!),
+          child: AdWidget(
+            key: ValueKey('${widget.name}_${_nativeAd.hashCode}'),
+            ad: _nativeAd!,
+          ),
         ),
       );
     }
@@ -235,16 +238,24 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
       factoryId: widget.factoryId,
       listener: NativeAdListener(
         onAdLoaded: (ad) {
-          _nativeAd?.dispose();
-          _nativeAd = null;
+          final oldAd = _nativeAd;
+          final newAd = ad as NativeAd;
+
           EventLog.logEvent('${widget.name}_quietly_load');
+
           if (mounted) {
-            setState(() {
-              _nativeAd = ad as NativeAd?;
-              _isLoading = false;
-              _shouldHide = false;
+            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              setState(() {
+                _nativeAd = newAd;
+                _isLoading = false;
+                _shouldHide = false;
+              });
             });
           }
+
+          Future.microtask(() {
+            oldAd?.dispose();
+          });
           print('admob_ads --- native_ads: ${widget.name} Quietly - onAdLoaded $_nativeAd');
         },
         onAdFailedToLoad: (ad, error) {
