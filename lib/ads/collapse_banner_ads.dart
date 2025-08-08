@@ -100,13 +100,16 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
 
     if (_bannerAd != null) {
       return Container(
+        key: Key('${widget.name}_${_bannerAd.hashCode}'),
         decoration: BoxDecoration(
           border: Border(top: BorderSide(color: Colors.black, width: 1)),
         ),
         child: SizedBox(
           width: _bannerAd!.size.width.toDouble(),
           height: _bannerAd!.size.height.toDouble(),
-          child: AdWidget(ad: _bannerAd!),
+          child: AdWidget(
+              key: ValueKey('${widget.name}_${_bannerAd.hashCode}'),
+              ad: _bannerAd!),
         ),
       );
     }
