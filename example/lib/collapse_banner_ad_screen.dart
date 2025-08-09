@@ -79,8 +79,8 @@ class _CollapseBannerAdScreenState extends State<CollapseBannerAdScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => DetailScreen()),
                 ).then((value) {
-                  collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
                   collapseKey.currentState?.setIsOnScreenShowCollapse(isOnScreenShowCollapse: true);
+                  collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
                 });
               },
               child: Text('Collapse banner ads'),

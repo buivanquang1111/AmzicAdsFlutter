@@ -78,16 +78,17 @@ Future<void> dismissCollapse() async {
     }
     canClick = false;
     await collapseKey.currentState?.closeCollapse();
-    collapseKey.currentState?.setIsCanRefreshAd(isCan: false);
     collapseKey.currentState?.setIsOnScreenShowCollapse(isOnScreenShowCollapse: false);
+    collapseKey.currentState?.setIsCanRefreshAd(isCan: false);
     await Future.delayed(const Duration(milliseconds: 800));
     canClick = true;
   }
 ```
 khi quay lại từ màn sau về màn show collapse banner gọi thêm
+bắt buộc phải gọi setIsOnScreenShowCollapse trước setIsCanRefreshAd
 ```html
-collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
 collapseKey.currentState?.setIsOnScreenShowCollapse(isOnScreenShowCollapse: true);
+collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
 ```
 
 ví dụ
@@ -97,8 +98,8 @@ Navigator.push(
     context,
     MaterialPageRoute(builder: (context) => DetailScreen()),
     ).then((value) {
-        collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
         collapseKey.currentState?.setIsOnScreenShowCollapse(isOnScreenShowCollapse: true);
+        collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
 });
 ```
 
