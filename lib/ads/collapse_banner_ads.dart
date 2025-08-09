@@ -88,6 +88,11 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
     _bannerAd?.dispose();
   }
 
+  Future<void> reloadCollapse() async{
+    stopRefreshTime();
+    loadCollapseAds();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_shouldHide) {
