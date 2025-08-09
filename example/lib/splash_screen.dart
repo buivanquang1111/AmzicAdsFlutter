@@ -23,34 +23,6 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   init() async {
-    // await Admob.instance.init(
-    //   navigatorKey: navigatorKey,
-    //   idAdsResume: 'ca-app-pub-3940256099942544/9257395921',
-    //   idAdsAppOpenSplash: 'ca-app-pub-3940256099942544/9257395921',
-    //   idAdsInterSplash: 'ca-app-pub-3940256099942544/1033173712',
-    //   configAppOpenSplash: true,
-    //   configInterSplash: true,
-    //   intervalBetweenInter: 20,
-    //   intervalFromStart: 10,
-    //   intervalInterAll: 0,
-    //   rateAoa: '0_100',
-    //   onNext: () {
-    //     Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
-    //   },
-    //   isShowWelComeScreenAfterAppOpenAds: true,
-    //   onGotoScreenWelcomeBack: () {
-    //     Navigator.push(
-    //       navigatorKey.currentContext!,
-    //       MaterialPageRoute(builder: (context) => WelcomeBackScreen()),
-    //     );
-    //   },
-    //   onStartLoadBanner: () {},
-    //   linkServer: null,
-    //   appId: null,
-    //   packageName: null,
-    //   remoteConfigKeys: [],
-    // );
-
     await Admob.instance.init(
       linkServer: null,
       appId: null,

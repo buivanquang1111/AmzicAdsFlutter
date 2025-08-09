@@ -38,6 +38,17 @@ class _CollapseBannerAdScreenState extends State<CollapseBannerAdScreen> {
       refreshSec: 5,
       name: 'collapse_banner_all',
     );
+
+    Admob.instance.appLifecycleReactor?.setCloseCollapseBannerWelComeBack(
+      onCloseCollapse: () {
+        dismissCollapse();
+      },
+    );
+    Admob.instance.appLifecycleReactor?.setReloadCollapseBannerCloseWelComeBack(
+      omReloadCollapse: () {
+        collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
+      },
+    );
   }
 
   @override
@@ -59,11 +70,14 @@ class _CollapseBannerAdScreenState extends State<CollapseBannerAdScreen> {
         children: [
           Expanded(
             child: GestureDetector(
-              onTap: () async{
+              onTap: () async {
                 await dismissCollapse();
-                Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen())).then((value) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => DetailScreen()),
+                ).then((value) {
                   collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
-                },);
+                });
               },
               child: Text('Collapse banner ads'),
             ),

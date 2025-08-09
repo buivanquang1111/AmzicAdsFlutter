@@ -83,6 +83,24 @@ Future<void> dismissCollapse() async {
     canClick = true;
   }
 ```
+với trường hợp có màn WelcomeBack, khởi tạo hàm ở initState
+```html
+Admob.instance.appLifecycleReactor?.setCloseCollapseBannerWelComeBack(
+    onCloseCollapse: () {
+        dismissCollapse();
+    },
+);
+Admob.instance.appLifecycleReactor?.setReloadCollapseBannerCloseWelComeBack(
+    omReloadCollapse: () {
+        collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
+    },
+);
+```
+Trường hợp isShowWelComeScreenAfterAppOpenAds: false không cần thêm gì
+Trường hợp isShowWelComeScreenAfterAppOpenAds: true gọi thêm ở nút Continue (quay về màn đang dùng)
+```html
+Admob.instance.appLifecycleReactor?.onReloadCollapseBanner?.call();
+```
 
 ## Banner ad
 ```html

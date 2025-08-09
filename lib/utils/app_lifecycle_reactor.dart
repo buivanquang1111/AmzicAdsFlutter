@@ -25,6 +25,17 @@ class AppLifecycleReactor {
   bool isShowScreenWelcomeBack = false; // check Screen WelcomeBack show hay k show
   bool _onSplashScreen = true; // Screen Splash not show app open
 
+  Function()? onCloseCollapseBanner;
+  Function()? onReloadCollapseBanner;
+
+  setCloseCollapseBannerWelComeBack({required Function() onCloseCollapse}) {
+    onCloseCollapseBanner = onCloseCollapse;
+  }
+
+  setReloadCollapseBannerCloseWelComeBack({required Function() omReloadCollapse}) {
+    onReloadCollapseBanner = omReloadCollapse;
+  }
+
   setOnSplashScreen({required bool value}) {
     _onSplashScreen = value;
   }
@@ -58,6 +69,9 @@ class AppLifecycleReactor {
     }
 
     if (appState == AppState.foreground) {
+      ///close collapse show screen welcome back
+      await onCloseCollapseBanner?.call();
+
       if (isDisableAdResume == false) {
         if (Admob.instance.isFullScreenAdShowing == true ||
             Admob.instance.isShowAllAds == false ||
@@ -108,7 +122,8 @@ class AppLifecycleReactor {
     required Function() onAdFailedToShow,
     required Function() onAdDismiss,
     required String name,
-  }) {
+  }) async {
+    await onCloseCollapseBanner?.call();
     if (isShowWelComeScreenAfterAppOpenAds == false) {
       Admob.instance.loadAndShowAppOpenAds(
         navigatorKey: navigatorKey,
@@ -118,23 +133,28 @@ class AppLifecycleReactor {
         onAdDismiss: () {
           isShowScreenWelcomeBack = false;
           onAdDismiss.call();
+          onReloadCollapseBanner?.call();
         },
         onAdFailedToLoad: () {
           isShowScreenWelcomeBack = false;
           onAdFailedToLoad.call();
+          onReloadCollapseBanner?.call();
         },
         onAdFailedToShow: () {
           isShowScreenWelcomeBack = false;
           onAdFailedToShow.call();
+          onReloadCollapseBanner?.call();
         },
         onAdDisable: () {
           isShowScreenWelcomeBack = false;
           onAdDisable.call();
+          onReloadCollapseBanner?.call();
         },
       );
     } else {
       isShowScreenWelcomeBack = false;
       onAdDisable.call();
+      onReloadCollapseBanner?.call();
     }
   }
 }
