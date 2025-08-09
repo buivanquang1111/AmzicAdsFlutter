@@ -23,6 +23,7 @@ class _CollapseBannerAdScreenState extends State<CollapseBannerAdScreen> {
     canClick = false;
     await collapseKey.currentState?.closeCollapse();
     collapseKey.currentState?.setIsCanRefreshAd(isCan: false);
+    collapseKey.currentState?.setIsOnScreenShowCollapse(isOnScreenShowCollapse: false);
     await Future.delayed(const Duration(milliseconds: 800));
     canClick = true;
   }
@@ -40,8 +41,10 @@ class _CollapseBannerAdScreenState extends State<CollapseBannerAdScreen> {
     );
 
     Admob.instance.appLifecycleReactor?.setCloseCollapseBannerWelComeBack(
-      onCloseCollapse: () {
-        dismissCollapse();
+      onCloseCollapse: () async {
+        await collapseKey.currentState?.closeCollapse();
+        collapseKey.currentState?.setIsCanRefreshAd(isCan: false);
+        await Future.delayed(const Duration(milliseconds: 800));
       },
     );
     Admob.instance.appLifecycleReactor?.setReloadCollapseBannerCloseWelComeBack(
@@ -77,6 +80,7 @@ class _CollapseBannerAdScreenState extends State<CollapseBannerAdScreen> {
                   MaterialPageRoute(builder: (context) => DetailScreen()),
                 ).then((value) {
                   collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
+                  collapseKey.currentState?.setIsOnScreenShowCollapse(isOnScreenShowCollapse: true);
                 });
               },
               child: Text('Collapse banner ads'),

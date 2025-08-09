@@ -79,15 +79,36 @@ Future<void> dismissCollapse() async {
     canClick = false;
     await collapseKey.currentState?.closeCollapse();
     collapseKey.currentState?.setIsCanRefreshAd(isCan: false);
+    collapseKey.currentState?.setIsOnScreenShowCollapse(isOnScreenShowCollapse: false);
     await Future.delayed(const Duration(milliseconds: 800));
     canClick = true;
   }
 ```
+khi quay lại từ màn sau về màn show collapse banner gọi thêm
+```html
+collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
+collapseKey.currentState?.setIsOnScreenShowCollapse(isOnScreenShowCollapse: true);
+```
+
+ví dụ
+```html
+await dismissCollapse();
+Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => DetailScreen()),
+    ).then((value) {
+        collapseKey.currentState?.setIsCanRefreshAd(isCan: true);
+        collapseKey.currentState?.setIsOnScreenShowCollapse(isOnScreenShowCollapse: true);
+});
+```
+
 với trường hợp có màn WelcomeBack, khởi tạo hàm ở initState
 ```html
-Admob.instance.appLifecycleReactor?.setCloseCollapseBannerWelComeBack(
-    onCloseCollapse: () {
-        dismissCollapse();
+ Admob.instance.appLifecycleReactor?.setCloseCollapseBannerWelComeBack(
+    onCloseCollapse: () async {
+        await collapseKey.currentState?.closeCollapse();
+        collapseKey.currentState?.setIsCanRefreshAd(isCan: false);
+        await Future.delayed(const Duration(milliseconds: 800));
     },
 );
 Admob.instance.appLifecycleReactor?.setReloadCollapseBannerCloseWelComeBack(

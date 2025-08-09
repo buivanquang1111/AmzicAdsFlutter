@@ -48,9 +48,17 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
   Timer? _timerRefresh;
   bool isCanRefreshAd = true;
 
+  ///biến kiểm tra có đang ở màn show Collapse Banner ,
+  /// để khi click Continue (ở WelcomeBack có cho reload hay k)
+  bool isScreenShowCollapse = true;
+
+  void setIsOnScreenShowCollapse({required bool isOnScreenShowCollapse}) {
+    isScreenShowCollapse = isOnScreenShowCollapse;
+  }
+
   void setIsCanRefreshAd({required bool isCan}) {
     isCanRefreshAd = isCan;
-    if (isCan) {
+    if (isCan && isScreenShowCollapse) {
       loadCollapseAds();
     }
   }
@@ -88,7 +96,7 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
     _bannerAd?.dispose();
   }
 
-  Future<void> reloadCollapse() async{
+  Future<void> reloadCollapse() async {
     stopRefreshTime();
     loadCollapseAds();
   }
@@ -112,9 +120,7 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
         child: SizedBox(
           width: _bannerAd!.size.width.toDouble(),
           height: _bannerAd!.size.height.toDouble(),
-          child: AdWidget(
-              key: ValueKey('${widget.name}_${_bannerAd.hashCode}'),
-              ad: _bannerAd!),
+          child: AdWidget(key: ValueKey('${widget.name}_${_bannerAd.hashCode}'), ad: _bannerAd!),
         ),
       );
     }
@@ -230,11 +236,13 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
     stopRefreshTime();
     print('admob_ads --- collapse_banner: startRefreshTime');
     _timerRefresh = Timer.periodic(Duration(seconds: widget.refreshSec), (timer) {
-      if (isCanRefreshAd) {
+      if (isCanRefreshAd && isScreenShowCollapse) {
         print('admob_ads --- collapse_banner: RefreshSec - ${widget.refreshSec} Done');
         loadCollapseAds();
       } else {
-        print('admob_ads --- collapse_banner: Can not refresh ad isCanRefreshAd = $isCanRefreshAd');
+        print(
+          'admob_ads --- collapse_banner: Can not refresh ad isCanRefreshAd = $isCanRefreshAd , isScreenShowCollapse = $isScreenShowCollapse',
+        );
       }
     });
   }
