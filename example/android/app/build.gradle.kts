@@ -47,9 +47,18 @@ flutter {
     source = "../.."
 }
 dependencies {
-    implementation("com.google.android.gms:play-services-ads:22.6.0")
+    implementation("com.google.android.gms:play-services-ads:24.4.0")
     implementation ("androidx.multidex:multidex:2.0.1")
 
     implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
     implementation("com.google.firebase:firebase-analytics")
+
+    implementation("com.google.ads.mediation:facebook:6.20.0.0")
+    implementation("com.google.ads.mediation:applovin:13.3.1.1")
+    implementation("com.google.ads.mediation:pangle:7.3.0.4.0")
+    implementation("com.google.ads.mediation:ironsource:8.10.0.0")
+    implementation("com.unity3d.ads:unity-ads:4.15.0")
+    implementation("com.google.ads.mediation:unity:4.16.0.0")
+    implementation("com.google.ads.mediation:mintegral:16.9.81.0")
+    implementation("com.google.ads.mediation:vungle:7.5.0.1")
 }

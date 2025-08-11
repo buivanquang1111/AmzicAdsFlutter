@@ -25,6 +25,8 @@ class Admob {
 
   GlobalKey<NavigatorState>? navigatorKey;
 
+  bool _isAdmobInitialized = false;
+
   ///enable show full ads
   bool _isShowAllAds = true;
 
@@ -360,8 +362,34 @@ class Admob {
 
   ///end
 
+  // Future<void> initAdmob() async {
+  //   MobileAds.instance.initialize();
+  // }
   Future<void> initAdmob() async {
-    MobileAds.instance.initialize();
+    if (_isAdmobInitialized) {
+      return;
+    }
+
+    MobileAds.instance.initialize().then((value) {
+      print("=== Mediation AdMob Initialization Status ===");
+      value.adapterStatuses.forEach((key, status) {
+        final state = status.state;
+        final description = status.description;
+
+        print("  Adapter: $key");
+        print("  State: $state");
+        print("  Description: $description");
+
+        if (state == AdapterInitializationState.notReady) {
+          print("  ⚠️ This adapter is NOT READY. Check SDK setup, app ID, or initialization code.");
+        } else if (state == AdapterInitializationState.ready) {
+          print("  ✅ Ready to serve ads.");
+        }
+      });
+      print("=== End of Adapter Status ===");
+    });
+
+    _isAdmobInitialized = true;
   }
 
   Future<String?> getPlatformVersion() {
