@@ -66,4 +66,12 @@ class CallApi {
     }
     return listId;
   }
+
+  String getFirstIDByName(String nameAds) {
+    final list = getListIDByName(nameAds);
+    if (list.isNotEmpty) {
+      return list.first;
+    }
+    return '';
+  }
 }
