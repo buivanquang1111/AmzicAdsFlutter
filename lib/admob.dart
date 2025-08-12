@@ -188,6 +188,7 @@ class Admob {
         timeoutSplashCompleter.complete();
         isNextTimeout = true;
         onNext();
+        print('admob_ads --- onNext Timeout Splash 12s');
       }
     });
 
@@ -327,7 +328,11 @@ class Admob {
             );
           }
         } else {
-          onNext();
+          handleTimeOut();
+          if (!isNextTimeout) {
+            print('admob_ads --- onNext DO NOT CONSENT');
+            onNext();
+          }
         }
       },
     );
@@ -541,6 +546,7 @@ class Admob {
         onAdDisable: () {
           Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
           onNext();
+          print('admob_ads --- onNext onAdDisable Ads Splash');
         },
         onAdLoaded: () {},
         onAdImpression: () {
