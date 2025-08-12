@@ -176,11 +176,17 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
       adUnitId: widget.idAds,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          print('admob_ads --- collapse_banner: onAdLoaded');
-          setState(() {
-            _bannerAd = ad as BannerAd;
-            _isLoading = false;
-          });
+          if (isScreenShowCollapse) {
+            print('admob_ads --- collapse_banner: onAdLoaded');
+            setState(() {
+              _bannerAd = ad as BannerAd;
+              _isLoading = false;
+            });
+          } else {
+            print(
+              'admob_ads --- collapse_banner: NOT onAdLoaded isScreenShowCollapse = $isScreenShowCollapse',
+            );
+          }
           widget.onAdLoaded?.call();
         },
         onAdFailedToLoad: (ad, error) {
