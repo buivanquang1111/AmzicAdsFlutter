@@ -7,12 +7,10 @@ import 'package:amazic_ads_flutter/manager_ad/inter_ads_manager.dart';
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
 import 'package:amazic_ads_flutter/utils/ad_foreground_observer.dart';
 import 'package:amazic_ads_flutter/utils/ad_helper.dart';
-import 'package:amazic_ads_flutter/utils/adjust_util.dart';
 import 'package:amazic_ads_flutter/utils/app_lifecycle_reactor.dart';
 import 'package:amazic_ads_flutter/utils/event_log.dart';
 import 'package:amazic_ads_flutter/utils/preferences_util.dart';
 import 'package:amazic_ads_flutter/utils/remote_config.dart';
-import 'package:amazic_ads_flutter/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -395,6 +393,10 @@ class Admob {
     });
 
     _isAdmobInitialized = true;
+  }
+
+  Future<void> openMediationTest() async{
+
   }
 
   Future<String?> getPlatformVersion() {
