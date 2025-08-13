@@ -4,6 +4,7 @@ import 'package:amazic_ads_flutter/admob.dart';
 import 'package:amazic_ads_flutter/shimmer/shimmer_native_ads.dart';
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
 import 'package:amazic_ads_flutter/utils/event_log.dart';
+import 'package:amazic_ads_flutter/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -151,6 +152,9 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
         onAdLoaded: (ad) {
           print('admob_ads --- native_ads: ${widget.name} onAdLoaded');
           EventLog.logEvent('${widget.name}_load');
+
+          logNativeMediation(ad: ad, nameAds: widget.name);
+
           if (mounted) {
             setState(() {
               _isLoading = false;
@@ -242,6 +246,8 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
           final newAd = ad as NativeAd;
 
           EventLog.logEvent('${widget.name}_quietly_load');
+
+          logNativeMediation(ad: ad, nameAds: '${widget.name} Quietly');
 
           if (mounted) {
             WidgetsBinding.instance.addPostFrameCallback((timeStamp) {

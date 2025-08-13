@@ -86,6 +86,8 @@ class InterAdsManager {
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           print('admob_ads --- inter_ads_splash: onAdLoaded');
+
+          logInterMediation(ad: ad, nameAds: 'Inter splash');
           onAdLoaded?.call();
 
           setInterstitialAdSplash(ad);
@@ -222,6 +224,9 @@ class InterAdsManager {
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           print('admob_ads --- inter_ads: onAdLoaded');
+
+          logInterMediation(ad: ad, nameAds: name);
+
           onAdLoaded?.call();
 
           ad.onPaidEvent = (ad, valueMicros, precision, currencyCode) {

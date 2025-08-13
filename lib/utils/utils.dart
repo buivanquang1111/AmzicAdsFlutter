@@ -1,5 +1,6 @@
 import 'package:amazic_ads_flutter/dialog/loading_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 bool _isDialogShow = false;
 
@@ -21,4 +22,48 @@ closeLoadingDialog({required BuildContext context}) {
     Navigator.of(context, rootNavigator: true).pop();
     _isDialogShow = false;
   }
+}
+
+logInterMediation({required InterstitialAd ad, required String nameAds}){
+  /// ====== LOG WINNER ======
+  final info = ad.responseInfo;
+  final winner = info?.loadedAdapterResponseInfo;
+  print('=== MEDIATION WINNER $nameAds ===');
+  print('Network: ${winner?.adSourceName}');
+  print('Class: ${winner?.adapterClassName}');
+  print('AdSource ID: ${winner?.adSourceId}');
+  print('Latency: ${winner?.latencyMillis} ms');
+  print('=========================');
+  /// ====== LOG FULL WATERFALL ======
+  final allResponses = info?.adapterResponses ?? [];
+  print('=== FULL WATERFALL $nameAds ===');
+  for (final adapter in allResponses) {
+    print('Adapter: ${adapter.adSourceName}');
+    print('  Class: ${adapter.adapterClassName}');
+    print('  Latency: ${adapter.latencyMillis} ms');
+    print('  Description: ${adapter.description}');
+  }
+  print('=======================');
+}
+
+logNativeMediation({required Ad ad, required String nameAds}){
+  /// ====== LOG WINNER ======
+  final info = ad.responseInfo;
+  final winner = info?.loadedAdapterResponseInfo;
+  print('=== MEDIATION WINNER $nameAds ===');
+  print('Network: ${winner?.adSourceName}');
+  print('Class: ${winner?.adapterClassName}');
+  print('AdSource ID: ${winner?.adSourceId}');
+  print('Latency: ${winner?.latencyMillis} ms');
+  print('=========================');
+  /// ====== LOG FULL WATERFALL ======
+  final allResponses = info?.adapterResponses ?? [];
+  print('=== FULL WATERFALL $nameAds ===');
+  for (final adapter in allResponses) {
+    print('Adapter: ${adapter.adSourceName}');
+    print('  Class: ${adapter.adapterClassName}');
+    print('  Latency: ${adapter.latencyMillis} ms');
+    print('  Description: ${adapter.description}');
+  }
+  print('=======================');
 }
