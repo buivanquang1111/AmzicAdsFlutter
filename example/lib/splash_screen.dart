@@ -29,6 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
       packageName: null,
       navigatorKey: navigatorKey,
       nameIddAdsResume: 'resume_wb',
+      nameResumeConfig: 'resume_wb',
       isShowWelComeScreenAfterAppOpenAds: true,
       onGotoScreenWelcomeBack: () {
         Navigator.push(

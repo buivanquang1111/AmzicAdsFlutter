@@ -1,6 +1,7 @@
 import 'package:amazic_ads_flutter/admob.dart';
 import 'package:amazic_ads_flutter/amazic_ads_flutter.dart';
 import 'package:amazic_ads_flutter/call_api/call_api.dart';
+import 'package:amazic_ads_flutter/utils/remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -305,7 +306,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           NativeAds(
             idAds: CallApi.instance.getFirstIDByName('native_language'),
-            config: true,
+            config: RemoteConfig.getBool('native_ads'),
             height: 300,
             factoryId: 'native_ad',
             refreshSec: 5,

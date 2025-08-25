@@ -1,5 +1,6 @@
 import 'package:amazic_ads_flutter/admob.dart';
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
+import 'package:amazic_ads_flutter/utils/remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -8,14 +9,14 @@ class AppLifecycleReactor {
   String idAds;
   final bool
   isShowWelComeScreenAfterAppOpenAds; // false - show WelcomeBackScreen truoc ads, true - show WelcomeBack sau ads
-  bool config;
+  String nameResumeConfig;
   Function()? onGotoWelcomeBack;
   String name;
 
   AppLifecycleReactor({
     required this.navigatorKey,
     required this.idAds,
-    required this.config,
+    required this.nameResumeConfig,
     required this.isShowWelComeScreenAfterAppOpenAds,
     required this.name,
     this.onGotoWelcomeBack,
@@ -61,9 +62,9 @@ class AppLifecycleReactor {
 
   void _onAppStateChanged(AppState appState) async {
     if (_onSplashScreen) return;
-    print('admob_ads --- app_open: start');
-    if (config == false) {
-      print('admob_ads --- app_open: config = $config');
+    print('admob_ads --- app_open: start , config = ${RemoteConfig.getBool(nameResumeConfig)}');
+    if (RemoteConfig.getBool(nameResumeConfig) == false) {
+      print('admob_ads --- app_open: config = ${RemoteConfig.getBool(nameResumeConfig)}');
       setShowScreenWelcomeBack();
       return;
     }
@@ -85,7 +86,7 @@ class AppLifecycleReactor {
           Admob.instance.loadAndShowAppOpenAds(
             navigatorKey: navigatorKey,
             idAds: idAds,
-            config: config,
+            config: RemoteConfig.getBool(nameResumeConfig),
             name: name,
             onAdDismiss: () {
               isShowScreenWelcomeBack = false;
@@ -128,7 +129,7 @@ class AppLifecycleReactor {
       Admob.instance.loadAndShowAppOpenAds(
         navigatorKey: navigatorKey,
         idAds: idAds,
-        config: config,
+        config: RemoteConfig.getBool(nameResumeConfig),
         name: name,
         onAdDismiss: () {
           isShowScreenWelcomeBack = false;
