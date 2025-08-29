@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:amazic_ads_flutter/admob.dart';
 import 'package:amazic_ads_flutter/shimmer/shimmer_native_ads.dart';
@@ -52,6 +53,8 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
 
   Timer? _timerRefresh;
 
+  final Queue<NativeAd> _adCache = Queue<NativeAd>();
+
   @override
   void initState() {
     super.initState();
@@ -93,7 +96,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
 
     if (_nativeAd != null) {
       return VisibilityDetector(
-        key: Key('${widget.name}_${_nativeAd.hashCode}'),
+        key: Key(widget.name),
         onVisibilityChanged: (info) {
           if (info.visibleFraction == 0) {
             print('admob_ads --- native_ads: ${widget.name} HIDDEN');
@@ -106,10 +109,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
         child: SizedBox(
           width: MediaQuery.of(context).size.width,
           height: widget.height,
-          child: AdWidget(
-            key: ValueKey('${widget.name}_${_nativeAd.hashCode}'),
-            ad: _nativeAd!,
-          ),
+          child: AdWidget(key: ValueKey('${widget.name}_${_nativeAd.hashCode}'), ad: _nativeAd!),
         ),
       );
     }
@@ -173,7 +173,8 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
             });
           }
           print('admob_ads --- native_ads: ${widget.name} onAdFailedToLoad - startRefreshTime');
-          startRefreshTime();
+          // startRefreshTime();
+          loadAds();
           widget.onAdFailedToLoad?.call();
         },
         onAdOpened: (ad) {
@@ -217,8 +218,25 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
     stopRefreshTime();
     print('admob_ads --- native_ads: ${widget.name} startRefreshTime');
     _timerRefresh = Timer.periodic(Duration(seconds: widget.refreshSec), (timer) {
-      print('admob_ads --- native_ads: ${widget.name} RefreshSec - ${widget.refreshSec} Done');
-      loadAdsQuietly();
+      print(
+        'admob_ads --- native_ads: ${widget.name} RefreshSec - ${widget.refreshSec} Done - length Cache = ${_adCache.length}',
+      );
+      if (_adCache.isNotEmpty) {
+        print('admob_ads --- native_ads: ${widget.name} RefreshSec - display Ads Cache');
+        final oldAd = _nativeAd;
+        final newAd = _adCache.first;
+        if (mounted) {
+          setState(() {
+            _nativeAd = newAd;
+            _isLoading = false;
+            _shouldHide = false;
+          });
+          Future.microtask(() => oldAd?.dispose());
+        }
+      } else {
+        print('admob_ads --- native_ads: ${widget.name} RefreshSec - loadAdsQuietly');
+        loadAdsQuietly();
+      }
     });
   }
 
@@ -230,6 +248,8 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
 
   ///load ads before show
   loadAdsQuietly() async {
+    stopRefreshTime();
+
     if (!await canShowAds()) {
       print('admob_ads --- native_ads: ${widget.name} Quietly - hide native');
       return;
@@ -249,7 +269,9 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
 
           logNativeMediation(ad: ad, nameAds: '${widget.name} Quietly');
 
+          _adCache.add(newAd);
           if (mounted) {
+            print('admob_ads --- native_ads: ${widget.name} Quietly - 1.onAdLoaded $_nativeAd, newAd $newAd');
             WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
               setState(() {
                 _nativeAd = newAd;
@@ -262,10 +284,11 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
           Future.microtask(() {
             oldAd?.dispose();
           });
-          print('admob_ads --- native_ads: ${widget.name} Quietly - onAdLoaded $_nativeAd');
+          print('admob_ads --- native_ads: ${widget.name} Quietly - 2.onAdLoaded $_nativeAd, newAd $newAd');
         },
         onAdFailedToLoad: (ad, error) {
           print('admob_ads --- native_ads: ${widget.name} Quietly - onAdFailedToLoad');
+          startRefreshTime();
           ad.dispose();
           EventLog.logEvent('${widget.name}_quietly_load_failed');
         },
@@ -279,6 +302,11 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
         },
         onAdImpression: (ad) {
           print('admob_ads --- native_ads: ${widget.name} Quietly - onAdImpression');
+          bool removed = _adCache.remove(ad);
+          if (removed) {
+            print('admob_ads --- native_ads: ${widget.name} Quietly - remove ad cache');
+          }
+          startRefreshTime();
           EventLog.logEvent('${widget.name}_quietly_view');
         },
         onAdClicked: (ad) {

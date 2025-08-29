@@ -89,7 +89,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(16),
                             color: Colors.greenAccent,
                           ),
-                          child: Center(child: Text('show banner ads', textAlign: TextAlign.center)),
+                          child: Center(
+                            child: Text('show banner ads', textAlign: TextAlign.center),
+                          ),
                         ),
                       ),
                     ),
@@ -98,7 +100,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   Builder(
                     builder: (context) => GestureDetector(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => NativeAdScreen()));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => NativeAdScreen()),
+                        );
                       },
                       child: Center(
                         child: Container(
@@ -108,7 +113,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(16),
                             color: Colors.greenAccent,
                           ),
-                          child: Center(child: Text('show native ads', textAlign: TextAlign.center)),
+                          child: Center(
+                            child: Text('show native ads', textAlign: TextAlign.center),
+                          ),
                         ),
                       ),
                     ),
@@ -217,7 +224,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(16),
                             color: Colors.greenAccent,
                           ),
-                          child: Center(child: Text('show reward ads', textAlign: TextAlign.center)),
+                          child: Center(
+                            child: Text('show reward ads', textAlign: TextAlign.center),
+                          ),
                         ),
                       ),
                     ),
@@ -265,7 +274,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(16),
                             color: Colors.greenAccent,
                           ),
-                          child: Center(child: Text('show App Open ads', textAlign: TextAlign.center)),
+                          child: Center(
+                            child: Text('show App Open ads', textAlign: TextAlign.center),
+                          ),
                         ),
                       ),
                     ),
@@ -295,7 +306,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(16),
                             color: Colors.greenAccent,
                           ),
-                          child: Center(child: Text('show 2 reward ads', textAlign: TextAlign.center)),
+                          child: Center(
+                            child: Text('show 2 reward ads', textAlign: TextAlign.center),
+                          ),
                         ),
                       ),
                     ),
