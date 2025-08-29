@@ -297,7 +297,7 @@ class Admob {
           ///init app open resume
           appLifecycleReactor = AppLifecycleReactor(
             navigatorKey: navigatorKey,
-            idAds: CallApi.instance.getListIDByName(nameIdAdsResume)[0],
+            idAds: CallApi.instance.getFirstIDByName(nameIdAdsResume),
             nameResumeConfig: nameResumeConfig,
             isShowWelComeScreenAfterAppOpenAds: isShowWelComeScreenAfterAppOpenAds,
             onGotoWelcomeBack: onGotoScreenWelcomeBack,
@@ -320,8 +320,8 @@ class Admob {
           if (!isNextTimeout) {
             initAndShowAdSplash(
               navigatorKey: navigatorKey,
-              idAdsAppOpen: CallApi.instance.getListIDByName(nameIdAdsAppOpenSplash)[0],
-              idAdsInter: CallApi.instance.getListIDByName(nameIdAdsInterSplash)[0],
+              idAdsAppOpen: CallApi.instance.getFirstIDByName(nameIdAdsAppOpenSplash),
+              idAdsInter: CallApi.instance.getFirstIDByName(nameIdAdsInterSplash),
               configAppOpen: RemoteConfig.getBool(nameConfigAppOpenSplash),
               configInter: RemoteConfig.getBool(nameConfigInterSplash),
               rateAoa: RemoteConfig.getString(nameRateAoa),
