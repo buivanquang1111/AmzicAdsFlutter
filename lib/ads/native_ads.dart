@@ -68,6 +68,10 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _nativeAd?.dispose();
+    for (var ad in _adCache) {
+      ad.dispose();
+    }
+    _adCache.clear();
     stopRefreshTime();
     super.dispose();
   }
@@ -173,7 +177,6 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
             });
           }
           print('admob_ads --- native_ads: ${widget.name} onAdFailedToLoad - startRefreshTime');
-          // startRefreshTime();
           loadAds();
           widget.onAdFailedToLoad?.call();
         },
@@ -224,7 +227,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
       if (_adCache.isNotEmpty) {
         print('admob_ads --- native_ads: ${widget.name} RefreshSec - display Ads Cache');
         final oldAd = _nativeAd;
-        final newAd = _adCache.first;
+        final newAd = _adCache.removeFirst();
         if (mounted) {
           setState(() {
             _nativeAd = newAd;
@@ -271,7 +274,9 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
 
           _adCache.add(newAd);
           if (mounted) {
-            print('admob_ads --- native_ads: ${widget.name} Quietly - 1.onAdLoaded $_nativeAd, newAd $newAd');
+            print(
+              'admob_ads --- native_ads: ${widget.name} Quietly - 1.onAdLoaded $_nativeAd, newAd $newAd',
+            );
             WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
               setState(() {
                 _nativeAd = newAd;
@@ -284,7 +289,9 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
           Future.microtask(() {
             oldAd?.dispose();
           });
-          print('admob_ads --- native_ads: ${widget.name} Quietly - 2.onAdLoaded $_nativeAd, newAd $newAd');
+          print(
+            'admob_ads --- native_ads: ${widget.name} Quietly - 2.onAdLoaded $_nativeAd, newAd $newAd',
+          );
         },
         onAdFailedToLoad: (ad, error) {
           print('admob_ads --- native_ads: ${widget.name} Quietly - onAdFailedToLoad');

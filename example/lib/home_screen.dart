@@ -322,7 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
             config: RemoteConfig.getBool('native_ads'),
             height: 300,
             factoryId: 'native_ad',
-            refreshSec: 5,
+            refreshSec: 3,
             name: 'native_all',
           ),
         ],
