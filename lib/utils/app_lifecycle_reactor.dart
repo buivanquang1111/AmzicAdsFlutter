@@ -65,6 +65,7 @@ class AppLifecycleReactor {
     print('admob_ads --- app_open: start , config = ${RemoteConfig.getBool(nameResumeConfig)}');
     if (RemoteConfig.getBool(nameResumeConfig) == false) {
       print('admob_ads --- app_open: config = ${RemoteConfig.getBool(nameResumeConfig)}');
+      isShowScreenWelcomeBack = false;
       setShowScreenWelcomeBack();
       return;
     }
