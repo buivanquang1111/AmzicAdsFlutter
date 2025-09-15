@@ -62,6 +62,9 @@ class AppLifecycleReactor {
 
   void _onAppStateChanged(AppState appState) async {
     if (_onSplashScreen) return;
+    ///close collapse show screen welcome back
+    await onCloseCollapseBanner?.call();
+
     print('admob_ads --- app_open: start , config = ${RemoteConfig.getBool(nameResumeConfig)}');
     if (RemoteConfig.getBool(nameResumeConfig) == false) {
       print('admob_ads --- app_open: config = ${RemoteConfig.getBool(nameResumeConfig)}');
@@ -71,9 +74,6 @@ class AppLifecycleReactor {
     }
 
     if (appState == AppState.foreground) {
-      ///close collapse show screen welcome back
-      await onCloseCollapseBanner?.call();
-
       if (isDisableAdResume == false) {
         if (Admob.instance.isFullScreenAdShowing == true ||
             Admob.instance.isShowAllAds == false ||
