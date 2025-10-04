@@ -30,6 +30,21 @@ class _HomeScreenState extends State<HomeScreen> {
       idAds: 'ca-app-pub-3940256099942544/5224354917',
       config: true,
     );
+
+    _preload();
+  }
+
+  void _preload() {
+    NativeAdManager().preloadAd(
+      adUnitId: CallApi.instance.getFirstIDByName('native_language'),
+      config: false,
+      nameIdAds: 'native_language',
+      factoryId: 'native_ad',
+      onAdLoaded: () {
+      },
+      onAdFailed: (error) {
+      },
+    );
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -89,7 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(16),
                             color: Colors.greenAccent,
                           ),
-                          child: Center(child: Text('show banner ads', textAlign: TextAlign.center)),
+                          child: Center(
+                            child: Text('show banner ads', textAlign: TextAlign.center),
+                          ),
                         ),
                       ),
                     ),
@@ -98,7 +115,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   Builder(
                     builder: (context) => GestureDetector(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => NativeAdScreen()));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => NativeAdScreen()),
+                        );
                       },
                       child: Center(
                         child: Container(
@@ -108,7 +128,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(16),
                             color: Colors.greenAccent,
                           ),
-                          child: Center(child: Text('show native ads', textAlign: TextAlign.center)),
+                          child: Center(
+                            child: Text('show native ads', textAlign: TextAlign.center),
+                          ),
                         ),
                       ),
                     ),
@@ -217,7 +239,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(16),
                             color: Colors.greenAccent,
                           ),
-                          child: Center(child: Text('show reward ads', textAlign: TextAlign.center)),
+                          child: Center(
+                            child: Text('show reward ads', textAlign: TextAlign.center),
+                          ),
                         ),
                       ),
                     ),
@@ -265,7 +289,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(16),
                             color: Colors.greenAccent,
                           ),
-                          child: Center(child: Text('show App Open ads', textAlign: TextAlign.center)),
+                          child: Center(
+                            child: Text('show App Open ads', textAlign: TextAlign.center),
+                          ),
                         ),
                       ),
                     ),
@@ -295,7 +321,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(16),
                             color: Colors.greenAccent,
                           ),
-                          child: Center(child: Text('show 2 reward ads', textAlign: TextAlign.center)),
+                          child: Center(
+                            child: Text('show 2 reward ads', textAlign: TextAlign.center),
+                          ),
                         ),
                       ),
                     ),

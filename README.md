@@ -145,6 +145,25 @@ NativeAds(
 ),
 ```
 
+## Preload Native Ad
+call load ads
+```html
+ NativeAdManager().preloadAd(
+      adUnitId: CallApi.instance.getFirstIDByName('native_language'),
+      config: true,
+      nameIdAds: 'native_language',
+      factoryId: 'native_ad',
+      onAdLoaded: () {
+      },
+      onAdFailed: (error) {
+      },
+    );
+```
+call show ads
+```html
+NativeAdManager().showAd(config: false, nameIdAds: 'native_language', height: 300),
+```
+
 ## Inter ad
 ```html
 Admob.instance.loadAndShowInterInterval(
