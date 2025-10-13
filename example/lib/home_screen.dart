@@ -46,6 +46,17 @@ class _HomeScreenState extends State<HomeScreen> {
       onAdFailed: (error) {
       },
     );
+    NativeAdManager().preloadAd(
+      adUnitId: CallApi.instance.getFirstIDByName('native_intro'),
+      config: true,
+      nameIdAds: 'native_intro',
+      factoryId: 'native_ad',
+      intervalReload: 5,
+      onAdLoaded: () {
+      },
+      onAdFailed: (error) {
+      },
+    );
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.

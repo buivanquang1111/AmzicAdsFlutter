@@ -12,6 +12,8 @@ class NativeAdScreen extends StatefulWidget {
 }
 
 class _NativeAdScreenState extends State<NativeAdScreen> {
+  bool isShowAdsNew = false;
+
   @override
   void initState() {
     super.initState();
@@ -25,19 +27,33 @@ class _NativeAdScreenState extends State<NativeAdScreen> {
         children: [
           GestureDetector(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen()));
+              // Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen()));
+              setState(() {
+                isShowAdsNew = !isShowAdsNew;
+              });
             },
             child: Center(child: Text('go to detail')),
           ),
           Text('----------Preload Native ad----------'),
-          NativeAdManager().showAd(
-            config: true,
-            nameIdAds: 'native_language',
-            height: 300,
-            adUnitId: CallApi.instance.getFirstIDByName('native_language'),
-            factoryId: 'native_ad',
-            intervalReload: 5,
-          ),
+          isShowAdsNew == true
+              ? NativeAdManager().showAd(
+                  key: ValueKey('native_language'),
+                  config: true,
+                  nameIdAds: 'native_language',
+                  height: 300,
+                  adUnitId: CallApi.instance.getFirstIDByName('native_language'),
+                  factoryId: 'native_ad',
+                  intervalReload: 5,
+                )
+              : NativeAdManager().showAd(
+                  key: ValueKey('native_intro'),
+                  config: true,
+                  nameIdAds: 'native_intro',
+                  height: 300,
+                  adUnitId: CallApi.instance.getFirstIDByName('native_intro'),
+                  factoryId: 'native_ad',
+                  intervalReload: 5,
+                ),
           Text('----------Native ad----------'),
           NativeAds(
             idAds: 'ca-app-pub-3940256099942544/2247696110',

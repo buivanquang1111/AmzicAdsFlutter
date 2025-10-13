@@ -323,6 +323,7 @@ class NativeAdManager {
   // --- showAd (ĐÃ THAY ĐỔI) ---
   /// [nameIdAds]: ID dùng khi preload.
   Widget showAd({
+    Key? key,
     required bool config,
     required String adUnitId,
     required String nameIdAds,
@@ -336,6 +337,7 @@ class NativeAdManager {
     print('preload_native --- call show $nameIdAds');
     //Sử dụng StatefulWidget để hiển thị
     return _NativeAdWidget(
+      key: key,
       config: config,
       adUnitId: adUnitId,
       nameIdAds: nameIdAds,
