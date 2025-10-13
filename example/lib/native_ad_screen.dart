@@ -31,8 +31,13 @@ class _NativeAdScreenState extends State<NativeAdScreen> {
           ),
           Text('----------Preload Native ad----------'),
           NativeAdManager().showAd(
-              config: false,
-              nameIdAds: 'native_language', height: 300),
+            config: true,
+            nameIdAds: 'native_language',
+            height: 300,
+            adUnitId: CallApi.instance.getFirstIDByName('native_language'),
+            factoryId: 'native_ad',
+            intervalReload: 5,
+          ),
           Text('----------Native ad----------'),
           NativeAds(
             idAds: 'ca-app-pub-3940256099942544/2247696110',

@@ -37,9 +37,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _preload() {
     NativeAdManager().preloadAd(
       adUnitId: CallApi.instance.getFirstIDByName('native_language'),
-      config: false,
+      config: true,
       nameIdAds: 'native_language',
       factoryId: 'native_ad',
+      intervalReload: 5,
       onAdLoaded: () {
       },
       onAdFailed: (error) {

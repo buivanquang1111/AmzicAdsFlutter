@@ -146,22 +146,28 @@ NativeAds(
 ```
 
 ## Preload Native Ad
-call load ads
+call preload load ads
 ```html
- NativeAdManager().preloadAd(
-      adUnitId: CallApi.instance.getFirstIDByName('native_language'),
-      config: true,
-      nameIdAds: 'native_language',
-      factoryId: 'native_ad',
-      onAdLoaded: () {
-      },
-      onAdFailed: (error) {
-      },
+    NativeAdManager().preloadAd(
+        adUnitId: CallApi.instance.getFirstIDByName('native_language'),
+        config: true,
+        nameIdAds: 'native_language',
+        factoryId: 'native_ad',
+        intervalReload: 5,
+        onAdLoaded: () {},
+        onAdFailed: (error) {},
     );
 ```
 call show ads
 ```html
-NativeAdManager().showAd(config: false, nameIdAds: 'native_language', height: 300),
+    NativeAdManager().showAd(
+        config: true,
+        nameIdAds: 'native_language',
+        height: 300,
+        adUnitId: CallApi.instance.getFirstIDByName('native_language'),
+        factoryId: 'native_ad',
+        intervalReload: 5,
+    ),
 ```
 
 ## Inter ad
