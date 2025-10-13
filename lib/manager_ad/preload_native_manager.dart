@@ -506,7 +506,7 @@ class __NativeAdWidgetState extends State<_NativeAdWidget> with WidgetsBindingOb
 
     if (_nativeAd != null) {
       return VisibilityDetector(
-        key: Key('${widget.nameIdAds}_${widget.hashCode}'),
+        key: Key('${widget.nameIdAds}_${widget.factoryId}_${widget.hashCode}'),
         onVisibilityChanged: (info) {
           if (info.visibleFraction == 0) {
             _cancelPreloadTimer();
@@ -518,7 +518,7 @@ class __NativeAdWidgetState extends State<_NativeAdWidget> with WidgetsBindingOb
           width: MediaQuery.of(context).size.width,
           height: widget.height,
           child: AdWidget(
-            key: ValueKey('${widget.nameIdAds}_${_nativeAd.hashCode}'),
+            key: ValueKey('${widget.nameIdAds}_${widget.factoryId}_${_nativeAd.hashCode}'),
             ad: _nativeAd!,
           ),
         ),
