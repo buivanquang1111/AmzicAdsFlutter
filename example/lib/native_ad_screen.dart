@@ -27,32 +27,30 @@ class _NativeAdScreenState extends State<NativeAdScreen> {
         children: [
           GestureDetector(
             onTap: () {
-              // Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen()));
-              setState(() {
-                isShowAdsNew = !isShowAdsNew;
-              });
+              Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen()));
+              // setState(() {
+              //   isShowAdsNew = !isShowAdsNew;
+              // });
             },
             child: Center(child: Text('go to detail')),
           ),
           Text('----------Preload Native ad----------'),
           isShowAdsNew == true
               ? NativeAdManager().showAd(
-                  key: ValueKey('native_language'),
                   config: true,
                   nameIdAds: 'native_language',
                   height: 300,
                   adUnitId: CallApi.instance.getFirstIDByName('native_language'),
                   factoryId: 'native_ad',
-                  intervalReload: 5,
+                  // intervalReload: 5,
                 )
               : NativeAdManager().showAd(
-                  key: ValueKey('native_intro'),
                   config: true,
                   nameIdAds: 'native_intro',
                   height: 300,
                   adUnitId: CallApi.instance.getFirstIDByName('native_intro'),
                   factoryId: 'native_ad',
-                  intervalReload: 5,
+                  // intervalReload: 5,
                 ),
           Text('----------Native ad----------'),
           NativeAds(

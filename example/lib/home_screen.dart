@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
       config: true,
       nameIdAds: 'native_language',
       factoryId: 'native_ad',
-      intervalReload: 5,
+      // intervalReload: 5,
       onAdLoaded: () {
       },
       onAdFailed: (error) {
@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
       config: true,
       nameIdAds: 'native_intro',
       factoryId: 'native_ad',
-      intervalReload: 5,
+      // intervalReload: 5,
       onAdLoaded: () {
       },
       onAdFailed: (error) {
