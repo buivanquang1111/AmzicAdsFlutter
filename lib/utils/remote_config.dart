@@ -52,6 +52,10 @@ class RemoteConfig {
     return _remoteConfig.getBool(keyName) && _remoteConfig.getBool('show_ads');
   }
 
+  static bool getBoolDefault(String keyName) {
+    return _remoteConfig.getBool(keyName);
+  }
+
   /// Get int config value
   static int getInt(String keyName) {
     return _remoteConfig.getInt(keyName);
