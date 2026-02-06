@@ -81,9 +81,9 @@ class Admob {
   }
 
   Future<void> init({
-    required String? linkServer,
-    required String? appId,
-    required String? packageName,
+    required String linkServer,
+    required String appId,
+    required String packageName,
     required GlobalKey<NavigatorState> navigatorKey,
     required String nameIddAdsResume,
     required String nameResumeConfig,
@@ -348,9 +348,9 @@ class Admob {
   }
 
   Future<void> fetchApiAds({
-    required String? linkServer,
-    required String? appId,
-    required String? packageName,
+    required String linkServer,
+    required String appId,
+    required String packageName,
     required Function() onResponse,
     required Function(String) onError,
   }) async {

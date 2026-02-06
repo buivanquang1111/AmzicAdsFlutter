@@ -24,9 +24,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   init() async {
     await Admob.instance.init(
-      linkServer: null,
-      appId: null,
-      packageName: null,
+      linkServer: '',
+      appId: '',
+      packageName: '',
       navigatorKey: navigatorKey,
       nameIddAdsResume: 'resume_wb',
       nameResumeConfig: 'resume_wb',
