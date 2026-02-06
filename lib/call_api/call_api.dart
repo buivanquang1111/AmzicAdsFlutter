@@ -19,14 +19,14 @@ class CallApi {
   }
 
   Future<void> callAds({
-    required String? linkServer,
-    required String? appId,
-    required String? packageName,
+    required String linkServer,
+    required String appId,
+    required String packageName,
     required Function() onResponse,
     required Function(String) onError,
   }) async {
     /// http://language-master.top/api/getidv2/ca-app-pub-4973559944609228~2346710863+com.example.lib
-    var url = (linkServer != null && appId != null) || (linkServer != '' && appId != '')
+    var url = linkServer != '' && appId != ''
         ? Uri.parse('$linkServer/api/getidv2/$appId+$packageName')
         : Uri.parse(
         'http://language-master.top/api/getidv2/ca-app-pub-4973559944609228~2346710863');
