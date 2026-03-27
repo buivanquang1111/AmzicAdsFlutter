@@ -398,9 +398,7 @@ class Admob {
     _isAdmobInitialized = true;
   }
 
-  Future<void> openMediationTest() async{
-
-  }
+  Future<void> openMediationTest() async {}
 
   Future<String?> getPlatformVersion() {
     return AmazicAdsFlutterPlatform.instance.getPlatformVersion();
@@ -733,6 +731,64 @@ class Admob {
         'admob_ads --- inter_ads: not canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
       );
       onAdDisable?.call();
+    }
+  }
+
+  //Inter ad preloading
+  Future<void> loadInterAdPreload({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required String idAds,
+    required bool config,
+    required int numberPreload,
+    required Function()? onAdLoaded,
+    required Function()? onAdFailedToLoad,
+    required String name,
+  }) async {
+    InterAdsManager.instance.loadInterAdPreload(
+      navigatorKey: navigatorKey,
+      idAds: idAds,
+      config: config,
+      numberPreload: numberPreload,
+      onAdLoaded: onAdLoaded,
+      onAdFailedToLoad: onAdFailedToLoad,
+      name: name,
+    );
+  }
+
+  Future<void> showInterAdPreload({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required String idAds,
+    required bool config,
+    required bool isInterAll,
+    required Function() onNext,
+    required Function()? onAdImpression,
+    required Function()? onAdClicked,
+    required Function()? onAdFailedToShow,
+    required Function()? onAdDismiss,
+    required String name,
+    bool isShowLoading = true,
+  }) async {
+    if (AdHelper.canShowNextInter(isInterAll: isInterAll)) {
+      print(
+        'admob_ads --- Inter Ad Preload: canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
+      );
+      InterAdsManager.instance.showInterAdPreload(
+        navigatorKey: navigatorKey,
+        idAds: idAds,
+        config: config,
+        onNext: onNext,
+        onAdImpression: onAdImpression,
+        onAdClicked: onAdClicked,
+        onAdFailedToShow: onAdFailedToShow,
+        onAdDismiss: onAdDismiss,
+        name: name,
+        isShowLoading: isShowLoading
+      );
+    }else{
+      print(
+        'admob_ads --- Inter Ad Preload: not canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
+      );
+      onNext();
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:amazic_ads_flutter/admob.dart';
+import 'package:amazic_ads_flutter/amazic_ads_flutter_platform_interface.dart';
 import 'package:amazic_ads_flutter/utils/event_log.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -291,6 +292,106 @@ class InterAdsManager {
           onAdFailedToLoad?.call();
         },
       ),
+    );
+  }
+
+  //ad preloading
+  Future<void> loadInterAdPreload({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required String idAds,
+    required bool config,
+    required int numberPreload,
+    required Function()? onAdLoaded,
+    required Function()? onAdFailedToLoad,
+    required String name,
+  }) async {
+    if (config == false ||
+        ConsentManager.instance.canRequestAds == false ||
+        Admob.instance.isShowAllAds == false ||
+        (await Admob.instance.isNetworkActive()) == false) {
+      print('admob_ads --- Inter Ad Preload: can not load');
+      onAdFailedToLoad?.call();
+      return;
+    }
+
+    final adsPlatform = AmazicAdsFlutterPlatform.instance;
+
+    adsPlatform.onAdLoaded = (id) {
+      onAdLoaded?.call();
+    };
+
+    adsPlatform.onAdFailedToLoad = (id, error) {
+      onAdFailedToLoad?.call();
+    };
+
+    adsPlatform.loadInterAdPreload(idAds, numberPreload);
+  }
+
+  Future<void> showInterAdPreload({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required String idAds,
+    required bool config,
+    required Function() onNext,
+    required Function()? onAdImpression,
+    required Function()? onAdClicked,
+    required Function()? onAdFailedToShow,
+    required Function()? onAdDismiss,
+    required String name,
+    bool isShowLoading = true,
+  }) async {
+    if (config == false ||
+        ConsentManager.instance.canRequestAds == false ||
+        Admob.instance.isShowAllAds == false ||
+        (await Admob.instance.isNetworkActive()) == false) {
+      print('admob_ads --- Inter Ad Preload: can not load');
+      onNext.call();
+      return;
+    }
+
+    print('admob_ads --- Inter Ad Preload: start request');
+    if (navigatorKey.currentContext != null && isShowLoading) {
+      showLoadingDialog(context: navigatorKey.currentContext!);
+    }
+
+    final adsPlatform = AmazicAdsFlutterPlatform.instance;
+
+    adsPlatform.onAdClicked = () {
+      onAdClicked?.call();
+    };
+    adsPlatform.onAdDismissed = () {
+      if (navigatorKey.currentContext != null && isShowLoading) {
+        closeLoadingDialog(context: navigatorKey.currentContext!);
+      }
+      Admob.instance.setFullScreenAdShowing(false);
+      AdHelper.setLastTimeDismissInter();
+
+      onAdDismiss?.call();
+      onNext();
+    };
+    adsPlatform.onAdFailedToShow = (id, error) {
+      if (navigatorKey.currentContext != null && isShowLoading) {
+        closeLoadingDialog(context: navigatorKey.currentContext!);
+      }
+      Admob.instance.setFullScreenAdShowing(false);
+
+      onAdFailedToShow?.call();
+      onNext();
+    };
+    adsPlatform.onAdImpression = () {
+      Admob.instance.setFullScreenAdShowing(true);
+
+      onAdImpression?.call();
+    };
+    adsPlatform.onPaidEvent = (network, valueMicros, currency) {
+      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency);
+    };
+
+    Admob.instance.setFullScreenAdShowing(true);
+    Admob.instance.checkAndShowAdForeground(
+      onShow: () {
+        print('admob_ads --- inter_ads: show');
+        adsPlatform.showInterAdPreload(idAds);
+      },
     );
   }
 }

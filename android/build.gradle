@@ -48,8 +48,11 @@ android {
     }
 
     dependencies {
+        compileOnly "io.flutter:flutter_embedding_debug:1.0.0-+"
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.mockito:mockito-core:5.0.0")
+
+        implementation 'com.google.android.gms:play-services-ads:25.1.0'
     }
 
     testOptions {
@@ -63,7 +66,4 @@ android {
             }
         }
     }
-}
-dependencies {
-    implementation 'com.google.android.gms:play-services-ads:24.5.0'
 }
