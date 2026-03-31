@@ -57,4 +57,24 @@ abstract class AmazicAdsFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('destroyInterAdPreload() has not been implemented.');
   }
 
+  Future<bool?> isAdAvailableInter(String idAds){
+    throw UnimplementedError('isAdAvailableInter() has not been implemented.');
+  }
+
+  Future<void> loadAppOpenAdPreload(String idAds, int numberPreload){
+    throw UnimplementedError('loadAppOpenAdPreload() has not been implemented.');
+  }
+
+  Future<void> showAppOpenAdPreload(String idAds){
+    throw UnimplementedError('showAppOpenAdPreload() has not been implemented.');
+  }
+
+  Future<bool?> isAdAvailableAppOpen(String idAds){
+    throw UnimplementedError('isAdAvailableAppOpen() has not been implemented.');
+  }
+
+  Future<void> destroyAppOpenAdPreload(String idAds){
+    throw UnimplementedError('destroyAppOpenAdPreload() has not been implemented.');
+  }
+
 }

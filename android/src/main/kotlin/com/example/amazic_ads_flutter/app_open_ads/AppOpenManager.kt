@@ -1,29 +1,29 @@
-package com.example.amazic_ads_flutter.inter_ads
+package com.example.amazic_ads_flutter.app_open_ads
 
 import android.app.Activity
-import android.content.Context
 import android.util.Log
-import com.example.amazic_ads_flutter.callback.InterCallback
+import com.example.amazic_ads_flutter.callback.AppOpenCallback
+import com.example.amazic_ads_flutter.inter_ads.InterManager
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdValue
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.OnPaidEventListener
 import com.google.android.gms.ads.ResponseInfo
-import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.appopen.AppOpenAd
+import com.google.android.gms.ads.appopen.AppOpenAdPreloader
 import com.google.android.gms.ads.interstitial.InterstitialAdPreloader
 import com.google.android.gms.ads.preload.PreloadCallbackV2
 import com.google.android.gms.ads.preload.PreloadConfiguration
 
-object InterManager {
+object AppOpenManager {
+    private const val TAG = "AppOpenManager"
 
-    private const val TAG = "InterManager"
-
-    fun loadInterAdPreload(
+    fun loadAppOpenAdPreload(
         idAds: String,
         numberPreload: Int,
-        interCallback: InterCallback
+        appOpenCallback: AppOpenCallback
     ) {
-        Log.d(TAG, "INTER Ad Preload: number ad preloading = $numberPreload")
+        Log.d(TAG, "App Open Ad Preload: number ad preloading = $numberPreload")
 
         val configuration: PreloadConfiguration =
             PreloadConfiguration.Builder(idAds).setBufferSize(numberPreload).build()
@@ -33,84 +33,83 @@ object InterManager {
                 super.onAdFailedToPreload(p0, p1)
                 Log.d(
                     TAG,
-                    "INTER Ad Preload: Preload ad $p0, failed to load with error: ${p1.message}"
+                    "App Open Ad Preload: Preload ad $p0, failed to load with error: ${p1.message}"
                 )
-                interCallback.onAdFailedToLoad(p0, p1.message)
+                appOpenCallback.onAdFailedToLoad(p0, p1.message)
             }
 
             override fun onAdPreloaded(p0: String, p1: ResponseInfo?) {
                 super.onAdPreloaded(p0, p1)
-                Log.d(TAG, "INTER Ad Preload: Preload ad for $p0 is available.")
-                interCallback.onAdLoaded(p0)
+                Log.d(TAG, "App Open Ad Preload: Preload ad for $p0 is available.")
+                appOpenCallback.onAdLoaded(p0)
             }
 
             override fun onAdsExhausted(p0: String) {
                 super.onAdsExhausted(p0)
-                Log.d(TAG, "INTER Ad Preload: Preload ad for $p0 is exhausted.")
+                Log.d(TAG, "App Open Ad Preload: Preload ad for $p0 is exhausted.")
+
             }
         }
 
-        InterstitialAdPreloader.start(idAds, configuration, callback)
+        AppOpenAdPreloader.start(idAds, configuration, callback)
     }
 
-    fun showInterAdPreload(
+    fun showAppOpenAdPreload(
         activity: Activity,
         idAds: String,
-        interCallback: InterCallback,
+        appOpenCallback: AppOpenCallback
     ) {
-        if (!InterstitialAdPreloader.isAdAvailable(idAds)) {
-            interCallback.onAdDismissed()
+        if (!AppOpenAdPreloader.isAdAvailable(idAds)) {
+            appOpenCallback.onAdDismissed()
         }
 
-        val ad: InterstitialAd? = InterstitialAdPreloader.pollAd(idAds)
-
+        val ad: AppOpenAd? = AppOpenAdPreloader.pollAd(idAds)
         if (ad != null) {
             ad.onPaidEventListener = object : OnPaidEventListener {
                 override fun onPaidEvent(p0: AdValue) {
-                    interCallback.onPaidEvent(ad, p0)
+                    appOpenCallback.onPaidEvent(ad, p0)
                 }
             }
+
             ad.fullScreenContentCallback = object : FullScreenContentCallback() {
                 override fun onAdClicked() {
                     super.onAdClicked()
-                    interCallback.onAdClicked()
+                    appOpenCallback.onAdClicked()
                 }
 
                 override fun onAdDismissedFullScreenContent() {
                     super.onAdDismissedFullScreenContent()
-                    interCallback.onAdDismissed()
+                    appOpenCallback.onAdDismissed()
                 }
 
                 override fun onAdFailedToShowFullScreenContent(p0: AdError) {
                     super.onAdFailedToShowFullScreenContent(p0)
-                    interCallback.onAdFailedToShow(p0.message)
+                    appOpenCallback.onAdFailedToShow(p0.message)
                 }
 
                 override fun onAdImpression() {
                     super.onAdImpression()
-                    interCallback.onAdImpression()
+                    appOpenCallback.onAdImpression()
                 }
 
                 override fun onAdShowedFullScreenContent() {
                     super.onAdShowedFullScreenContent()
-                    interCallback.onAdShowed()
+                    appOpenCallback.onAdShowed()
                 }
             }
             ad.show(activity)
         } else {
-            interCallback.onAdDismissed()
+            appOpenCallback.onAdDismissed()
         }
-
     }
 
-    fun destroy(idAds: String) {
-        InterstitialAdPreloader.destroy(idAds)
+    fun destroy(idAds: String){
+        AppOpenAdPreloader.destroy(idAds)
     }
 
-    fun isAdAvailable(idAds: String): Boolean {
-        Log.d(TAG, "INTER Ad Preload: isAdAvailable = ${InterstitialAdPreloader.isAdAvailable(idAds)}, idAds = $idAds")
-        return InterstitialAdPreloader.isAdAvailable(idAds)
+    fun isAdAvailable(idAds: String): Boolean{
+        Log.d(TAG, "App Open Ad Preload: isAdAvailable = ${AppOpenAdPreloader.isAdAvailable(idAds)}, idAds = $idAds")
+        return AppOpenAdPreloader.isAdAvailable(idAds)
     }
-
 
 }

@@ -9,6 +9,9 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('amazic_ads_flutter');
 
+  final interChannel = const MethodChannel("amazic_ads_inter");
+  final appOpenChannel = const MethodChannel("amazic_ads_app_open");
+
   //callback
   Function(String id)? _onAdLoaded;
   Function(String id, String error)? _onAdFailedToLoad;
@@ -20,45 +23,53 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
   Function(String network, double revenue, String currency)? _onPainEvent;
 
   MethodChannelAmazicAdsFlutter() {
-    methodChannel.setMethodCallHandler((MethodCall call) async {
-      switch (call.method) {
-        case 'onAdLoaded':
-          final String id = call.arguments;
-          _onAdLoaded?.call(id);
-          break;
-        case 'onAdFailedToLoad':
-          final String id = call.arguments['id'];
-          final String error = call.arguments['error'];
-          _onAdFailedToLoad?.call(id, error);
-          break;
-        case 'onAdClicked':
-          _onAdClicked?.call();
-          break;
-        case 'onAdDismissed':
-          _onAdDismissed?.call();
-          break;
-        case 'onAdFailedToShow':
-          final String id = call.arguments['id'];
-          final String error = call.arguments['error'];
-          _onAdFailedToShow?.call(id, error);
-          break;
-        case 'onAdImpression':
-          _onAdImpression?.call();
-          break;
-        case 'onAdShowed':
-          _onAdShowed?.call();
-          break;
-        case 'onPaidEvent':
-          final String network = call.arguments['network'];
-          final double valueMicros = call.arguments['valueMicros'];
-          final String currencyCode = call.arguments['currencyCode'];
-
-          _onPainEvent?.call(network, valueMicros, currencyCode);
-          break;
-        default:
-          throw UnimplementedError('Unimplemented ${call.method} method');
-      }
+    interChannel.setMethodCallHandler((call) async {
+      _processCallback(call, "INTER_ADS");
     });
+
+    appOpenChannel.setMethodCallHandler((call) async {
+      _processCallback(call, "APP_OPEN_ADS");
+    });
+  }
+
+  void _processCallback(MethodCall call, String logSource) {
+    final Map<dynamic, dynamic> args = call.arguments is Map ? call.arguments : {};
+    final String id = args['id'] ?? "";
+
+    print("[$logSource] Method: ${call.method} | ID: $id");
+
+    switch (call.method) {
+      case 'onAdLoaded':
+        _onAdLoaded?.call(id);
+        break;
+      case 'onAdFailedToLoad':
+        _onAdFailedToLoad?.call(id, args['error'] ?? "Unknown Error");
+        break;
+      case 'onAdClicked':
+        _onAdClicked?.call();
+        break;
+      case 'onAdDismissed':
+        _onAdDismissed?.call();
+        break;
+      case 'onAdFailedToShow':
+        _onAdFailedToShow?.call(id, args['error'] ?? "Unknown Error");
+        break;
+      case 'onAdImpression':
+        _onAdImpression?.call();
+        break;
+      case 'onAdShowed':
+        _onAdShowed?.call();
+        break;
+      case 'onPaidEvent':
+        final String network = args['network'] ?? "Unknown Error";
+        final double valueMicros = args['valueMicros'] ?? "Unknown Error";
+        final String currencyCode = args['currencyCode'] ?? "Unknown Error";
+
+        _onPainEvent?.call(network, valueMicros, currencyCode);
+        break;
+      default:
+        throw UnimplementedError('Unimplemented ${call.method} method');
+    }
   }
 
   @override
@@ -78,8 +89,13 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
   }
 
   @override
+  Future<bool?> isAdAvailableInter(String idAds) async {
+    return await interChannel.invokeMethod<bool?>('isAdAvailableInter', {'idAds': idAds});
+  }
+
+  @override
   Future<void> loadInterAdPreload(String idAds, int numberPreload) async {
-    await methodChannel.invokeMethod<void>('loadInterAdPreload', {
+    await interChannel.invokeMethod<void>('loadInterAdPreload', {
       'idAds': idAds,
       'numberPreload': numberPreload,
     });
@@ -87,12 +103,12 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
 
   @override
   Future<void> showInterAdPreload(String idAds) async {
-    await methodChannel.invokeMethod<void>('showInterAdPreload', {'idAds': idAds});
+    await interChannel.invokeMethod<void>('showInterAdPreload', {'idAds': idAds});
   }
 
   @override
   Future<void> destroyInterAdPreload(String idAds) async {
-    await methodChannel.invokeMethod<void>('destroyInterAdPreload', {'idAds': idAds});
+    await interChannel.invokeMethod<void>('destroyInterAdPreload', {'idAds': idAds});
   }
 
   @override
@@ -117,5 +133,29 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
   set onAdShowed(Function()? callback) => _onAdShowed = callback;
 
   @override
-  set onPaidEvent(Function(String network, double valueMicros, String currency)? callback)  => _onPainEvent = callback;
+  set onPaidEvent(Function(String network, double valueMicros, String currency)? callback) =>
+      _onPainEvent = callback;
+
+  @override
+  Future<void> loadAppOpenAdPreload(String idAds, int numberPreload) async {
+    await appOpenChannel.invokeMethod<void>('loadAppOpenAdPreload', {
+      'idAds': idAds,
+      'numberPreload': numberPreload,
+    });
+  }
+
+  @override
+  Future<void> showAppOpenAdPreload(String idAds) async {
+    await appOpenChannel.invokeMethod<void>('showAppOpenAdPreload', {'idAds': idAds});
+  }
+
+  @override
+  Future<bool?> isAdAvailableAppOpen(String idAds) async {
+    return await appOpenChannel.invokeMethod<bool?>('isAdAvailableAppOpen', {'idAds': idAds});
+  }
+
+  @override
+  Future<void> destroyAppOpenAdPreload(String idAds) async {
+    await appOpenChannel.invokeMethod<void>('destroyAppOpenAdPreload', {'idAds': idAds});
+  }
 }

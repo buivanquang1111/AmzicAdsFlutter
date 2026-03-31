@@ -8,9 +8,12 @@ import android.util.Log
 import com.example.amazic_ads_flutter.util.NetworkUtil
 
 import com.example.amazic_ads_flutter.ads_banner.BannerAdsPlatformViewFactory;
+import com.example.amazic_ads_flutter.app_open_ads.AppOpenManager
+import com.example.amazic_ads_flutter.callback.AppOpenCallback
 import com.example.amazic_ads_flutter.callback.InterCallback
 import com.example.amazic_ads_flutter.inter_ads.InterManager
 import com.google.android.gms.ads.AdValue
+import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -24,6 +27,8 @@ import io.flutter.plugin.common.MethodChannel.Result
 class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var bannerAdsMethod: MethodChannel
     private lateinit var channel: MethodChannel
+    private lateinit var interChannel: MethodChannel
+    private lateinit var appOpenChannel: MethodChannel
     private lateinit var context: Context
     private var activity: Activity? = null
 
@@ -41,6 +46,24 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 "banner_view_platform",
                 BannerAdsPlatformViewFactory(context, bannerAdsMethod)
             )
+        interChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "amazic_ads_inter")
+        interChannel.setMethodCallHandler(this)
+
+        appOpenChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "amazic_ads_app_open")
+        appOpenChannel.setMethodCallHandler(this)
+
+    }
+
+    private fun sendInterEvent(method: String, adId: String, extras: Map<String, Any?>? = null) {
+        val data = mutableMapOf<String, Any?>("id" to adId)
+        extras?.let { data.putAll(it) }
+        activity?.runOnUiThread { interChannel.invokeMethod(method, data) }
+    }
+
+    private fun sendAppOpenEvent(method: String, adId: String, extras: Map<String, Any?>? = null) {
+        val data = mutableMapOf<String, Any?>("id" to adId)
+        extras?.let { data.putAll(it) }
+        activity?.runOnUiThread { appOpenChannel.invokeMethod(method, data) }
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -68,6 +91,12 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 result.success(isConnected)
             }
 
+            "isAdAvailableInter" -> {
+                val idAds = call.argument<String>("idAds") ?: ""
+                val isAdAvailable = InterManager.isAdAvailable(idAds)
+                result.success(isAdAvailable)
+            }
+
             "loadInterAdPreload" -> {
                 val idAds = call.argument<String>("idAds") ?: ""
                 val numberPreload = call.argument<Int>("numberPreload") ?: 1
@@ -77,16 +106,11 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     numberPreload,
                     object : InterCallback {
                         override fun onAdLoaded(adUnit: String?) {
-                            activity?.runOnUiThread { channel.invokeMethod("onAdLoaded", adUnit) }
+                            sendInterEvent("onAdLoaded", idAds)
                         }
 
                         override fun onAdFailedToLoad(adUnit: String?, message: String) {
-                            activity?.runOnUiThread {
-                                channel.invokeMethod(
-                                    "onAdFailedToLoad",
-                                    mapOf("id" to adUnit, "error" to message)
-                                )
-                            }
+                            sendInterEvent("onAdFailedToLoad", idAds, mapOf("error" to message))
                         }
 
                         override fun onAdClicked() {
@@ -138,28 +162,23 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         }
 
                         override fun onAdClicked() {
-                            act.runOnUiThread { channel.invokeMethod("onAdClicked", idAds) }
+                            sendInterEvent("onAdClicked", idAds)
                         }
 
                         override fun onAdDismissed() {
-                            act.runOnUiThread { channel.invokeMethod("onDismissed", idAds) }
+                            sendInterEvent("onAdDismissed", idAds)
                         }
 
                         override fun onAdFailedToShow(message: String) {
-                            act.runOnUiThread {
-                                channel.invokeMethod(
-                                    "onFailedToShow",
-                                    mapOf("id" to idAds, "error" to message)
-                                )
-                            }
+                            sendInterEvent("onFailedToShow", idAds, mapOf("error" to message))
                         }
 
                         override fun onAdImpression() {
-                            act.runOnUiThread { channel.invokeMethod("onAdImpression", idAds) }
+                            sendInterEvent("onAdImpression", idAds)
                         }
 
                         override fun onAdShowed() {
-                            act.runOnUiThread { channel.invokeMethod("onAdShowed", idAds) }
+                            sendInterEvent("onAdShowed", idAds)
                         }
 
                         override fun onPaidEvent(ad: InterstitialAd, adValue: AdValue) {
@@ -167,16 +186,13 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             val valueMicros = adValue.valueMicros
                             val currencyCode = adValue.currencyCode
 
-                            act.runOnUiThread {
-                                channel.invokeMethod(
-                                    "onPaidEvent",
-                                    mapOf(
-                                        "network" to network,
-                                        "valueMicros" to valueMicros,
-                                        "currencyCode" to currencyCode
-                                    )
+                            sendInterEvent(
+                                "onPaidEvent", idAds, mapOf(
+                                    "network" to network,
+                                    "valueMicros" to valueMicros,
+                                    "currencyCode" to currencyCode
                                 )
-                            }
+                            )
                         }
 
                     }
@@ -190,6 +206,130 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 result.success(null)
             }
 
+            "loadAppOpenAdPreload" -> {
+                val idAds = call.argument<String>("idAds") ?: ""
+                val numberPreload = call.argument<Int>("numberPreload") ?: 1
+
+                AppOpenManager.loadAppOpenAdPreload(
+                    idAds,
+                    numberPreload,
+                    object : AppOpenCallback {
+                        override fun onAdLoaded(adUnit: String?) {
+                            sendAppOpenEvent("onAdLoaded", idAds)
+                        }
+
+                        override fun onAdFailedToLoad(
+                            adUnit: String?,
+                            message: String
+                        ) {
+                            sendAppOpenEvent("onAdFailedToLoad", idAds, mapOf("error" to message))
+                        }
+
+                        override fun onAdClicked() {
+
+                        }
+
+                        override fun onAdDismissed() {
+
+                        }
+
+                        override fun onAdFailedToShow(message: String) {
+                        }
+
+                        override fun onAdImpression() {
+
+                        }
+
+                        override fun onAdShowed() {
+
+                        }
+
+                        override fun onPaidEvent(
+                            ad: AppOpenAd,
+                            adValue: AdValue
+                        ) {
+
+                        }
+
+                    }
+                )
+                result.success(null)
+            }
+
+            "showAppOpenAdPreload" -> {
+                val idAds = call.argument<String>("idAds") ?: ""
+                val act = activity
+                if (act == null) {
+                    result.error("NO_ACTIVITY", "Activity is null", null)
+                    return
+                }
+
+                AppOpenManager.showAppOpenAdPreload(
+                    act,
+                    idAds,
+                    object : AppOpenCallback {
+                        override fun onAdLoaded(adUnit: String?) {
+                        }
+
+                        override fun onAdFailedToLoad(
+                            adUnit: String?,
+                            message: String
+                        ) {
+                        }
+
+                        override fun onAdClicked() {
+                            sendAppOpenEvent("onAdClicked", idAds)
+                        }
+
+                        override fun onAdDismissed() {
+                            sendAppOpenEvent("onAdDismissed", idAds)
+                        }
+
+                        override fun onAdFailedToShow(message: String) {
+                            sendAppOpenEvent("onFailedToShow", idAds, mapOf("error" to message))
+                        }
+
+                        override fun onAdImpression() {
+                            sendAppOpenEvent("onAdImpression", idAds)
+                        }
+
+                        override fun onAdShowed() {
+                            sendAppOpenEvent("onAdShowed", idAds)
+                        }
+
+                        override fun onPaidEvent(
+                            ad: AppOpenAd,
+                            adValue: AdValue
+                        ) {
+                            val network = ad.responseInfo.loadedAdapterResponseInfo?.adSourceName
+                            val valueMicros = adValue.valueMicros
+                            val currencyCode = adValue.currencyCode
+
+                            sendAppOpenEvent(
+                                "onPaidEvent", idAds, mapOf(
+                                    "network" to network,
+                                    "valueMicros" to valueMicros,
+                                    "currencyCode" to currencyCode
+                                )
+                            )
+                        }
+
+                    }
+                )
+                result.success(null)
+            }
+
+            "isAdAvailableAppOpen" -> {
+                val idAds = call.argument<String>("idAds") ?: ""
+                val isAdAvailable = AppOpenManager.isAdAvailable(idAds)
+                result.success(isAdAvailable)
+            }
+
+            "destroyAppOpenAdPreload" -> {
+                val idAds = call.argument<String>("idAds") ?: ""
+                AppOpenManager.destroy(idAds)
+                result.success(null)
+            }
 
             else -> result.notImplemented()
         }
@@ -198,6 +338,8 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
+        interChannel.setMethodCallHandler(null)
+        appOpenChannel.setMethodCallHandler(null)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {

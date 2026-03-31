@@ -8,3 +8,4 @@ export 'package:amazic_ads_flutter/manager_ad/reward_ad_manager.dart';
 export 'package:amazic_ads_flutter/manager_ad/app_open_manager.dart';
 export 'package:amazic_ads_flutter/manager_ad/inter_ads_manager.dart';
 export 'package:amazic_ads_flutter/manager_ad/preload_native_manager.dart';
+export 'package:amazic_ads_flutter/base_my_app.dart';

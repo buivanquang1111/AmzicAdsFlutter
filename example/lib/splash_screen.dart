@@ -23,6 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   init() async {
+    Admob.instance.setUseAdPreloading(true);
     await Admob.instance.init(
       linkServer: '',
       appId: '',
