@@ -1,4 +1,5 @@
 import 'package:amazic_ads_flutter/admob.dart';
+import 'package:amazic_ads_flutter/amazic_ads_flutter.dart';
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
 import 'package:amazic_ads_flutter/utils/remote_config.dart';
 import 'package:flutter/material.dart';
@@ -62,6 +63,7 @@ class AppLifecycleReactor {
 
   void _onAppStateChanged(AppState appState) async {
     if (_onSplashScreen) return;
+
     ///close collapse show screen welcome back
     await onCloseCollapseBanner?.call();
 
@@ -83,29 +85,42 @@ class AppLifecycleReactor {
           return;
         }
         if (isShowWelComeScreenAfterAppOpenAds) {
-          print('admob_ads --- app_open: show ads before screen welcomeback');
-          Admob.instance.loadAndShowAppOpenAds(
-            navigatorKey: navigatorKey,
-            idAds: idAds,
-            config: RemoteConfig.getBool(nameResumeConfig),
-            name: name,
-            onAdDismiss: () {
-              isShowScreenWelcomeBack = false;
-              setShowScreenWelcomeBack();
-            },
-            onAdFailedToLoad: () {
-              isShowScreenWelcomeBack = false;
-              setShowScreenWelcomeBack();
-            },
-            onAdFailedToShow: () {
-              isShowScreenWelcomeBack = false;
-              setShowScreenWelcomeBack();
-            },
-            onAdDisable: () {
-              isShowScreenWelcomeBack = false;
-              setShowScreenWelcomeBack();
-            },
-          );
+          print('admob_ads --- app_open: show screen welcomeback after ads');
+          if (Admob.instance.isUseAdPreloading) {
+            print('admob_ads --- App Open Ad Preload: RESSUME Use Preload');
+            AppOpenManager.instance.loadAndShowAppOpenAdPreload(navigatorKey: navigatorKey,
+                idAds: idAds,
+                config: RemoteConfig.getBool(nameResumeConfig),
+                onNext: () {
+                  isShowScreenWelcomeBack = false;
+                  setShowScreenWelcomeBack();
+                },
+                name: name);
+          } else {
+            print('admob_ads --- App Open Ad Preload: RESSUME Use Normal');
+            Admob.instance.loadAndShowAppOpenAds(
+              navigatorKey: navigatorKey,
+              idAds: idAds,
+              config: RemoteConfig.getBool(nameResumeConfig),
+              name: name,
+              onAdDismiss: () {
+                isShowScreenWelcomeBack = false;
+                setShowScreenWelcomeBack();
+              },
+              onAdFailedToLoad: () {
+                isShowScreenWelcomeBack = false;
+                setShowScreenWelcomeBack();
+              },
+              onAdFailedToShow: () {
+                isShowScreenWelcomeBack = false;
+                setShowScreenWelcomeBack();
+              },
+              onAdDisable: () {
+                isShowScreenWelcomeBack = false;
+                setShowScreenWelcomeBack();
+              },
+            );
+          }
         } else {
           print('admob_ads --- app_open: show welcomeback before ads');
           isShowScreenWelcomeBack = false;

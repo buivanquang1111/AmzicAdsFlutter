@@ -4,6 +4,7 @@ import 'package:amazic_ads_flutter/admob.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../amazic_ads_flutter_platform_interface.dart';
 import '../ump/consent_manager.dart';
 import '../utils/adjust_util.dart';
 import '../utils/event_log.dart';
@@ -63,7 +64,7 @@ class RewardAdManager {
       onUserEarnedReward: () {
         onUserEarnedReward?.call();
       },
-      name: name
+      name: name,
     );
     rewardAds[idAds] = null;
     if (isLoadAdsBeforeNext == true) {
@@ -126,6 +127,7 @@ class RewardAdManager {
 
     showRewardNext();
   }
+
   ///end
 
   ///load ads
@@ -329,5 +331,201 @@ class RewardAdManager {
         },
       ),
     );
+  }
+
+  //ad preload
+  Future<void> loadRewardAdPreload({
+    required String idAds,
+    required bool config,
+    required Function()? onAdLoaded,
+    required Function()? onAdFailedToLoad,
+  }) async {
+    if (config == false ||
+        ConsentManager.instance.canRequestAds == false ||
+        Admob.instance.isShowAllAds == false ||
+        (await Admob.instance.isNetworkActive()) == false) {
+      print('admob_ads --- Reward Ad Preload: can not load');
+      return;
+    }
+
+    final adsPlatform = AmazicAdsFlutterPlatform.instance;
+    adsPlatform.onAdLoaded = (id) {
+      print('admob_ads --- Reward Ad Preload: onAdLoaded');
+      onAdLoaded?.call();
+    };
+    adsPlatform.onAdFailedToLoad = (id, error) {
+      print('admob_ads --- Reward Ad Preload: onAdFailedToLoad');
+      onAdFailedToLoad?.call();
+    };
+
+    adsPlatform.loadRewardAdPreload(idAds, Admob.instance.numberPreload);
+  }
+
+  Future<void> showRewardAdPreload({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required String idAds,
+    required bool config,
+    required Function() onNext,
+    required Function() onUserEarnedReward,
+    Function()? onAdImpression,
+    Function()? onAdClicked,
+    Function()? onAdFailedToShow,
+    Function()? onAdDismiss,
+    required String name,
+    bool isShowLoading = true,
+  }) async {
+    if (config == false ||
+        ConsentManager.instance.canRequestAds == false ||
+        Admob.instance.isShowAllAds == false ||
+        (await Admob.instance.isNetworkActive()) == false) {
+      print('admob_ads --- Reward Ad Preload: can not show');
+      return;
+    }
+
+    print('admob_ads --- Reward Ad Preload: start show');
+    if (navigatorKey.currentContext != null && isShowLoading) {
+      print('admob_ads --- Reward Ad Preload: show dialog loading');
+      showLoadingDialog(context: navigatorKey.currentContext!);
+    }
+
+    final adsPlatform = AmazicAdsFlutterPlatform.instance;
+    adsPlatform.onAdClicked = () {
+      onAdClicked?.call();
+    };
+    adsPlatform.onAdDismissed = () {
+      print('admob_ads --- Reward Ad Preload: onAdDismissed');
+      if (navigatorKey.currentContext != null && isShowLoading) {
+        print('admob_ads --- Reward Ad Preload: onAdDismissed - close dialog loading');
+        closeLoadingDialog(context: navigatorKey.currentContext!);
+      }
+      Admob.instance.setFullScreenAdShowing(true);
+      onAdDismiss?.call();
+      onNext.call();
+    };
+    adsPlatform.onAdFailedToShow = (id, error) {
+      print('admob_ads --- Reward Ad Preload: onAdFailedToShow');
+
+      if (navigatorKey.currentContext != null && isShowLoading) {
+        print('admob_ads --- Reward Ad Preload: onAdFailedToShow - close dialog loading');
+        closeLoadingDialog(context: navigatorKey.currentContext!);
+      }
+      Admob.instance.setFullScreenAdShowing(false);
+      onAdFailedToShow?.call();
+      onNext();
+    };
+    adsPlatform.onAdImpression = () {
+      print('admob_ads --- Reward Ad Preload: onAdImpression');
+
+      Admob.instance.setFullScreenAdShowing(true);
+
+      onAdImpression?.call();
+    };
+    adsPlatform.onPaidEvent = (network, valueMicros, currency) {
+      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency);
+    };
+    adsPlatform.onUserEarnedReward = () {
+      print('admob_ads --- Reward Ad Preload: onUserEarnedReward');
+      onUserEarnedReward();
+    };
+
+    Admob.instance.setFullScreenAdShowing(true);
+    Admob.instance.checkAndShowAdForeground(
+      onShow: () {
+        print('admob_ads --- Reward Ad Preload: show Ads');
+        adsPlatform.showRewardAdPreload(idAds);
+      },
+    );
+  }
+
+  Future<void> loadAndShowRewardAdPreload({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required String idAds,
+    required bool config,
+    required Function() onNext,
+    required Function() onUserEarnedReward,
+    Function()? onAdLoaded,
+    Function()? onAdImpression,
+    Function()? onAdClicked,
+    Function()? onAdFailedToLoad,
+    Function()? onAdFailedToShow,
+    Function()? onAdDismiss,
+    required String name,
+  }) async {
+    if (await AmazicAdsFlutterPlatform.instance.isAdAvailableReward(idAds) == true) {
+      print('admob_ads --- Reward Ad Preload - loadAndShow: HAVE DATA -> Show Ads');
+      showRewardAdPreload(
+        navigatorKey: navigatorKey,
+        idAds: idAds,
+        config: config,
+        onNext: onNext,
+        onUserEarnedReward: onUserEarnedReward,
+        onAdImpression: onAdImpression,
+        onAdClicked: onAdClicked,
+        onAdFailedToShow: onAdFailedToShow,
+        onAdDismiss: onAdDismiss,
+        name: name,
+      );
+    } else {
+      print('admob_ads --- Reward Ad Preload - loadAndShow: NOT HAVE DATA -> Show Ads');
+
+      if (config == false ||
+          ConsentManager.instance.canRequestAds == false ||
+          Admob.instance.isShowAllAds == false ||
+          (await Admob.instance.isNetworkActive()) == false) {
+        print('admob_ads --- Reward Ad Preload - loadAndShow: not load');
+        onNext.call();
+        return;
+      }
+
+      if (navigatorKey.currentContext != null) {
+        showLoadingDialog(context: navigatorKey.currentContext!);
+      }
+
+      bool isFirstLoadAd = true;
+      final adsPlatform = AmazicAdsFlutterPlatform.instance;
+      adsPlatform.onAdLoaded = (id) {
+        print('admob_ads --- Reward Ad Preload - loadAndShow: onAdLoaded');
+        if (isFirstLoadAd) {
+          isFirstLoadAd = false;
+          onAdLoaded?.call();
+          showRewardAdPreload(
+            navigatorKey: navigatorKey,
+            idAds: idAds,
+            config: config,
+            onNext: onNext,
+            onUserEarnedReward: onUserEarnedReward,
+            name: name,
+            onAdClicked: onAdClicked,
+            onAdFailedToShow: () {
+              print(
+                'admob_ads --- Reward Ad Preload - loadAndShow: onAdFailedToShowFullScreenContent',
+              );
+              if (navigatorKey.currentContext != null) {
+                closeLoadingDialog(context: navigatorKey.currentContext!);
+              }
+              Admob.instance.setFullScreenAdShowing(false);
+              onAdFailedToShow?.call();
+            },
+            onAdDismiss: () {
+              print(
+                'admob_ads --- Reward Ad Preload - loadAndShow: onAdDismissedFullScreenContent',
+              );
+              if (navigatorKey.currentContext != null) {
+                closeLoadingDialog(context: navigatorKey.currentContext!);
+              }
+              Admob.instance.setFullScreenAdShowing(false);
+              onAdDismiss?.call();
+            },
+            isShowLoading: false,
+          );
+        }
+      };
+      adsPlatform.onAdFailedToLoad = (id, error) {
+        print('admob_ads --- Reward Ad Preload - loadAndShow: onAdFailedToLoad');
+        onAdFailedToLoad?.call();
+        onNext();
+      };
+      adsPlatform.loadRewardAdPreload(idAds, Admob.instance.numberPreload);
+    }
   }
 }

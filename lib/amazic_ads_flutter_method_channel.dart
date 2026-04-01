@@ -11,6 +11,7 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
 
   final interChannel = const MethodChannel("amazic_ads_inter");
   final appOpenChannel = const MethodChannel("amazic_ads_app_open");
+  final rewardChannel = const MethodChannel("amazic_ads_reward");
 
   //callback
   Function(String id)? _onAdLoaded;
@@ -21,6 +22,7 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
   Function()? _onAdImpression;
   Function()? _onAdShowed;
   Function(String network, double revenue, String currency)? _onPainEvent;
+  Function()? _onUserEarnedReward;
 
   MethodChannelAmazicAdsFlutter() {
     interChannel.setMethodCallHandler((call) async {
@@ -29,6 +31,10 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
 
     appOpenChannel.setMethodCallHandler((call) async {
       _processCallback(call, "APP_OPEN_ADS");
+    });
+
+    rewardChannel.setMethodCallHandler((call) async{
+      _processCallback(call, "REWARD_ADS");
     });
   }
 
@@ -66,6 +72,9 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
         final String currencyCode = args['currencyCode'] ?? "Unknown Error";
 
         _onPainEvent?.call(network, valueMicros, currencyCode);
+        break;
+      case 'onUserEarned':
+        _onUserEarnedReward?.call();
         break;
       default:
         throw UnimplementedError('Unimplemented ${call.method} method');
@@ -137,6 +146,9 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
       _onPainEvent = callback;
 
   @override
+  set onUserEarnedReward(Function()? callback) => _onUserEarnedReward = callback;
+
+  @override
   Future<void> loadAppOpenAdPreload(String idAds, int numberPreload) async {
     await appOpenChannel.invokeMethod<void>('loadAppOpenAdPreload', {
       'idAds': idAds,
@@ -157,5 +169,28 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
   @override
   Future<void> destroyAppOpenAdPreload(String idAds) async {
     await appOpenChannel.invokeMethod<void>('destroyAppOpenAdPreload', {'idAds': idAds});
+  }
+
+  @override
+  Future<void> loadRewardAdPreload(String idAds, int numberPreload) async {
+    await rewardChannel.invokeMethod<void>('loadRewardAdPreload', {
+      'idAds': idAds,
+      'numberPreload': numberPreload,
+    });
+  }
+
+  @override
+  Future<void> showRewardAdPreload(String idAds) async {
+    await rewardChannel.invokeMethod<void>('showRewardAdPreload', {'idAds': idAds});
+  }
+
+  @override
+  Future<bool?> isAdAvailableReward(String idAds) async {
+    return await rewardChannel.invokeMethod<bool?>('isAdAvailableReward', {'idAds': idAds});
+  }
+
+  @override
+  Future<void> destroyRewardAdPreload(String idAds) async {
+    await rewardChannel.invokeMethod<void>('destroyRewardAdPreload', {'idAds': idAds});
   }
 }

@@ -11,10 +11,13 @@ import com.example.amazic_ads_flutter.ads_banner.BannerAdsPlatformViewFactory;
 import com.example.amazic_ads_flutter.app_open_ads.AppOpenManager
 import com.example.amazic_ads_flutter.callback.AppOpenCallback
 import com.example.amazic_ads_flutter.callback.InterCallback
+import com.example.amazic_ads_flutter.callback.RewardCallback
 import com.example.amazic_ads_flutter.inter_ads.InterManager
+import com.example.amazic_ads_flutter.reward_ads.RewardManager
 import com.google.android.gms.ads.AdValue
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.rewarded.RewardedAd
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -29,6 +32,7 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var channel: MethodChannel
     private lateinit var interChannel: MethodChannel
     private lateinit var appOpenChannel: MethodChannel
+    private lateinit var rewardChannel: MethodChannel
     private lateinit var context: Context
     private var activity: Activity? = null
 
@@ -52,6 +56,10 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         appOpenChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "amazic_ads_app_open")
         appOpenChannel.setMethodCallHandler(this)
 
+        rewardChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "amazic_ads_reward")
+        rewardChannel.setMethodCallHandler(this)
+
+
     }
 
     private fun sendInterEvent(method: String, adId: String, extras: Map<String, Any?>? = null) {
@@ -64,6 +72,12 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val data = mutableMapOf<String, Any?>("id" to adId)
         extras?.let { data.putAll(it) }
         activity?.runOnUiThread { appOpenChannel.invokeMethod(method, data) }
+    }
+
+    private fun sendRewardEvent(method: String, adId: String, extras: Map<String, Any?>? = null) {
+        val data = mutableMapOf<String, Any?>("id" to adId)
+        extras?.let { data.putAll(it) }
+        activity?.runOnUiThread { rewardChannel.invokeMethod(method, data) }
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -328,6 +342,135 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             "destroyAppOpenAdPreload" -> {
                 val idAds = call.argument<String>("idAds") ?: ""
                 AppOpenManager.destroy(idAds)
+                result.success(null)
+            }
+
+            "loadRewardAdPreload" -> {
+                val idAds = call.argument<String>("idAds") ?: ""
+                val numberPreload = call.argument<Int>("numberPreload") ?: 1
+
+                RewardManager.loadRewardAdPreload(
+                    idAds,
+                    numberPreload,
+                    object : RewardCallback {
+                        override fun onAdLoaded(adUnit: String?) {
+                            sendRewardEvent("onAdLoaded", idAds)
+                        }
+
+                        override fun onAdFailedToLoad(
+                            adUnit: String?,
+                            message: String
+                        ) {
+                            sendRewardEvent("onAdFailedToLoad", idAds, mapOf("error" to message))
+                        }
+
+                        override fun onAdClicked() {
+
+                        }
+
+                        override fun onAdDismissed() {
+                        }
+
+                        override fun onAdFailedToShow(message: String) {
+                        }
+
+                        override fun onAdImpression() {
+                        }
+
+                        override fun onAdShowed() {
+                        }
+
+                        override fun onPaidEvent(
+                            ad: RewardedAd,
+                            adValue: AdValue
+                        ) {
+                        }
+
+                        override fun onUserEarned() {
+                        }
+
+                    }
+                )
+                result.success(null)
+            }
+
+            "showRewardAdPreload" -> {
+                val idAds = call.argument<String>("idAds") ?: ""
+                val act = activity
+                if (act == null) {
+                    result.error("NO_ACTIVITY", "Activity is null", null)
+                    return
+                }
+
+                RewardManager.showRewardAdPreload(
+                    act,
+                    idAds,
+                    object : RewardCallback {
+                        override fun onAdLoaded(adUnit: String?) {
+
+                        }
+
+                        override fun onAdFailedToLoad(
+                            adUnit: String?,
+                            message: String
+                        ) {
+
+                        }
+
+                        override fun onAdClicked() {
+                            sendRewardEvent("onAdClicked", idAds)
+                        }
+
+                        override fun onAdDismissed() {
+                            sendRewardEvent("onAdDismissed", idAds)
+                        }
+
+                        override fun onAdFailedToShow(message: String) {
+                            sendRewardEvent("onFailedToShow", idAds, mapOf("error" to message))
+                        }
+
+                        override fun onAdImpression() {
+                            sendRewardEvent("onAdImpression", idAds)
+                        }
+
+                        override fun onAdShowed() {
+                            sendRewardEvent("onAdShowed", idAds)
+                        }
+
+                        override fun onPaidEvent(
+                            ad: RewardedAd,
+                            adValue: AdValue
+                        ) {
+                            val network = ad.responseInfo.loadedAdapterResponseInfo?.adSourceName
+                            val valueMicros = adValue.valueMicros
+                            val currencyCode = adValue.currencyCode
+                            sendRewardEvent(
+                                "onPaidEvent", idAds, mapOf(
+                                    "network" to network,
+                                    "valueMicros" to valueMicros,
+                                    "currencyCode" to currencyCode
+                                )
+                            )
+                        }
+
+                        override fun onUserEarned() {
+                            sendRewardEvent("onUserEarned", idAds)
+                        }
+
+                    }
+                )
+                result.success(null)
+            }
+
+            "isAdAvailableReward" -> {
+                val idAds = call.argument<String>("idAds") ?: ""
+                val isAdAvailable = RewardManager.isAdAvailable(idAds)
+                result.success(isAdAvailable)
+            }
+
+            "destroyRewardAdPreload" -> {
+                val idAds = call.argument<String>("idAds") ?: ""
+                RewardManager.destroy(idAds)
                 result.success(null)
             }
 

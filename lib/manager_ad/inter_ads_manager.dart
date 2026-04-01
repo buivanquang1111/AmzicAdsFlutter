@@ -296,10 +296,8 @@ class InterAdsManager {
 
   //ad preloading
   Future<void> loadInterAdPreload({
-    required GlobalKey<NavigatorState> navigatorKey,
     required String idAds,
     required bool config,
-    required int numberPreload,
     required Function()? onAdLoaded,
     required Function()? onAdFailedToLoad,
   }) async {
@@ -325,7 +323,7 @@ class InterAdsManager {
       onAdFailedToLoad?.call();
     };
 
-    adsPlatform.loadInterAdPreload(idAds, numberPreload);
+    adsPlatform.loadInterAdPreload(idAds, Admob.instance.numberPreload);
   }
 
   Future<void> showInterAdPreload({
@@ -406,7 +404,6 @@ class InterAdsManager {
     required GlobalKey<NavigatorState> navigatorKey,
     required String idAds,
     required bool config,
-    required int numberPreload,
     required Function() onNext,
     required Function()? onAdLoaded,
     required Function()? onAdFailedToLoad,
@@ -493,10 +490,11 @@ class InterAdsManager {
 
       adsPlatform.onAdFailedToLoad = (id, error) {
         print('admob_ads --- Inter Ad Preload: onAdFailedToLoad');
+        onAdFailedToLoad?.call();
         onNext.call();
       };
 
-      adsPlatform.loadInterAdPreload(idAds, numberPreload);
+      adsPlatform.loadInterAdPreload(idAds, Admob.instance.numberPreload);
     }
   }
 
@@ -586,7 +584,7 @@ class InterAdsManager {
     };
 
     print('admob_ads --- Inter Ad Preload Splash: load inter splash');
-    adsPlatform.loadInterAdPreload(idAds, 1);
+    adsPlatform.loadInterAdPreload(idAds, Admob.instance.numberPreloadSplash);
 
     print('admob_ads --- inter_ads_splash: đợi timeout xem đã xong hay được huỷ chưa');
     await timeoutCompleter.future;

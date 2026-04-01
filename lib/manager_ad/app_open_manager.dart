@@ -291,10 +291,8 @@ class AppOpenManager {
 
   //ad preloading
   Future<void> loadAppOpenAdPreload({
-    required GlobalKey<NavigatorState> navigatorKey,
     required String idAds,
     required bool config,
-    required int numberPreload,
     required Function()? onAdLoaded,
     required Function()? onAdFailedToLoad,
   }) async {
@@ -317,7 +315,7 @@ class AppOpenManager {
       onAdFailedToLoad?.call();
     };
 
-    adsPlatform.loadAppOpenAdPreload(idAds, numberPreload);
+    adsPlatform.loadAppOpenAdPreload(idAds, Admob.instance.numberPreload);
   }
 
   Future<void> showAppOpenAdPreload({
@@ -367,7 +365,7 @@ class AppOpenManager {
       print('admob_ads --- App Open Ad Preload: onAdFailedToShow');
 
       if (navigatorKey.currentContext != null && isShowLoading) {
-        print('admob_ads --- Inter Ad Preload: onAdFailedToShow - close dialog loading');
+        print('admob_ads --- App Open Ad Preload: onAdFailedToShow - close dialog loading');
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
       Admob.instance.setFullScreenAdShowing(false);
@@ -393,6 +391,101 @@ class AppOpenManager {
         adsPlatform.showAppOpenAdPreload(idAds);
       },
     );
+  }
+
+  Future<void> loadAndShowAppOpenAdPreload({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required String idAds,
+    required bool config,
+    required Function() onNext,
+    Function()? onAdLoaded,
+    Function()? onAdImpression,
+    Function()? onAdClicked,
+    Function()? onAdFailedToLoad,
+    Function()? onAdFailedToShow,
+    Function()? onAdDismiss,
+    required String name,
+  }) async {
+    if (await AmazicAdsFlutterPlatform.instance.isAdAvailableAppOpen(idAds) == true) {
+      print('admob_ads --- App Open Ad Preload - loadAndShow: HAVE DATA -> Show Ads');
+      showAppOpenAdPreload(
+        navigatorKey: navigatorKey,
+        idAds: idAds,
+        config: config,
+        onNext: onNext,
+        onAdImpression: onAdImpression,
+        onAdClicked: onAdClicked,
+        onAdFailedToShow: onAdFailedToShow,
+        onAdDismiss: onAdDismiss,
+        name: name,
+      );
+    } else {
+      print('admob_ads --- App Open Ad Preload - loadAndShow: NOT HAVE DATA -> Loand And Show Ads');
+
+      if (config == false ||
+          ConsentManager.instance.canRequestAds == false ||
+          Admob.instance.isShowAllAds == false ||
+          (await Admob.instance.isNetworkActive()) == false) {
+        print('admob_ads --- App Open Ad Preload - loadAndShow: not load');
+        onNext.call();
+        return;
+      }
+
+      if (navigatorKey.currentContext != null) {
+        showLoadingDialog(context: navigatorKey.currentContext!);
+      }
+
+      bool isFirstLoadAd = true;
+      final adsPlatform = AmazicAdsFlutterPlatform.instance;
+      adsPlatform.onAdLoaded = (id) {
+        print('admob_ads --- App Open Ad Preload - loadAndShow: onAdLoaded');
+        if (isFirstLoadAd) {
+          isFirstLoadAd = false;
+          onAdLoaded?.call();
+          showAppOpenAdPreload(
+            navigatorKey: navigatorKey,
+            idAds: idAds,
+            config: config,
+            onNext: onNext,
+            name: name,
+            onAdImpression: () {
+              Admob.instance.setFullScreenAdShowing(true);
+              onAdImpression?.call();
+              EventLog.logEvent('${name}_view');
+            },
+            onAdClicked: onAdClicked,
+            onAdFailedToShow: () {
+              print(
+                'admob_ads --- App Open Ad Preload - loadAndShow: onAdFailedToShowFullScreenContent',
+              );
+              if (navigatorKey.currentContext != null) {
+                closeLoadingDialog(context: navigatorKey.currentContext!);
+              }
+              Admob.instance.setFullScreenAdShowing(false);
+              onAdFailedToShow?.call();
+            },
+            onAdDismiss: () {
+              print(
+                'admob_ads --- App Open Ad Preload - loadAndShow: onAdDismissedFullScreenContent',
+              );
+              if (navigatorKey.currentContext != null) {
+                closeLoadingDialog(context: navigatorKey.currentContext!);
+              }
+              Admob.instance.setFullScreenAdShowing(false);
+              onAdDismiss?.call();
+            },
+            isShowLoading: false,
+          );
+        }
+      };
+      adsPlatform.onAdFailedToLoad = (id, error) {
+        print('admob_ads --- App Open Ad Preload - loadAndShow: onAdFailedToLoad');
+        onAdFailedToLoad?.call();
+        onNext();
+      };
+
+      adsPlatform.loadAppOpenAdPreload(idAds, Admob.instance.numberPreload);
+    }
   }
 
   Future<void> loadAndShowAppOpenSplashAdPreload({
@@ -456,15 +549,17 @@ class AppOpenManager {
       onAdLoaded?.call();
 
       if (!isNextTimeoutAd) {
-        showAppOpenSplashApPreload(navigatorKey: navigatorKey,
-            idAds: idAds,
-            onAdImpression: () {
-              handleAdShown();
-              onAdImpression?.call();
-            },
-            onAdClicked: onAdClicked,
-            onAdFailedToShow: onAdFailedToShow,
-            onAdDismiss: onAdDismiss);
+        showAppOpenSplashApPreload(
+          navigatorKey: navigatorKey,
+          idAds: idAds,
+          onAdImpression: () {
+            handleAdShown();
+            onAdImpression?.call();
+          },
+          onAdClicked: onAdClicked,
+          onAdFailedToShow: onAdFailedToShow,
+          onAdDismiss: onAdDismiss,
+        );
       }
     };
     adsPlatform.onAdFailedToLoad = (id, error) {
@@ -477,7 +572,7 @@ class AppOpenManager {
       }
     };
 
-    adsPlatform.loadAppOpenAdPreload(idAds, 1);
+    adsPlatform.loadAppOpenAdPreload(idAds, Admob.instance.numberPreloadSplash);
     print('admob_ads --- App Open Ad preload: đợi timeout xem đã Xong hay được Huỷ chưa');
     await timeoutCompleter.future;
     print('admob_ads --- App Open Ad preload: timeout ads splash đã Xong tiếp tục xử lý');
@@ -524,9 +619,11 @@ class AppOpenManager {
       AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency);
     };
     Admob.instance.setFullScreenAdShowing(true);
-    Admob.instance.checkAndShowAdForeground(onShow: () {
-      print('admob_ads --- App Open Ad preload: show Ads');
-      adsPlatform.showAppOpenAdPreload(idAds);
-    });
+    Admob.instance.checkAndShowAdForeground(
+      onShow: () {
+        print('admob_ads --- App Open Ad preload: show Ads');
+        adsPlatform.showAppOpenAdPreload(idAds);
+      },
+    );
   }
 }

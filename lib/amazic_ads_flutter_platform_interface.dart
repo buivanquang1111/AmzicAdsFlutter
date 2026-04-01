@@ -32,6 +32,7 @@ abstract class AmazicAdsFlutterPlatform extends PlatformInterface {
   set onAdImpression(Function()? callback) => throw UnimplementedError();
   set onAdShowed(Function()? callback) => throw UnimplementedError();
   set onPaidEvent(Function(String network, double valueMicros, String currency)? callback) => throw UnimplementedError();
+  set onUserEarnedReward(Function()? callback) =>  throw UnimplementedError();
 
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
@@ -75,6 +76,22 @@ abstract class AmazicAdsFlutterPlatform extends PlatformInterface {
 
   Future<void> destroyAppOpenAdPreload(String idAds){
     throw UnimplementedError('destroyAppOpenAdPreload() has not been implemented.');
+  }
+
+  Future<void> loadRewardAdPreload(String idAds, int numberPreload){
+    throw UnimplementedError('loadRewardAdPreload() has not been implemented.');
+  }
+
+  Future<void> showRewardAdPreload(String idAds){
+    throw UnimplementedError('showRewardAdPreload() has not been implemented.');
+  }
+
+  Future<bool?> isAdAvailableReward(String idAds){
+    throw UnimplementedError('isAdAvailableReward() has not been implemented.');
+  }
+
+  Future<void> destroyRewardAdPreload(String idAds){
+    throw UnimplementedError('destroyRewardAdPreload() has not been implemented.');
   }
 
 }

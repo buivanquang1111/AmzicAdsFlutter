@@ -89,6 +89,24 @@ class Admob {
 
   //end
 
+  //number buffer preload
+  int _numberPreload = 3;
+
+  setNumberPreload(int value) => _numberPreload = value;
+
+  int get numberPreload => _numberPreload;
+
+  //end
+
+  //number buffer preload splash
+  int _numberPreloadSplash = 1;
+
+  setNumberPreloadSplash(int value) => _numberPreloadSplash = value;
+
+  int get numberPreloadSplash => _numberPreloadSplash;
+
+  //end
+
   Future<void> init({
     required String linkServer,
     required String appId,
@@ -824,18 +842,14 @@ class Admob {
 
   //Inter ad preloading
   Future<void> loadInterAdPreload({
-    required GlobalKey<NavigatorState> navigatorKey,
     required String idAds,
     required bool config,
-    required int numberPreload,
     required Function()? onAdLoaded,
     required Function()? onAdFailedToLoad,
   }) async {
     InterAdsManager.instance.loadInterAdPreload(
-      navigatorKey: navigatorKey,
       idAds: idAds,
       config: config,
-      numberPreload: numberPreload,
       onAdLoaded: onAdLoaded,
       onAdFailedToLoad: onAdFailedToLoad,
     );
@@ -883,7 +897,6 @@ class Admob {
     required String idAds,
     required bool config,
     required bool isInterAll,
-    required int numberPreload,
     required Function() onNext,
     Function()? onAdImpression,
     Function()? onAdClicked,
@@ -898,7 +911,6 @@ class Admob {
         navigatorKey: navigatorKey,
         idAds: idAds,
         config: config,
-        numberPreload: numberPreload,
         onNext: onNext,
         onAdLoaded: onAdLoaded,
         onAdFailedToLoad: onAdFailedToLoad,
@@ -911,5 +923,66 @@ class Admob {
     } else {
       onNext();
     }
+  }
+
+  Future<void> loadRewardAdPreload({
+    required String idAds,
+    required bool config,
+    required Function()? onAdLoaded,
+    required Function()? onAdFailedToLoad,
+  }) async {
+    RewardAdManager.instance.loadRewardAdPreload(
+      idAds: idAds,
+      config: config,
+      onAdLoaded: onAdLoaded,
+      onAdFailedToLoad: onAdFailedToLoad,
+    );
+  }
+
+  Future<void> showRewardAdPreload({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required String idAds,
+    required bool config,
+    required Function() onNext,
+    required Function() onUserEarnedReward,
+    Function()? onAdImpression,
+    Function()? onAdClicked,
+    Function()? onAdFailedToShow,
+    Function()? onAdDismiss,
+    required String name,
+    bool isShowLoading = true,
+  }) async {
+    RewardAdManager.instance.showRewardAdPreload(
+      navigatorKey: navigatorKey,
+      idAds: idAds,
+      config: config,
+      onNext: onNext,
+      onUserEarnedReward: onUserEarnedReward,
+      name: name,
+    );
+  }
+
+  Future<void> loadAndShowRewardAdPreload({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required String idAds,
+    required bool config,
+    required Function() onNext,
+    required Function() onUserEarnedReward,
+    Function()? onAdLoaded,
+    Function()? onAdImpression,
+    Function()? onAdClicked,
+    Function()? onAdFailedToLoad,
+    Function()? onAdFailedToShow,
+    Function()? onAdDismiss,
+    required String name,
+  }) async {
+    RewardAdManager.instance.loadAndShowRewardAdPreload(
+      navigatorKey: navigatorKey,
+      idAds: idAds,
+      config: config,
+      onNext: onNext,
+      onUserEarnedReward: onUserEarnedReward,
+      name: name,
+    );
   }
 }

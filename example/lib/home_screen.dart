@@ -42,10 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // );
 
     AppOpenManager.instance.loadAppOpenAdPreload(
-      navigatorKey: navigatorKey,
       idAds: 'ca-app-pub-3940256099942544/9257395921',
       config: true,
-      numberPreload: 3,
       onAdLoaded: () {},
       onAdFailedToLoad: () {},
     );
@@ -231,7 +229,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           idAds: 'ca-app-pub-3940256099942544/1033173712',
                           config: true,
                           isInterAll: true,
-                          numberPreload: 3,
                           onNext: () {
                             Navigator.push(
                               context,
@@ -350,6 +347,43 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  Builder(
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        bool isUserEarn = false;
+                        Admob.instance.loadAndShowRewardAdPreload(
+                          navigatorKey: navigatorKey,
+                          idAds: 'ca-app-pub-3940256099942544/5224354917',
+                          config: true,
+                          onNext: () {
+                            if (isUserEarn) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => CollapseBannerAdScreen()),
+                              );
+                            }
+                          },
+                          onUserEarnedReward: () {
+                            isUserEarn = true;
+                          },
+                          name: 'reward_all',
+                        );
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 56,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.greenAccent,
+                          ),
+                          child: Center(
+                            child: Text('show reward preload ads', textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                   Builder(
                     builder: (context) => GestureDetector(
                       onTap: () {
