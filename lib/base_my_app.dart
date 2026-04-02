@@ -17,16 +17,11 @@ abstract class BaseMyAppState<T extends BaseMyApp> extends State<T> {
     initAdmob();
   }
 
-  Widget buildHomeScreen(BuildContext context);
+  Widget buildScreen(BuildContext context);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: widget.navigatorKey,
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true),
-      home: buildHomeScreen(context),
-    );
+    return buildScreen(context);
   }
 
   Future<void> initAdmob() async {

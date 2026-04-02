@@ -30,8 +30,14 @@ class MyApp extends BaseMyApp {
 
 class _MyAppState extends BaseMyAppState<MyApp> {
   @override
-  Widget buildHomeScreen(BuildContext context) {
-    return const SplashScreen();
+  Widget buildScreen(BuildContext context) {
+    return MaterialApp(
+      navigatorKey: navigatorKey,
+      home: Scaffold(
+        appBar: AppBar(title: const Text('Plugin example app')),
+        body: SplashScreen(),
+      ),
+    );
   }
 }
 
