@@ -528,4 +528,9 @@ class RewardAdManager {
       adsPlatform.loadRewardAdPreload(idAds, Admob.instance.numberPreload);
     }
   }
+
+  Future<void> destroy({required String idAds}) async{
+    final adsPlatform = AmazicAdsFlutterPlatform.instance;
+    adsPlatform.destroyRewardAdPreload(idAds);
+  }
 }

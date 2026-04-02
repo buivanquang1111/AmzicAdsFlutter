@@ -199,12 +199,12 @@ class Admob {
     tasks.forEach((key, future) {
       future
           .then((_) {
-            taskCompleted[key] = true;
-            print('admob_ads --- ✅ Đã hoàn thành task: $key');
-          })
+        taskCompleted[key] = true;
+        print('admob_ads --- ✅ Đã hoàn thành task: $key');
+      })
           .catchError((e) {
-            print('admob_ads --- ⚠️ Lỗi ở task: $key - $e');
-          });
+        print('admob_ads --- ⚠️ Lỗi ở task: $key - $e');
+      });
     });
 
     // Đợi 12 giây
@@ -293,8 +293,7 @@ class Admob {
   // }
   ///end call dong thoi
 
-  Future<void> fetchUMP(
-    Future callIdAdsDone, {
+  Future<void> fetchUMP(Future callIdAdsDone, {
     required GlobalKey<NavigatorState> navigatorKey,
     required String nameIdAdsResume,
     required String nameResumeConfig,
@@ -797,7 +796,8 @@ class Admob {
   }) async {
     if (AdHelper.canShowNextInter(isInterAll: isInterAll)) {
       print(
-        'admob_ads --- inter_ads: canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
+        'admob_ads --- inter_ads: canShowNextInter = ${AdHelper.canShowNextInter(
+            isInterAll: isInterAll)}',
       );
       loadAndShowInterAds(
         navigatorKey: navigatorKey,
@@ -834,7 +834,8 @@ class Admob {
       );
     } else {
       print(
-        'admob_ads --- inter_ads: not canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
+        'admob_ads --- inter_ads: not canShowNextInter = ${AdHelper.canShowNextInter(
+            isInterAll: isInterAll)}',
       );
       onAdDisable?.call();
     }
@@ -844,8 +845,8 @@ class Admob {
   Future<void> loadInterAdPreload({
     required String idAds,
     required bool config,
-    required Function()? onAdLoaded,
-    required Function()? onAdFailedToLoad,
+    Function()? onAdLoaded,
+    Function()? onAdFailedToLoad,
   }) async {
     InterAdsManager.instance.loadInterAdPreload(
       idAds: idAds,
@@ -870,7 +871,8 @@ class Admob {
   }) async {
     if (AdHelper.canShowNextInter(isInterAll: isInterAll)) {
       print(
-        'admob_ads --- Inter Ad Preload: canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
+        'admob_ads --- Inter Ad Preload: canShowNextInter = ${AdHelper.canShowNextInter(
+            isInterAll: isInterAll)}',
       );
       InterAdsManager.instance.showInterAdPreload(
         navigatorKey: navigatorKey,
@@ -886,7 +888,8 @@ class Admob {
       );
     } else {
       print(
-        'admob_ads --- Inter Ad Preload: not canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
+        'admob_ads --- Inter Ad Preload: not canShowNextInter = ${AdHelper.canShowNextInter(
+            isInterAll: isInterAll)}',
       );
       onNext();
     }
@@ -928,8 +931,8 @@ class Admob {
   Future<void> loadRewardAdPreload({
     required String idAds,
     required bool config,
-    required Function()? onAdLoaded,
-    required Function()? onAdFailedToLoad,
+    Function()? onAdLoaded,
+    Function()? onAdFailedToLoad,
   }) async {
     RewardAdManager.instance.loadRewardAdPreload(
       idAds: idAds,
@@ -977,12 +980,12 @@ class Admob {
     required String name,
   }) async {
     RewardAdManager.instance.loadAndShowRewardAdPreload(
-      navigatorKey: navigatorKey,
-      idAds: idAds,
-      config: config,
-      onNext: onNext,
-      onUserEarnedReward: onUserEarnedReward,
-      name: name,
+        navigatorKey: navigatorKey,
+        idAds: idAds,
+        config: config,
+        onNext: onNext,
+        onUserEarnedReward: onUserEarnedReward,
+        name: name
     );
   }
 }

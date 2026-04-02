@@ -637,4 +637,9 @@ class InterAdsManager {
       },
     );
   }
+
+  Future<void> destroy({required String idAds}) async {
+    final adsPlatform = AmazicAdsFlutterPlatform.instance;
+    adsPlatform.destroyInterAdPreload(idAds);
+  }
 }
