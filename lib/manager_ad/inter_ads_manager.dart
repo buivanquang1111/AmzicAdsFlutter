@@ -489,9 +489,12 @@ class InterAdsManager {
       };
 
       adsPlatform.onAdFailedToLoad = (id, error) {
-        print('admob_ads --- Inter Ad Preload: onAdFailedToLoad');
-        onAdFailedToLoad?.call();
-        onNext.call();
+        print('admob_ads --- Inter Ad Preload: onAdFailedToLoad - error: $error');
+        if (isFirstLoadAd) {
+          isFirstLoadAd = false;
+          onAdFailedToLoad?.call();
+          onNext.call();
+        }
       };
 
       adsPlatform.loadInterAdPreload(idAds, Admob.instance.numberPreload);
