@@ -522,8 +522,11 @@ class RewardAdManager {
       };
       adsPlatform.onAdFailedToLoad = (id, error) {
         print('admob_ads --- Reward Ad Preload - loadAndShow: onAdFailedToLoad');
-        onAdFailedToLoad?.call();
-        onNext();
+        if (isFirstLoadAd) {
+          isFirstLoadAd = false;
+          onAdFailedToLoad?.call();
+          onNext();
+        }
       };
       adsPlatform.loadRewardAdPreload(idAds, Admob.instance.numberPreload);
     }
