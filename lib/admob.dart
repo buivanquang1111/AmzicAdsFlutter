@@ -130,7 +130,7 @@ class Admob {
   Future<void> startShowNativeAfterInter({
     required BuildContext context,
     required String adsKey,
-    required bool remoteKey,
+    required String remoteKey,
     required Function() onClose,
   }) async {
     Navigator.push(
@@ -167,10 +167,10 @@ class Admob {
     required String nameResumeConfig,
     required String nameIdAdsAppOpenSplash,
     required String nameIdAdsInterSplash,
-    required String nameIdAdsNativeAfterInter,
+    String? nameIdAdsNativeAfterInter,
     required String nameConfigAppOpenSplash,
     required String nameConfigInterSplash,
-    required String nameConfigNativeAfterInter,
+    String? nameConfigNativeAfterInter,
     required String nameRateAoa,
     required String nameIntervalBetweenInter,
     required String nameIntervalFromStart,
@@ -357,10 +357,10 @@ class Admob {
     Function()? onGotoScreenWelcomeBack,
     required String nameIdAdsAppOpenSplash,
     required String nameIdAdsInterSplash,
-    required String nameIdNativeAfterInter,
+    String? nameIdNativeAfterInter,
     required String nameConfigAppOpenSplash,
     required String nameConfigInterSplash,
-    required String nameConfigNativeAfterInter,
+    String? nameConfigNativeAfterInter,
     required String nameRateAoa,
     required Function() onNext,
     required String nameIntervalBetweenInter,
@@ -378,10 +378,12 @@ class Admob {
           print('admob_ads --- 🚀 Continue process show ads splash');
 
           ///preload native after inter
-          preloadNativeAfterInter(
-            adsKey: nameIdNativeAfterInter,
-            remoteKey: nameConfigNativeAfterInter,
-          );
+          if (nameIdNativeAfterInter != null && nameConfigNativeAfterInter != null) {
+            preloadNativeAfterInter(
+              adsKey: nameIdNativeAfterInter,
+              remoteKey: nameConfigNativeAfterInter,
+            );
+          }
 
           onStartLoadBanner();
 
@@ -420,7 +422,7 @@ class Admob {
                 adsKeyNativeAfterInter: nameIdNativeAfterInter,
                 configAppOpen: RemoteConfig.getBool(nameConfigAppOpenSplash),
                 configInter: RemoteConfig.getBool(nameConfigInterSplash),
-                remoteKeyNativeAfterInter: RemoteConfig.getBool(nameConfigNativeAfterInter),
+                remoteKeyNativeAfterInter: nameConfigNativeAfterInter,
                 rateAoa: RemoteConfig.getString(nameRateAoa),
                 onNext: onNext,
               );
@@ -634,10 +636,10 @@ class Admob {
     required GlobalKey<NavigatorState> navigatorKey,
     required String idAdsAppOpen,
     required String idAdsInter,
-    required String adsKeyNativeAfterInter,
+    String? adsKeyNativeAfterInter,
     required bool configAppOpen,
     required bool configInter,
-    required bool remoteKeyNativeAfterInter,
+    String? remoteKeyNativeAfterInter,
     required String rateAoa,
     required Function() onNext,
   }) async {
@@ -745,6 +747,8 @@ class Admob {
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             if (isUseNativeAfterInter &&
                 navigatorKey.currentContext != null &&
+                adsKeyNativeAfterInter != null &&
+                remoteKeyNativeAfterInter != null &&
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
               startShowNativeAfterInter(
                 context: navigatorKey.currentContext!,
@@ -760,6 +764,8 @@ class Admob {
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             if (isUseNativeAfterInter &&
                 navigatorKey.currentContext != null &&
+                adsKeyNativeAfterInter != null &&
+                remoteKeyNativeAfterInter != null &&
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
               startShowNativeAfterInter(
                 context: navigatorKey.currentContext!,
@@ -775,6 +781,8 @@ class Admob {
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             if (isUseNativeAfterInter &&
                 navigatorKey.currentContext != null &&
+                adsKeyNativeAfterInter != null &&
+                remoteKeyNativeAfterInter != null &&
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
               startShowNativeAfterInter(
                 context: navigatorKey.currentContext!,
@@ -790,6 +798,8 @@ class Admob {
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             if (isUseNativeAfterInter &&
                 navigatorKey.currentContext != null &&
+                adsKeyNativeAfterInter != null &&
+                remoteKeyNativeAfterInter != null &&
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
               startShowNativeAfterInter(
                 context: navigatorKey.currentContext!,

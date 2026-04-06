@@ -7,7 +7,7 @@ import '../utils/remote_config.dart';
 
 class NativeAfterInterScreen extends StatefulWidget {
   final String adsKey;
-  final bool remoteKey;
+  final String remoteKey;
   final Function() onClose;
 
   const NativeAfterInterScreen({
@@ -51,7 +51,7 @@ class _NativeAfterInterScreenState extends State<NativeAfterInterScreen> {
       child: Stack(
         children: [
           NativeAdManager().showAd(
-            config: widget.remoteKey,
+            config: RemoteConfig.getBool(widget.remoteKey),
             nameIdAds: widget.adsKey,
             height: double.infinity,
             adUnitId: CallApi.instance.getFirstIDByName(widget.adsKey),

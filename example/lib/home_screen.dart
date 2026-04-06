@@ -115,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Admob.instance.startShowNativeAfterInter(
                           context: context,
                           adsKey: 'native_intro',
-                          remoteKey: RemoteConfig.getBool('native_intro'),
+                          remoteKey:'native_intro',
                           onClose: () {
                             Navigator.push(
                               context,
