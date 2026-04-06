@@ -150,7 +150,7 @@ class Admob {
     print('preload_native --- load id - ${CallApi.instance.getFirstIDByName(adsKey)}');
     NativeAdManager().preloadAd(
       adUnitId: CallApi.instance.getFirstIDByName(adsKey),
-      config: true,
+      config: RemoteConfig.getBool(remoteKey),
       nameIdAds: adsKey,
       factoryId: factoryId ?? 'native_after_inter',
     );
@@ -750,12 +750,16 @@ class Admob {
                 adsKeyNativeAfterInter != null &&
                 remoteKeyNativeAfterInter != null &&
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
-              startShowNativeAfterInter(
-                context: navigatorKey.currentContext!,
-                adsKey: adsKeyNativeAfterInter,
-                remoteKey: remoteKeyNativeAfterInter,
-                onClose: onNext,
-              );
+              if(RemoteConfig.getBool(remoteKeyNativeAfterInter)) {
+                startShowNativeAfterInter(
+                  context: navigatorKey.currentContext!,
+                  adsKey: adsKeyNativeAfterInter,
+                  remoteKey: remoteKeyNativeAfterInter,
+                  onClose: onNext,
+                );
+              }else{
+                onNext();
+              }
             } else {
               onNext();
             }
@@ -767,12 +771,16 @@ class Admob {
                 adsKeyNativeAfterInter != null &&
                 remoteKeyNativeAfterInter != null &&
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
-              startShowNativeAfterInter(
-                context: navigatorKey.currentContext!,
-                adsKey: adsKeyNativeAfterInter,
-                remoteKey: remoteKeyNativeAfterInter,
-                onClose: onNext,
-              );
+              if(RemoteConfig.getBool(remoteKeyNativeAfterInter)) {
+                startShowNativeAfterInter(
+                  context: navigatorKey.currentContext!,
+                  adsKey: adsKeyNativeAfterInter,
+                  remoteKey: remoteKeyNativeAfterInter,
+                  onClose: onNext,
+                );
+              }else{
+                onNext();
+              }
             } else {
               onNext();
             }
@@ -784,12 +792,16 @@ class Admob {
                 adsKeyNativeAfterInter != null &&
                 remoteKeyNativeAfterInter != null &&
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
-              startShowNativeAfterInter(
-                context: navigatorKey.currentContext!,
-                adsKey: adsKeyNativeAfterInter,
-                remoteKey: remoteKeyNativeAfterInter,
-                onClose: onNext,
-              );
+              if(RemoteConfig.getBool(remoteKeyNativeAfterInter)) {
+                startShowNativeAfterInter(
+                  context: navigatorKey.currentContext!,
+                  adsKey: adsKeyNativeAfterInter,
+                  remoteKey: remoteKeyNativeAfterInter,
+                  onClose: onNext,
+                );
+              }else{
+                onNext();
+              }
             } else {
               onNext();
             }
@@ -801,12 +813,16 @@ class Admob {
                 adsKeyNativeAfterInter != null &&
                 remoteKeyNativeAfterInter != null &&
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
-              startShowNativeAfterInter(
-                context: navigatorKey.currentContext!,
-                adsKey: adsKeyNativeAfterInter,
-                remoteKey: remoteKeyNativeAfterInter,
-                onClose: onNext,
-              );
+              if(RemoteConfig.getBool(remoteKeyNativeAfterInter)) {
+                startShowNativeAfterInter(
+                  context: navigatorKey.currentContext!,
+                  adsKey: adsKeyNativeAfterInter,
+                  remoteKey: remoteKeyNativeAfterInter,
+                  onClose: onNext,
+                );
+              }else{
+                onNext();
+              }
             } else {
               onNext();
             }
