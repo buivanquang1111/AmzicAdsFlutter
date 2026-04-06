@@ -15,28 +15,28 @@ class NativeAdManager {
   NativeAdManager._internal();
 
   /// Map lưu trữ quảng cáo
-  final Map<String, NativeAd?> _adsCache = {};
+  final Map<String, NativeAd?> adsCache = {};
 
   // --- StreamController để thông báo sự kiện
-  final Map<String, StreamController<bool>> _loadingStateControllers = {};
+  final Map<String, StreamController<bool>> loadingStateControllers = {};
 
   // Map để lưu trữ Timer cho mỗi nameIdAds
   // final Map<String, Timer?> _preloadTimers = {};
 
   // Tạo stream controller cho từng name ID ads (key)
   Stream<bool> getLoadingStream(String nameIdAds) {
-    if (!_loadingStateControllers.containsKey(nameIdAds)) {
-      _loadingStateControllers[nameIdAds] = StreamController<bool>.broadcast(sync: true);
+    if (!loadingStateControllers.containsKey(nameIdAds)) {
+      loadingStateControllers[nameIdAds] = StreamController<bool>.broadcast(sync: true);
     }
-    return _loadingStateControllers[nameIdAds]!.stream;
+    return loadingStateControllers[nameIdAds]!.stream;
   }
 
   //Sink báo hiệu sự kiện loading
   Sink<bool> getLoadingSink(String nameIdAds) {
-    if (!_loadingStateControllers.containsKey(nameIdAds)) {
-      _loadingStateControllers[nameIdAds] = StreamController<bool>.broadcast(sync: true);
+    if (!loadingStateControllers.containsKey(nameIdAds)) {
+      loadingStateControllers[nameIdAds] = StreamController<bool>.broadcast(sync: true);
     }
-    return _loadingStateControllers[nameIdAds]!.sink;
+    return loadingStateControllers[nameIdAds]!.sink;
   }
 
   // --- preloadAd (Gần như giữ nguyên) ---
@@ -65,13 +65,13 @@ class NativeAdManager {
       listener: NativeAdListener(
         onAdLoaded: (ad) {
           print('preload_native --- load xong $nameIdAds');
-          _adsCache[nameIdAds] = ad as NativeAd;
+          adsCache[nameIdAds] = ad as NativeAd;
           getLoadingSink(nameIdAds).add(false); // Báo loading kết thúc
           onAdLoaded?.call();
         },
         onAdFailedToLoad: (ad, error) {
           print('preload_native --- load false $nameIdAds');
-          _adsCache[nameIdAds] = null;
+          adsCache[nameIdAds] = null;
           getLoadingSink(nameIdAds).add(false); // Báo loading kết thúc (dù lỗi)
           onAdFailed?.call(error.message);
 
@@ -114,7 +114,7 @@ class NativeAdManager {
   }) {
     print('preload_native --- start show $nameIdAds');
 
-    if (!_loadingStateControllers.containsKey(nameIdAds)) {
+    if (!loadingStateControllers.containsKey(nameIdAds)) {
       print('preload_native --- Error: $nameIdAds không tồn tại, config = $config');
       return placeholder ?? const SizedBox.shrink();
     }
@@ -135,7 +135,7 @@ class NativeAdManager {
                 return shimmer ?? ShimmerNativeAds(height: height);
               } else {
                 // Không loading nữa -> Xem có quảng cáo chưa
-                final ad = _adsCache[nameIdAds];
+                final ad = adsCache[nameIdAds];
                 if (ad != null) {
                   print(
                     'preload_native --- show ads $nameIdAds}',
@@ -214,28 +214,28 @@ class NativeAdManager {
 
   // --- Các hàm tiện ích (dispose) ---
   void disposeAd(String nameIdAds) {
-    _adsCache[nameIdAds]?.dispose();
-    _adsCache.remove(nameIdAds);
-    _loadingStateControllers[nameIdAds]?.close();
-    _loadingStateControllers.remove(nameIdAds);
+    adsCache[nameIdAds]?.dispose();
+    adsCache.remove(nameIdAds);
+    loadingStateControllers[nameIdAds]?.close();
+    loadingStateControllers.remove(nameIdAds);
     // _preloadTimers[nameIdAds]?.cancel();
     // _preloadTimers.remove(nameIdAds);
   }
 
   bool isAdReady(String nameIdAds) {
-    return _adsCache.containsKey(nameIdAds) && _adsCache[nameIdAds] != null;
+    return adsCache.containsKey(nameIdAds) && adsCache[nameIdAds] != null;
   }
 
   void disposeAll() {
-    _adsCache.forEach((key, value) {
+    adsCache.forEach((key, value) {
       value?.dispose();
     });
-    _adsCache.clear();
+    adsCache.clear();
 
-    _loadingStateControllers.forEach((key, value) {
+    loadingStateControllers.forEach((key, value) {
       value.close(); // Đóng tất cả StreamController khi disposeAll
     });
-    _loadingStateControllers.clear();
+    loadingStateControllers.clear();
 
     // _preloadTimers.forEach((key, value) {
     //   value?.cancel();

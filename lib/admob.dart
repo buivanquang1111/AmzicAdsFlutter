@@ -11,6 +11,7 @@ import 'package:amazic_ads_flutter/utils/app_lifecycle_reactor.dart';
 import 'package:amazic_ads_flutter/utils/event_log.dart';
 import 'package:amazic_ads_flutter/utils/preferences_util.dart';
 import 'package:amazic_ads_flutter/utils/remote_config.dart';
+import 'package:amazic_ads_flutter/view/native_after_inter_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -62,6 +63,18 @@ class Admob {
     }
   }
 
+  ///timeout check 7s
+  // bool isTimeout7sSplash = false; //check timeout await 7s splash
+  // final timeout7sSplashCompleter = Completer<void>();
+  //
+  // void handleTimeOut7s() {
+  //   if (!isTimeout7sSplash) {
+  //     isTimeout7sSplash = true;
+  //     print('admob_ads --- handle Timeout kết thúc check 7s timeout Splash');
+  //     if (!timeout7sSplashCompleter.isCompleted) timeout7sSplashCompleter.complete();
+  //   }
+  // }
+
   ///đếm thời gian từ lúc vào màn đến khi show ads splash
   final stopWatch = Stopwatch();
 
@@ -107,6 +120,44 @@ class Admob {
 
   //end
 
+  ///native after inter ( moi dung cho moi man Splash)
+  bool _isUseNativeAfterInter = false;
+
+  setUseNativeAfterInter(bool value) => _isUseNativeAfterInter = value;
+
+  bool get isUseNativeAfterInter => _isUseNativeAfterInter;
+
+  Future<void> startShowNativeAfterInter({
+    required BuildContext context,
+    required String adsKey,
+    required bool remoteKey,
+    required Function() onClose,
+  }) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            NativeAfterInterScreen(adsKey: adsKey, remoteKey: remoteKey, onClose: onClose),
+      ),
+    );
+  }
+
+  Future<void> preloadNativeAfterInter({
+    required String adsKey,
+    required String remoteKey,
+    String? factoryId,
+  }) async {
+    print('preload_native --- load id - ${CallApi.instance.getFirstIDByName(adsKey)}');
+    NativeAdManager().preloadAd(
+      adUnitId: CallApi.instance.getFirstIDByName(adsKey),
+      config: true,
+      nameIdAds: adsKey,
+      factoryId: factoryId ?? 'native_after_inter',
+    );
+  }
+
+  //end
+
   Future<void> init({
     required String linkServer,
     required String appId,
@@ -116,8 +167,10 @@ class Admob {
     required String nameResumeConfig,
     required String nameIdAdsAppOpenSplash,
     required String nameIdAdsInterSplash,
+    required String nameIdAdsNativeAfterInter,
     required String nameConfigAppOpenSplash,
     required String nameConfigInterSplash,
+    required String nameConfigNativeAfterInter,
     required String nameRateAoa,
     required String nameIntervalBetweenInter,
     required String nameIntervalFromStart,
@@ -162,8 +215,10 @@ class Admob {
       isShowWelComeScreenAfterAppOpenAds: isShowWelComeScreenAfterAppOpenAds,
       nameIdAdsAppOpenSplash: nameIdAdsAppOpenSplash,
       nameIdAdsInterSplash: nameIdAdsInterSplash,
+      nameIdNativeAfterInter: nameIdAdsNativeAfterInter,
       nameConfigAppOpenSplash: nameConfigAppOpenSplash,
       nameConfigInterSplash: nameConfigInterSplash,
+      nameConfigNativeAfterInter: nameConfigNativeAfterInter,
       nameRateAoa: nameRateAoa,
       onNext: onNext,
       nameIntervalBetweenInter: nameIntervalBetweenInter,
@@ -199,12 +254,12 @@ class Admob {
     tasks.forEach((key, future) {
       future
           .then((_) {
-        taskCompleted[key] = true;
-        print('admob_ads --- ✅ Đã hoàn thành task: $key');
-      })
+            taskCompleted[key] = true;
+            print('admob_ads --- ✅ Đã hoàn thành task: $key');
+          })
           .catchError((e) {
-        print('admob_ads --- ⚠️ Lỗi ở task: $key - $e');
-      });
+            print('admob_ads --- ⚠️ Lỗi ở task: $key - $e');
+          });
     });
 
     // Đợi 12 giây
@@ -293,7 +348,8 @@ class Admob {
   // }
   ///end call dong thoi
 
-  Future<void> fetchUMP(Future callIdAdsDone, {
+  Future<void> fetchUMP(
+    Future callIdAdsDone, {
     required GlobalKey<NavigatorState> navigatorKey,
     required String nameIdAdsResume,
     required String nameResumeConfig,
@@ -301,8 +357,10 @@ class Admob {
     Function()? onGotoScreenWelcomeBack,
     required String nameIdAdsAppOpenSplash,
     required String nameIdAdsInterSplash,
+    required String nameIdNativeAfterInter,
     required String nameConfigAppOpenSplash,
     required String nameConfigInterSplash,
+    required String nameConfigNativeAfterInter,
     required String nameRateAoa,
     required Function() onNext,
     required String nameIntervalBetweenInter,
@@ -318,6 +376,13 @@ class Admob {
           print('admob_ads --- ✅ Done UMP, await call id ads');
           await callIdAdsDone;
           print('admob_ads --- 🚀 Continue process show ads splash');
+
+          ///preload native after inter
+          preloadNativeAfterInter(
+            adsKey: nameIdNativeAfterInter,
+            remoteKey: nameConfigNativeAfterInter,
+          );
+
           onStartLoadBanner();
 
           ///init app open resume
@@ -343,16 +408,23 @@ class Admob {
 
           handleTimeOut();
 
+          print('admob_ads --- start await 7s splash');
           if (!isNextTimeout) {
-            initAndShowAdSplash(
-              navigatorKey: navigatorKey,
-              idAdsAppOpen: CallApi.instance.getListIDByName(nameIdAdsAppOpenSplash)[0],
-              idAdsInter: CallApi.instance.getListIDByName(nameIdAdsInterSplash)[0],
-              configAppOpen: RemoteConfig.getBool(nameConfigAppOpenSplash),
-              configInter: RemoteConfig.getBool(nameConfigInterSplash),
-              rateAoa: RemoteConfig.getString(nameRateAoa),
-              onNext: onNext,
-            );
+            /// await check 7s show ads splash
+            await Future.delayed(const Duration(seconds: 7), () {
+              print('admob_ads --- 7s await splash DONE');
+              initAndShowAdSplash(
+                navigatorKey: navigatorKey,
+                idAdsAppOpen: CallApi.instance.getFirstIDByName(nameIdAdsAppOpenSplash),
+                idAdsInter: CallApi.instance.getFirstIDByName(nameIdAdsInterSplash),
+                adsKeyNativeAfterInter: nameIdNativeAfterInter,
+                configAppOpen: RemoteConfig.getBool(nameConfigAppOpenSplash),
+                configInter: RemoteConfig.getBool(nameConfigInterSplash),
+                remoteKeyNativeAfterInter: RemoteConfig.getBool(nameConfigNativeAfterInter),
+                rateAoa: RemoteConfig.getString(nameRateAoa),
+                onNext: onNext,
+              );
+            });
           }
         } else {
           handleTimeOut();
@@ -562,8 +634,10 @@ class Admob {
     required GlobalKey<NavigatorState> navigatorKey,
     required String idAdsAppOpen,
     required String idAdsInter,
+    required String adsKeyNativeAfterInter,
     required bool configAppOpen,
     required bool configInter,
+    required bool remoteKeyNativeAfterInter,
     required String rateAoa,
     required Function() onNext,
   }) async {
@@ -669,19 +743,63 @@ class Admob {
           },
           onAdDismiss: () {
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
+            if (isUseNativeAfterInter &&
+                navigatorKey.currentContext != null &&
+                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
+              startShowNativeAfterInter(
+                context: navigatorKey.currentContext!,
+                adsKey: adsKeyNativeAfterInter,
+                remoteKey: remoteKeyNativeAfterInter,
+                onClose: onNext,
+              );
+            } else {
+              onNext();
+            }
           },
           onAdFailedToLoad: () {
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
+            if (isUseNativeAfterInter &&
+                navigatorKey.currentContext != null &&
+                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
+              startShowNativeAfterInter(
+                context: navigatorKey.currentContext!,
+                adsKey: adsKeyNativeAfterInter,
+                remoteKey: remoteKeyNativeAfterInter,
+                onClose: onNext,
+              );
+            } else {
+              onNext();
+            }
           },
           onAdFailedToShow: () {
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
+            if (isUseNativeAfterInter &&
+                navigatorKey.currentContext != null &&
+                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
+              startShowNativeAfterInter(
+                context: navigatorKey.currentContext!,
+                adsKey: adsKeyNativeAfterInter,
+                remoteKey: remoteKeyNativeAfterInter,
+                onClose: onNext,
+              );
+            } else {
+              onNext();
+            }
           },
           onAdDisable: () {
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
+            if (isUseNativeAfterInter &&
+                navigatorKey.currentContext != null &&
+                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
+              startShowNativeAfterInter(
+                context: navigatorKey.currentContext!,
+                adsKey: adsKeyNativeAfterInter,
+                remoteKey: remoteKeyNativeAfterInter,
+                onClose: onNext,
+              );
+            } else {
+              onNext();
+            }
           },
         );
       } else {
@@ -796,8 +914,7 @@ class Admob {
   }) async {
     if (AdHelper.canShowNextInter(isInterAll: isInterAll)) {
       print(
-        'admob_ads --- inter_ads: canShowNextInter = ${AdHelper.canShowNextInter(
-            isInterAll: isInterAll)}',
+        'admob_ads --- inter_ads: canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
       );
       loadAndShowInterAds(
         navigatorKey: navigatorKey,
@@ -834,8 +951,7 @@ class Admob {
       );
     } else {
       print(
-        'admob_ads --- inter_ads: not canShowNextInter = ${AdHelper.canShowNextInter(
-            isInterAll: isInterAll)}',
+        'admob_ads --- inter_ads: not canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
       );
       onAdDisable?.call();
     }
@@ -871,8 +987,7 @@ class Admob {
   }) async {
     if (AdHelper.canShowNextInter(isInterAll: isInterAll)) {
       print(
-        'admob_ads --- Inter Ad Preload: canShowNextInter = ${AdHelper.canShowNextInter(
-            isInterAll: isInterAll)}',
+        'admob_ads --- Inter Ad Preload: canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
       );
       InterAdsManager.instance.showInterAdPreload(
         navigatorKey: navigatorKey,
@@ -888,8 +1003,7 @@ class Admob {
       );
     } else {
       print(
-        'admob_ads --- Inter Ad Preload: not canShowNextInter = ${AdHelper.canShowNextInter(
-            isInterAll: isInterAll)}',
+        'admob_ads --- Inter Ad Preload: not canShowNextInter = ${AdHelper.canShowNextInter(isInterAll: isInterAll)}',
       );
       onNext();
     }
@@ -980,12 +1094,12 @@ class Admob {
     required String name,
   }) async {
     RewardAdManager.instance.loadAndShowRewardAdPreload(
-        navigatorKey: navigatorKey,
-        idAds: idAds,
-        config: config,
-        onNext: onNext,
-        onUserEarnedReward: onUserEarnedReward,
-        name: name
+      navigatorKey: navigatorKey,
+      idAds: idAds,
+      config: config,
+      onNext: onNext,
+      onUserEarnedReward: onUserEarnedReward,
+      name: name,
     );
   }
 }

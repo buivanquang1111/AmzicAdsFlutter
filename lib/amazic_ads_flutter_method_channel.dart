@@ -12,6 +12,7 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
   final interChannel = const MethodChannel("amazic_ads_inter");
   final appOpenChannel = const MethodChannel("amazic_ads_app_open");
   final rewardChannel = const MethodChannel("amazic_ads_reward");
+  final nativeAfterInterChannel = const MethodChannel("amazic_ads_native_after_inter");
 
   //callback
   Function(String id)? _onAdLoaded;
@@ -23,6 +24,7 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
   Function()? _onAdShowed;
   Function(String network, double revenue, String currency)? _onPainEvent;
   Function()? _onUserEarnedReward;
+  Function()? _onNativeAfterInterClose;
 
   MethodChannelAmazicAdsFlutter() {
     interChannel.setMethodCallHandler((call) async {
@@ -33,8 +35,12 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
       _processCallback(call, "APP_OPEN_ADS");
     });
 
-    rewardChannel.setMethodCallHandler((call) async{
+    rewardChannel.setMethodCallHandler((call) async {
       _processCallback(call, "REWARD_ADS");
+    });
+
+    nativeAfterInterChannel.setMethodCallHandler((call) async {
+      _processCallback(call, "NATIVE_AFTER_INTER");
     });
   }
 
@@ -75,6 +81,9 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
         break;
       case 'onUserEarned':
         _onUserEarnedReward?.call();
+        break;
+      case 'onNativeAfterInterClose':
+        _onNativeAfterInterClose?.call();
         break;
       default:
         throw UnimplementedError('Unimplemented ${call.method} method');
@@ -147,6 +156,9 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
 
   @override
   set onUserEarnedReward(Function()? callback) => _onUserEarnedReward = callback;
+
+  @override
+  set onNativeAfterInterClose(Function()? callback) => _onNativeAfterInterClose = callback;
 
   @override
   Future<void> loadAppOpenAdPreload(String idAds, int numberPreload) async {

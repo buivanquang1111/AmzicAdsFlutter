@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:amazic_ads_flutter/admob.dart';
+import 'package:amazic_ads_flutter/amazic_ads_flutter.dart';
+import 'package:amazic_ads_flutter/call_api/call_api.dart';
 import 'package:amazic_ads_flutter/utils/remote_config.dart';
 import 'package:amazic_ads_flutter_example/home_screen.dart';
 import 'package:amazic_ads_flutter_example/welcome_back_screen.dart';
@@ -24,6 +26,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   init() async {
     Admob.instance.setUseAdPreloading(true);
+    Admob.instance.setUseNativeAfterInter(true);
+
     await Admob.instance.init(
       linkServer: '',
       appId: '',
@@ -40,8 +44,10 @@ class _SplashScreenState extends State<SplashScreen> {
       },
       nameIdAdsAppOpenSplash: 'open_splash',
       nameIdAdsInterSplash: 'inter_splash',
+      nameIdAdsNativeAfterInter: 'native_intro',
       nameConfigAppOpenSplash: 'open_splash',
       nameConfigInterSplash: 'inter_splash',
+      nameConfigNativeAfterInter: 'native_intro',
       nameRateAoa: 'rate_aoa_inter_splash',
       onNext: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
@@ -53,6 +59,7 @@ class _SplashScreenState extends State<SplashScreen> {
       remoteConfigKeys: [
         RemoteConfigKey(name: 'show_ads', defaultValue: true, valueType: bool),
         RemoteConfigKey(name: 'banner_ads', defaultValue: true, valueType: bool),
+        RemoteConfigKey(name: 'native_intro', defaultValue: true, valueType: bool),
         RemoteConfigKey(name: 'collap_reload_interval', defaultValue: 10, valueType: int),
         RemoteConfigKey(name: 'collapse_banner', defaultValue: true, valueType: bool),
         RemoteConfigKey(name: 'inter_ads', defaultValue: true, valueType: bool),

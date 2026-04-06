@@ -52,24 +52,29 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _preload() {
-    NativeAdManager().preloadAd(
-      adUnitId: CallApi.instance.getFirstIDByName('native_language'),
-      config: true,
-      nameIdAds: 'native_language',
-      factoryId: 'native_ad',
-      // intervalReload: 5,
-      onAdLoaded: () {},
-      onAdFailed: (error) {},
+    // NativeAdManager().preloadAd(
+    //   adUnitId: CallApi.instance.getFirstIDByName('native_language'),
+    //   config: true,
+    //   nameIdAds: 'native_language',
+    //   factoryId: 'native_ad',
+    //   // intervalReload: 5,
+    //   onAdLoaded: () {},
+    //   onAdFailed: (error) {},
+    // );
+    Admob.instance.preloadNativeAfterInter(
+      adsKey: 'native_intro',
+      remoteKey: 'native_intro',
     );
-    NativeAdManager().preloadAd(
-      adUnitId: CallApi.instance.getFirstIDByName('native_intro'),
-      config: true,
-      nameIdAds: 'native_intro',
-      factoryId: 'native_ad',
-      // intervalReload: 5,
-      onAdLoaded: () {},
-      onAdFailed: (error) {},
-    );
+
+    // NativeAdManager().preloadAd(
+    //   adUnitId: CallApi.instance.getFirstIDByName('native_intro'),
+    //   config: true,
+    //   nameIdAds: 'native_intro',
+    //   factoryId: 'native_ad',
+    //   // intervalReload: 5,
+    //   onAdLoaded: () {},
+    //   onAdFailed: (error) {},
+    // );
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -104,6 +109,37 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text('Running on: $_platformVersion\n'),
+                  Builder(
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        Admob.instance.startShowNativeAfterInter(
+                          context: context,
+                          adsKey: 'native_intro',
+                          remoteKey: RemoteConfig.getBool('native_intro'),
+                          onClose: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => BannerAdScreen()),
+                            );
+                          },
+                        );
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 56,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.greenAccent,
+                          ),
+                          child: Center(
+                            child: Text('show native after inter', textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   Builder(
                     builder: (context) => GestureDetector(
                       onTap: () {

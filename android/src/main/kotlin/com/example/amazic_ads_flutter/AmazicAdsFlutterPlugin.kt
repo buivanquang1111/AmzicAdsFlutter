@@ -14,7 +14,9 @@ import com.example.amazic_ads_flutter.callback.InterCallback
 import com.example.amazic_ads_flutter.callback.RewardCallback
 import com.example.amazic_ads_flutter.inter_ads.InterManager
 import com.example.amazic_ads_flutter.reward_ads.RewardManager
+import com.example.amazic_ads_flutter.native_ads.NativeAfterInterAd
 import com.google.android.gms.ads.AdValue
+import android.view.LayoutInflater
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.rewarded.RewardedAd
@@ -25,6 +27,8 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.plugins.googlemobileads.GoogleMobileAdsPlugin
+import io.flutter.embedding.engine.FlutterEngine
 
 /** AmazicAdsFlutterPlugin */
 class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -33,10 +37,12 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var interChannel: MethodChannel
     private lateinit var appOpenChannel: MethodChannel
     private lateinit var rewardChannel: MethodChannel
+    private lateinit var nativeChannel: MethodChannel
     private lateinit var context: Context
     private var activity: Activity? = null
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "amazic_ads_flutter")
         channel.setMethodCallHandler(this)
 
@@ -50,6 +56,7 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 "banner_view_platform",
                 BannerAdsPlatformViewFactory(context, bannerAdsMethod)
             )
+
         interChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "amazic_ads_inter")
         interChannel.setMethodCallHandler(this)
 

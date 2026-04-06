@@ -33,6 +33,7 @@ abstract class AmazicAdsFlutterPlatform extends PlatformInterface {
   set onAdShowed(Function()? callback) => throw UnimplementedError();
   set onPaidEvent(Function(String network, double valueMicros, String currency)? callback) => throw UnimplementedError();
   set onUserEarnedReward(Function()? callback) =>  throw UnimplementedError();
+  set onNativeAfterInterClose(Function()? callback) => throw UnimplementedError();
 
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
