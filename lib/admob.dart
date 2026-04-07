@@ -750,7 +750,7 @@ class Admob {
                 adsKeyNativeAfterInter != null &&
                 remoteKeyNativeAfterInter != null &&
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
-              if(RemoteConfig.getBool(remoteKeyNativeAfterInter)) {
+              if(RemoteConfig.getBool(remoteKeyNativeAfterInter) || NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false) {
                 startShowNativeAfterInter(
                   context: navigatorKey.currentContext!,
                   adsKey: adsKeyNativeAfterInter,
@@ -771,7 +771,7 @@ class Admob {
                 adsKeyNativeAfterInter != null &&
                 remoteKeyNativeAfterInter != null &&
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
-              if(RemoteConfig.getBool(remoteKeyNativeAfterInter)) {
+              if(RemoteConfig.getBool(remoteKeyNativeAfterInter) || NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false) {
                 startShowNativeAfterInter(
                   context: navigatorKey.currentContext!,
                   adsKey: adsKeyNativeAfterInter,
@@ -792,7 +792,7 @@ class Admob {
                 adsKeyNativeAfterInter != null &&
                 remoteKeyNativeAfterInter != null &&
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
-              if(RemoteConfig.getBool(remoteKeyNativeAfterInter)) {
+              if(RemoteConfig.getBool(remoteKeyNativeAfterInter) || NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false) {
                 startShowNativeAfterInter(
                   context: navigatorKey.currentContext!,
                   adsKey: adsKeyNativeAfterInter,
@@ -813,7 +813,7 @@ class Admob {
                 adsKeyNativeAfterInter != null &&
                 remoteKeyNativeAfterInter != null &&
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
-              if(RemoteConfig.getBool(remoteKeyNativeAfterInter)) {
+              if(RemoteConfig.getBool(remoteKeyNativeAfterInter) || NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false) {
                 startShowNativeAfterInter(
                   context: navigatorKey.currentContext!,
                   adsKey: adsKeyNativeAfterInter,
