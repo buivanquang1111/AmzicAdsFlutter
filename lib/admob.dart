@@ -749,15 +749,18 @@ class Admob {
                 navigatorKey.currentContext != null &&
                 adsKeyNativeAfterInter != null &&
                 remoteKeyNativeAfterInter != null &&
-                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
-              if(RemoteConfig.getBool(remoteKeyNativeAfterInter) || NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false) {
+                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter) &&
+                NativeAdManager().adsCache[adsKeyNativeAfterInter] != null) {
+              if (RemoteConfig.getBool(remoteKeyNativeAfterInter) ||
+                  NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink ==
+                      false) {
                 startShowNativeAfterInter(
                   context: navigatorKey.currentContext!,
                   adsKey: adsKeyNativeAfterInter,
                   remoteKey: remoteKeyNativeAfterInter,
                   onClose: onNext,
                 );
-              }else{
+              } else {
                 onNext();
               }
             } else {
@@ -770,15 +773,18 @@ class Admob {
                 navigatorKey.currentContext != null &&
                 adsKeyNativeAfterInter != null &&
                 remoteKeyNativeAfterInter != null &&
-                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
-              if(RemoteConfig.getBool(remoteKeyNativeAfterInter) || NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false) {
+                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter) &&
+                NativeAdManager().adsCache[adsKeyNativeAfterInter] != null) {
+              if (RemoteConfig.getBool(remoteKeyNativeAfterInter) ||
+                  NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink ==
+                      false) {
                 startShowNativeAfterInter(
                   context: navigatorKey.currentContext!,
                   adsKey: adsKeyNativeAfterInter,
                   remoteKey: remoteKeyNativeAfterInter,
                   onClose: onNext,
                 );
-              }else{
+              } else {
                 onNext();
               }
             } else {
@@ -791,15 +797,18 @@ class Admob {
                 navigatorKey.currentContext != null &&
                 adsKeyNativeAfterInter != null &&
                 remoteKeyNativeAfterInter != null &&
-                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
-              if(RemoteConfig.getBool(remoteKeyNativeAfterInter) || NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false) {
+                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter) &&
+                NativeAdManager().adsCache[adsKeyNativeAfterInter] != null) {
+              if (RemoteConfig.getBool(remoteKeyNativeAfterInter) ||
+                  NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink ==
+                      false) {
                 startShowNativeAfterInter(
                   context: navigatorKey.currentContext!,
                   adsKey: adsKeyNativeAfterInter,
                   remoteKey: remoteKeyNativeAfterInter,
                   onClose: onNext,
                 );
-              }else{
+              } else {
                 onNext();
               }
             } else {
@@ -812,15 +821,18 @@ class Admob {
                 navigatorKey.currentContext != null &&
                 adsKeyNativeAfterInter != null &&
                 remoteKeyNativeAfterInter != null &&
-                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)) {
-              if(RemoteConfig.getBool(remoteKeyNativeAfterInter) || NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false) {
+                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter) &&
+                NativeAdManager().adsCache[adsKeyNativeAfterInter] != null) {
+              if (RemoteConfig.getBool(remoteKeyNativeAfterInter) ||
+                  NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink ==
+                      false) {
                 startShowNativeAfterInter(
                   context: navigatorKey.currentContext!,
                   adsKey: adsKeyNativeAfterInter,
                   remoteKey: remoteKeyNativeAfterInter,
                   onClose: onNext,
                 );
-              }else{
+              } else {
                 onNext();
               }
             } else {
