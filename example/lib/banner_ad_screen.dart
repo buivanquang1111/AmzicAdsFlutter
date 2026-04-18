@@ -24,6 +24,7 @@ class BannerAdScreen extends StatelessWidget {
             idAds: 'ca-app-pub-3940256099942544/6300978111',
             config: true,
             name: 'banner_all',
+            refreshSec: 5,
           ),
         ],
       ),
