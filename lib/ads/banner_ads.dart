@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:amazic_ads_flutter/admob.dart';
 import 'package:amazic_ads_flutter/shimmer/shimmer_banner_ads.dart';
 import 'package:amazic_ads_flutter/ump/consent_manager.dart';
@@ -17,6 +19,8 @@ class BannerAds extends StatefulWidget {
   final bool config;
   /// dùng trong việc log event của tên quảng cáo vd: banner_all
   final String name;
+  final int refreshSec;
+
 
   const BannerAds({
     super.key,
@@ -28,20 +32,25 @@ class BannerAds extends StatefulWidget {
     this.onAdDisable,
     required this.config,
     required this.name,
+    required this.refreshSec,
   });
 
   @override
   State<BannerAds> createState() => _BannerAdsState();
 }
 
-class _BannerAdsState extends State<BannerAds> {
+class _BannerAdsState extends State<BannerAds> with WidgetsBindingObserver {
   BannerAd? _bannerAd;
   bool _isLoading = false;
   bool _shouldHide = false;
 
+  Timer? _timerRefresh;
+  bool isCanRefreshAd = true;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       loadAds();
     });
@@ -49,8 +58,22 @@ class _BannerAdsState extends State<BannerAds> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _bannerAd?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.paused) {
+      print('admob_ads --- banner_ads: AppLifecycleState.paused');
+      stopRefreshTime();
+    } else if (state == AppLifecycleState.resumed) {
+      print('admob_ads --- banner_ads: AppLifecycleState.resumed');
+      startRefreshTime();
+    }
   }
 
   @override
@@ -130,10 +153,12 @@ class _BannerAdsState extends State<BannerAds> {
             _isLoading = false;
             _shouldHide = true;
           });
+          startRefreshTime();
           widget.onAdFailedToLoad?.call();
         },
         onAdImpression: (ad) {
           print('admob_ads --- banner_ads: onAdImpression');
+          startRefreshTime();
           widget.onAdImpression?.call();
           EventLog.logEvent('${widget.name}_view');
         },
@@ -162,5 +187,28 @@ class _BannerAdsState extends State<BannerAds> {
       ),
       request: const AdRequest(),
     ).load();
+  }
+
+  void startRefreshTime(){
+    if (widget.refreshSec == 0) {
+      return;
+    }
+    stopRefreshTime();
+    print('admob_ads --- banner_ads: startRefreshTime');
+    _timerRefresh = Timer.periodic(Duration(seconds: widget.refreshSec), (timer) {
+      if (isCanRefreshAd) {
+        print('admob_ads --- banner_ads: RefreshSec - ${widget.refreshSec} Done');
+        loadAds();
+      } else {
+        print(
+          'admob_ads --- banner_ads: Can not refresh ad isCanRefreshAd = $isCanRefreshAd'
+        );
+      }
+    });
+  }
+
+  void stopRefreshTime(){
+    _timerRefresh?.cancel();
+    _timerRefresh = null;
   }
 }
