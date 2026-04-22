@@ -357,7 +357,7 @@ class AppOpenManager {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
 
-      Admob.instance.setFullScreenAdShowing(true);
+      Admob.instance.setFullScreenAdShowing(false);
       onAdDismiss?.call();
       onNext.call();
     };
