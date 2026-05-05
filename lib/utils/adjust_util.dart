@@ -22,16 +22,18 @@ class AdjustUtil {
 
   void trackRevenue({required String? network, required double revenue, required String currency, required String adUnitId, required String adFormat}) {
     print('Adjust: network = $network - revenue = $revenue - currency = $currency\n - adUnitId = $adUnitId - adFormat = $adFormat');
+    String testId = adUnitId.isEmpty ? "TEST_UNIT_ID" : adUnitId;
+    String testFormat = adFormat.isEmpty ? "TEST_FORMAT" : adFormat;
 
     final num revenueResult = revenue / 1000000;
     AdjustAdRevenue adjustAdRevenue = AdjustAdRevenue('admob_sdk');
     adjustAdRevenue.setRevenue(revenueResult, currency);
     adjustAdRevenue.adRevenueNetwork = network;
-    adjustAdRevenue.adRevenueUnit = adUnitId;
-    adjustAdRevenue.adRevenuePlacement = adFormat;
+    adjustAdRevenue.adRevenueUnit = testId;
+    adjustAdRevenue.adRevenuePlacement = testFormat;
 
-    adjustAdRevenue.addPartnerParameter('ad_unit_id', adUnitId);
-    adjustAdRevenue.addPartnerParameter('ad_format', adFormat);
+    adjustAdRevenue.addPartnerParameter('ad_unit_id', testId);
+    adjustAdRevenue.addPartnerParameter('ad_format', testFormat);
 
     Adjust.trackAdRevenue(adjustAdRevenue);
 
