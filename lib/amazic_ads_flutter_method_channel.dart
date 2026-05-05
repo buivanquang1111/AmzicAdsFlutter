@@ -73,11 +73,11 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
         _onAdShowed?.call();
         break;
       case 'onPaidEvent':
-        // final String network = args['network'].toString() ?? "";
-        // final double valueMicros = (args['valueMicros'] as num?)?.toDouble() ?? 0.0;
-        // final String currencyCode = args['currencyCode'].toString() ?? "";
-        print("[$logSource] Method: ${call.method} ");
-        _onPaidEvent?.call("network", 0.0, "currencyCode");
+        final String network = args['network'].toString() ?? "";
+        final double valueMicros = (args['valueMicros'] as num?)?.toDouble() ?? 0.0;
+        final String currencyCode = args['currencyCode'].toString() ?? "";
+        print("[$logSource] Method: ${call.method} | ID: $id | network: $network | valueMicros: $valueMicros | currencyCode: $currencyCode");
+        _onPaidEvent?.call(network, valueMicros, currencyCode);
         break;
       case 'onUserEarned':
         _onUserEarnedReward?.call();
@@ -151,8 +151,7 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
   set onAdShowed(Function()? callback) => _onAdShowed = callback;
 
   @override
-  set onPaidEvent(Function(String network, double valueMicros, String currency)? callback) =>
-      _onPaidEvent = callback;
+  set onPaidEvent(Function(String network, double valueMicros, String currency)? callback) => _onPaidEvent = callback;
 
   @override
   set onUserEarnedReward(Function()? callback) => _onUserEarnedReward = callback;

@@ -634,6 +634,7 @@ class InterAdsManager {
       onAdImpression?.call();
     };
     adsPlatform.onPaidEvent = (network, valueMicros, currency) {
+      print('admob_ads --- Inter Ad Preload Splash: onPaidEvent - network: $network - valueMicros: $valueMicros - currency: $currency');
       AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency, adUnitId: idAds, adFormat: 'inter_splash_preload');
     };
 
