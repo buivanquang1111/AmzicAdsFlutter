@@ -204,7 +204,7 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
                         override fun onPaidEvent(ad: InterstitialAd, adValue: AdValue) {
                             val network = ad.responseInfo.loadedAdapterResponseInfo?.adSourceName
-                            val valueMicros = adValue.valueMicros.toDouble()
+                            val valueMicros = adValue.valueMicros
                             val currencyCode = adValue.currencyCode
 
                             Log.d("Admob_ads", "onPaidEvent: inter - network = $network - valueMicros = $valueMicros - currentCode = $currencyCode")
