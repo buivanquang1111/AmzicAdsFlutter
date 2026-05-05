@@ -76,7 +76,7 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
         final String network = args['network'] ?? "Unknown Error";
         final double valueMicros = args['valueMicros'] ?? "Unknown Error";
         final String currencyCode = args['currencyCode'] ?? "Unknown Error";
-
+        print("[$logSource] Method: ${call.method} | ID: $id | network: $network | valueMicros: $valueMicros | currencyCode: $currencyCode");
         _onPainEvent?.call(network, valueMicros, currencyCode);
         break;
       case 'onUserEarned':
