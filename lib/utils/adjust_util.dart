@@ -30,8 +30,8 @@ class AdjustUtil {
     adjustAdRevenue.adRevenueUnit = adUnitId;
     adjustAdRevenue.adRevenuePlacement = adFormat;
 
-    adjustAdRevenue.addCallbackParameter('ad_unit_id', adUnitId);
-    adjustAdRevenue.addCallbackParameter('ad_format', adFormat);
+    adjustAdRevenue.addPartnerParameter('ad_unit_id', adUnitId);
+    adjustAdRevenue.addPartnerParameter('ad_format', adFormat);
 
     Adjust.trackAdRevenue(adjustAdRevenue);
 
