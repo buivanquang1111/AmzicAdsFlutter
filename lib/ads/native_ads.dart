@@ -192,7 +192,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
           EventLog.logEvent('${widget.name}_view');
         },
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {
-          print('admob_ads --- native_ads: ${widget.name} onPaidEvent');
+          print('admob_ads --- native_ads: ${widget.name} onPaidEvent - valueMicros= $valueMicros - currencyCode= $currencyCode');
           AdjustUtil.instance.trackRevenue(
             network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
             revenue: valueMicros,

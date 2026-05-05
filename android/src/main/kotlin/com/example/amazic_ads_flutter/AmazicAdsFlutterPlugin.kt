@@ -204,7 +204,7 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
                         override fun onPaidEvent(ad: InterstitialAd, adValue: AdValue) {
                             val network = ad.responseInfo.loadedAdapterResponseInfo?.adSourceName
-                            val valueMicros = adValue.valueMicros
+                            val valueMicros = adValue.valueMicros.toDouble()
                             val currencyCode = adValue.currencyCode
 
                             Log.d("Admob_ads", "onPaidEvent: inter - network = $network - valueMicros = $valueMicros - currentCode = $currencyCode")
@@ -324,7 +324,7 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             adValue: AdValue
                         ) {
                             val network = ad.responseInfo.loadedAdapterResponseInfo?.adSourceName
-                            val valueMicros = adValue.valueMicros
+                            val valueMicros = adValue.valueMicros.toDouble()
                             val currencyCode = adValue.currencyCode
 
                             sendAppOpenEvent(
@@ -450,7 +450,7 @@ class AmazicAdsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             adValue: AdValue
                         ) {
                             val network = ad.responseInfo.loadedAdapterResponseInfo?.adSourceName
-                            val valueMicros = adValue.valueMicros
+                            val valueMicros = adValue.valueMicros.toDouble()
                             val currencyCode = adValue.currencyCode
                             sendRewardEvent(
                                 "onPaidEvent", idAds, mapOf(
