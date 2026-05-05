@@ -22,7 +22,7 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
   Function(String id, String error)? _onAdFailedToShow;
   Function()? _onAdImpression;
   Function()? _onAdShowed;
-  Function(String network, double revenue, String currency)? _onPainEvent;
+  Function(String network, double revenue, String currency)? _onPaidEvent;
   Function()? _onUserEarnedReward;
   Function()? _onNativeAfterInterClose;
 
@@ -73,11 +73,11 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
         _onAdShowed?.call();
         break;
       case 'onPaidEvent':
-        final String network = args['network'] ?? "Unknown Error";
-        final double valueMicros = args['valueMicros'] ?? "Unknown Error";
-        final String currencyCode = args['currencyCode'] ?? "Unknown Error";
+        final String network = args['network'].toString() ?? "";
+        final double valueMicros = (args['valueMicros'] as num?)?.toDouble() ?? 0.0;
+        final String currencyCode = args['currencyCode'].toString() ?? "";
         print("[$logSource] Method: ${call.method} | ID: $id | network: $network | valueMicros: $valueMicros | currencyCode: $currencyCode");
-        _onPainEvent?.call(network, valueMicros, currencyCode);
+        _onPaidEvent?.call(network, valueMicros, currencyCode);
         break;
       case 'onUserEarned':
         _onUserEarnedReward?.call();
@@ -152,7 +152,7 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
 
   @override
   set onPaidEvent(Function(String network, double valueMicros, String currency)? callback) =>
-      _onPainEvent = callback;
+      _onPaidEvent = callback;
 
   @override
   set onUserEarnedReward(Function()? callback) => _onUserEarnedReward = callback;
