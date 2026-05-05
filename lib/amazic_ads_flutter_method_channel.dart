@@ -73,11 +73,11 @@ class MethodChannelAmazicAdsFlutter extends AmazicAdsFlutterPlatform {
         _onAdShowed?.call();
         break;
       case 'onPaidEvent':
-        final String network = args['network'].toString() ?? "";
-        final double valueMicros = (args['valueMicros'] as num?)?.toDouble() ?? 0.0;
-        final String currencyCode = args['currencyCode'].toString() ?? "";
-        print("[$logSource] Method: ${call.method} | ID: $id | network: $network | valueMicros: $valueMicros | currencyCode: $currencyCode");
-        _onPaidEvent?.call(network, valueMicros, currencyCode);
+        // final String network = args['network'].toString() ?? "";
+        // final double valueMicros = (args['valueMicros'] as num?)?.toDouble() ?? 0.0;
+        // final String currencyCode = args['currencyCode'].toString() ?? "";
+        print("[$logSource] Method: ${call.method} ");
+        _onPaidEvent?.call("network", 0.0, "currencyCode");
         break;
       case 'onUserEarned':
         _onUserEarnedReward?.call();
