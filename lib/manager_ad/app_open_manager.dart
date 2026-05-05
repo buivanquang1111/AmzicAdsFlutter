@@ -97,6 +97,8 @@ class AppOpenManager {
               network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
               revenue: valueMicros,
               currency: currencyCode,
+              adUnitId: idAds,
+              adFormat: 'app_open_splash'
             );
           };
 
@@ -231,6 +233,8 @@ class AppOpenManager {
               network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
               revenue: valueMicros,
               currency: currencyCode,
+              adUnitId: idAds,
+              adFormat: name
             );
           };
 
@@ -381,7 +385,7 @@ class AppOpenManager {
       EventLog.logEvent('${name}_view');
     };
     adsPlatform.onPaidEvent = (network, valueMicros, currency) {
-      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency);
+      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency, adUnitId: idAds, adFormat: name);
     };
 
     Admob.instance.setFullScreenAdShowing(true);
@@ -616,7 +620,7 @@ class AppOpenManager {
       onAdImpression?.call();
     };
     adsPlatform.onPaidEvent = (network, valueMicros, currency) {
-      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency);
+      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency, adUnitId: idAds, adFormat: 'app_open_splash_preload');
     };
     Admob.instance.setFullScreenAdShowing(true);
     Admob.instance.checkAndShowAdForeground(

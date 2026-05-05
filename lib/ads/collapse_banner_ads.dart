@@ -226,6 +226,8 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
             network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
             revenue: valueMicros,
             currency: currencyCode,
+            adUnitId: widget.idAds,
+            adFormat: widget.name
           );
         },
       ),

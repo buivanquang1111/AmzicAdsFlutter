@@ -20,11 +20,19 @@ class AdjustUtil {
     Adjust.initSdk(config);
   }
 
-  void trackRevenue({required String? network, required double revenue, required String currency}) {
+  void trackRevenue({required String? network, required double revenue, required String currency, required String adUnitId, required String adFormat}) {
+    print('Adjust: network = $network - revenue = $revenue - currency = $currency\n - adUnitId = $adUnitId - adFormat = $adFormat');
+
     final num revenueResult = revenue / 1000000;
     AdjustAdRevenue adjustAdRevenue = AdjustAdRevenue('admob_sdk');
     adjustAdRevenue.setRevenue(revenueResult, currency);
     adjustAdRevenue.adRevenueNetwork = network;
+    adjustAdRevenue.adRevenueUnit = adUnitId;
+    adjustAdRevenue.adRevenuePlacement = adFormat;
+
+    adjustAdRevenue.addCallbackParameter('ad_unit_id', adUnitId);
+    adjustAdRevenue.addCallbackParameter('ad_format', adFormat);
+
     Adjust.trackAdRevenue(adjustAdRevenue);
 
     if (Admob.instance.eventTrackingAdjust != '') {

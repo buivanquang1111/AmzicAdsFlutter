@@ -98,6 +98,8 @@ class InterAdsManager {
               network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
               revenue: valueMicros,
               currency: currencyCode,
+              adUnitId: idAds,
+              adFormat: 'inter_splash'
             );
           };
 
@@ -235,6 +237,8 @@ class InterAdsManager {
               network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
               revenue: valueMicros,
               currency: currencyCode,
+              adUnitId: idAds,
+              adFormat: name
             );
           };
 
@@ -388,7 +392,7 @@ class InterAdsManager {
       onAdImpression?.call();
     };
     adsPlatform.onPaidEvent = (network, valueMicros, currency) {
-      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency);
+      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency, adUnitId: idAds, adFormat: name);
     };
 
     Admob.instance.setFullScreenAdShowing(true);
@@ -630,7 +634,7 @@ class InterAdsManager {
       onAdImpression?.call();
     };
     adsPlatform.onPaidEvent = (network, valueMicros, currency) {
-      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency);
+      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency, adUnitId: idAds, adFormat: 'inter_splash_preload');
     };
 
     Admob.instance.setFullScreenAdShowing(true);

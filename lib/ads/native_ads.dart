@@ -197,6 +197,8 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
             network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
             revenue: valueMicros,
             currency: currencyCode,
+            adUnitId: widget.idAds,
+            adFormat: widget.name
           );
         },
         onAdClicked: (ad) {
@@ -275,6 +277,8 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
             network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
             revenue: valueMicros,
             currency: currencyCode,
+            adUnitId: widget.idAds,
+            adFormat: widget.name
           );
         },
         onAdImpression: (ad) {

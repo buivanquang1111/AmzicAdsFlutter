@@ -160,6 +160,8 @@ class RewardAdManager {
               network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
               revenue: valueMicros,
               currency: currencyCode,
+              adUnitId: idAds,
+              adFormat: 'reward'
             );
           };
         },
@@ -270,6 +272,8 @@ class RewardAdManager {
               network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
               revenue: valueMicros,
               currency: currencyCode,
+              adUnitId: idAds,
+              adFormat: name
             );
           };
 
@@ -421,7 +425,7 @@ class RewardAdManager {
       onAdImpression?.call();
     };
     adsPlatform.onPaidEvent = (network, valueMicros, currency) {
-      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency);
+      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency, adUnitId: idAds, adFormat: name);
     };
     adsPlatform.onUserEarnedReward = () {
       print('admob_ads --- Reward Ad Preload: onUserEarnedReward');
