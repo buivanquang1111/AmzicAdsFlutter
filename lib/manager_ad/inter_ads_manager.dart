@@ -496,6 +496,9 @@ class InterAdsManager {
         print('admob_ads --- Inter Ad Preload: onAdFailedToLoad - error: $error');
         if (isFirstLoadAd) {
           isFirstLoadAd = false;
+          if (navigatorKey.currentContext != null) {
+            closeLoadingDialog(context: navigatorKey.currentContext!);
+          }
           onAdFailedToLoad?.call();
           onNext.call();
         }
