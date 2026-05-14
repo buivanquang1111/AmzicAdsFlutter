@@ -34,8 +34,8 @@ class AppOpenManager {
     required Function()? onAdLoaded,
     required Function()? onAdImpression,
     required Function()? onAdClicked,
-    required Function()? onAdFailedToLoad,
-    required Function()? onAdFailedToShow,
+    required Function(String)? onAdFailedToLoad,
+    required Function(String)? onAdFailedToShow,
     required Function()? onAdDismiss,
   }) async {
     ///timeout check 12s
@@ -119,7 +119,7 @@ class AppOpenManager {
           print('admob_ads --- app_open_ads_splash: onAdFailedToLoad $error');
           Admob.instance.setFullScreenAdShowing(false);
           handleAdShown();
-          onAdFailedToLoad?.call();
+          onAdFailedToLoad?.call(error.message);
           if (navigatorKey.currentContext != null) {
             closeLoadingDialog(context: navigatorKey.currentContext!);
           }
@@ -135,7 +135,7 @@ class AppOpenManager {
     required GlobalKey<NavigatorState> navigatorKey,
     required Function()? onAdImpression,
     required Function()? onAdClicked,
-    required Function()? onAdFailedToShow,
+    required Function(String)? onAdFailedToShow,
     required Function()? onAdDismiss,
   }) async {
     if (_mAppOpenAdSplash == null) {
@@ -165,7 +165,7 @@ class AppOpenManager {
         }
         Admob.instance.setFullScreenAdShowing(false);
         ad.dispose();
-        onAdFailedToShow?.call();
+        onAdFailedToShow?.call(error.message);
       },
       onAdDismissedFullScreenContent: (ad) {
         print('admob_ads --- app_open_ads_splash: onAdDismissedFullScreenContent');
@@ -500,8 +500,8 @@ class AppOpenManager {
     Function()? onAdLoaded,
     Function()? onAdImpression,
     Function()? onAdClicked,
-    Function()? onAdFailedToLoad,
-    Function()? onAdFailedToShow,
+    Function(String)? onAdFailedToLoad,
+    Function(String)? onAdFailedToShow,
     Function()? onAdDismiss,
   }) async {
     ///timeout check 12s
@@ -570,7 +570,7 @@ class AppOpenManager {
       print('admob_ads --- App Open Ad preload: onAdFailedToLoad');
       Admob.instance.setFullScreenAdShowing(false);
       handleAdShown();
-      onAdFailedToLoad?.call();
+      onAdFailedToLoad?.call(error);
       if (navigatorKey.currentContext != null) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
@@ -587,7 +587,7 @@ class AppOpenManager {
     required String idAds,
     required Function()? onAdImpression,
     required Function()? onAdClicked,
-    required Function()? onAdFailedToShow,
+    required Function(String)? onAdFailedToShow,
     required Function()? onAdDismiss,
   }) async {
     final adsPlatform = AmazicAdsFlutterPlatform.instance;
@@ -610,7 +610,7 @@ class AppOpenManager {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
       Admob.instance.setFullScreenAdShowing(false);
-      onAdFailedToShow?.call();
+      onAdFailedToShow?.call(error);
     };
     adsPlatform.onAdImpression = () {
       print('admob_ads --- App Open Ad preload: onAdImpression');

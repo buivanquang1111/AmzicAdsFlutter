@@ -127,6 +127,13 @@ class Admob {
 
   bool get isUseNativeAfterInter => _isUseNativeAfterInter;
 
+  //json id default
+  String _jsonIdAdsDefault = "";
+
+  setJsonIdAdsDefault(String json) => _jsonIdAdsDefault = json;
+
+  String get jsonIdAdsDefault => _jsonIdAdsDefault;
+
   Future<void> startShowNativeAfterInter({
     required BuildContext context,
     required String adsKey,
@@ -162,6 +169,7 @@ class Admob {
     required String linkServer,
     required String appId,
     required String packageName,
+    required String jsonIdAdsDefault,
     required GlobalKey<NavigatorState> navigatorKey,
     required String nameIddAdsResume,
     required String nameResumeConfig,
@@ -185,13 +193,16 @@ class Admob {
     ///start count time show ads
     stopWatch.start();
 
+    ///set json id default
+    setJsonIdAdsDefault(jsonIdAdsDefault);
+
     ///init Preferences
     await PreferencesUtil.init();
     PreferencesUtil.increaseCountOpenApp();
 
     ///logevent internet
     if (await isNetworkActive() == true) {
-      EventLog.logEvent('splash_have_internet');
+      EventLog.logEvent('splash_open_have_internet');
     }
 
     ///set event adjust
@@ -234,7 +245,9 @@ class Admob {
       onResponse: () {
         callIdAdsDoneCompleter.complete();
       },
-      onError: (p0) {},
+      onError: (p0) {
+        logEventSplashToStep(nameEvent: 'splash_idapi_error', moreParams: {'error': p0});
+      },
     );
 
     final Map<String, Future<void>> tasks = {
@@ -243,6 +256,7 @@ class Admob {
       'CALL_ID_ADS': callIDAdsTask,
     };
 
+    EventLog.logEvent('splash_async_init');
     // Đánh dấu tiến trình đã hoàn thành hay chưa
     final Map<String, bool> taskCompleted = {
       'FIREBASE_REMOTE': false,
@@ -287,6 +301,19 @@ class Admob {
     }
 
     // runConcurrentTasksWithDependency();
+  }
+
+  Future<void> logEventSplashToStep({
+    required String nameEvent,
+    Map<String, Object>? moreParams,
+  }) async {
+    final seconds = stopWatch.elapsed.inSeconds;
+    final Map<String, Object> fullParams = {
+      "time_to_step": seconds,
+      if (moreParams != null) ...moreParams,
+    };
+    EventLog.logEvent(nameEvent, parameters: fullParams);
+    print('admob_ads --- $nameEvent - parameters = $fullParams');
   }
 
   ///test call dong thoi
@@ -369,10 +396,12 @@ class Admob {
     required Function() onStartLoadBanner,
   }) async {
     print('admob_ads --- ▶️ Bắt đầu UMP');
+    logEventSplashToStep(nameEvent: 'splash_start_ump');
     //init UMP
     await ConsentManager.instance.handleRequestUmp(
       onPostExecute: () async {
         if (ConsentManager.instance.canRequestAds) {
+          logEventSplashToStep(nameEvent: 'splash_ump_consent');
           print('admob_ads --- ✅ Done UMP, await call id ads');
           await callIdAdsDone;
           print('admob_ads --- 🚀 Continue process show ads splash');
@@ -398,6 +427,8 @@ class Admob {
           );
           appLifecycleReactor?.listenToAppStateChanges();
 
+          logEventSplashToStep(nameEvent: 'splash_init_ad_splash');
+
           ///init ads splash
           AdHelper.init(
             intervalBetweenInter: RemoteConfig.getInt(nameIntervalBetweenInter) * 1000,
@@ -409,12 +440,13 @@ class Admob {
           );
 
           handleTimeOut();
-
+          logEventSplashToStep(nameEvent: 'splash_start_await_7s');
           print('admob_ads --- start await 7s splash');
           if (!isNextTimeout) {
             /// await check 7s show ads splash
             await Future.delayed(const Duration(seconds: 7), () {
               print('admob_ads --- 7s await splash DONE');
+              logEventSplashToStep(nameEvent: 'splash_done_await_7s');
               initAndShowAdSplash(
                 navigatorKey: navigatorKey,
                 idAdsAppOpen: CallApi.instance.getFirstIDByName(nameIdAdsAppOpenSplash),
@@ -432,19 +464,24 @@ class Admob {
           handleTimeOut();
           if (!isNextTimeout) {
             print('admob_ads --- onNext DO NOT CONSENT');
+            logEventSplashToStep(nameEvent: 'splash_ump_notconsent');
             onNext();
           }
         }
       },
     );
+    logEventSplashToStep(nameEvent: 'splash_done_ump');
     print('admob_ads --- ✅ Kết thúc UMP');
   }
 
   Future<void> fetchRemoteFirebase({required List<RemoteConfigKey> remoteConfigKeys}) async {
     print('admob_ads --- ▶️ Bắt đầu FIREBASE_REMOTE');
     // await Future.delayed(const Duration(seconds: 14));
+
+    logEventSplashToStep(nameEvent: 'splash_start_firebase');
     await RemoteConfig.init(remoteConfigKeys: remoteConfigKeys);
     print('admob_ads --- ✅ Kết thúc FIREBASE_REMOTE');
+    logEventSplashToStep(nameEvent: 'splash_done_firebase');
   }
 
   Future<void> fetchApiAds({
@@ -454,6 +491,7 @@ class Admob {
     required Function() onResponse,
     required Function(String) onError,
   }) async {
+    logEventSplashToStep(nameEvent: 'splash_start_idapi');
     print('admob_ads --- ▶️ Bắt đầu CALL_ID_ADS');
     // await Future.delayed(const Duration(seconds: 14));
     await CallApi.instance.callAds(
@@ -463,6 +501,7 @@ class Admob {
       onResponse: onResponse,
       onError: onError,
     );
+    logEventSplashToStep(nameEvent: 'splash_done_idapi');
     print('admob_ads --- ✅ Kết thúc CALL_ID_ADS');
   }
 
@@ -534,8 +573,8 @@ class Admob {
     Function()? onAdLoaded,
     Function()? onAdImpression,
     Function()? onAdClicked,
-    Function()? onAdFailedToLoad,
-    Function()? onAdFailedToShow,
+    Function(String)? onAdFailedToLoad,
+    Function(String)? onAdFailedToShow,
     Function()? onAdDismiss,
     required String name,
   }) async {
@@ -645,6 +684,7 @@ class Admob {
   }) async {
     if (AdHelper.splashType == AdsSplashType.open) {
       if (isUseAdPreloading) {
+        logEventSplashToStep(nameEvent: 'splash_ad_start_loadandshow');
         AppOpenManager.instance.loadAndShowAppOpenSplashAdPreload(
           navigatorKey: navigatorKey,
           idAds: idAdsAppOpen,
@@ -659,21 +699,19 @@ class Admob {
             stopWatch.stop();
             final secondsShowAds = stopWatch.elapsed.inSeconds;
             print('admob_ads --- open_splash: time show ads splash - $secondsShowAds');
-            EventLog.logEvent(
-              'inter_splash_showad_time',
-              parameters: {'showad_time': '${configAppOpen}_$secondsShowAds'},
-            );
 
-            EventLog.logEvent('inter_splash_impression_${PreferencesUtil.getCountOpenApp()}');
+            logEventSplashToStep(nameEvent: 'splash_ad_show');
           },
           onAdClicked: () {
             EventLog.logEvent('inter_splash_click_${PreferencesUtil.getCountOpenApp()}');
           },
-          onAdFailedToLoad: () {
+          onAdFailedToLoad: (error) {
+            logEventSplashToStep(nameEvent: 'splash_ad_failload', moreParams: {'error': error});
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             onNext();
           },
-          onAdFailedToShow: () {
+          onAdFailedToShow: (error) {
+            logEventSplashToStep(nameEvent: 'splash_ad_failshow', moreParams: {'error': error});
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             onNext();
           },
@@ -683,6 +721,7 @@ class Admob {
           },
         );
       } else {
+        logEventSplashToStep(nameEvent: 'splash_ad_start_loadandshow');
         AppOpenManager.instance.loadAndShowAppOpenSplash(
           navigatorKey: navigatorKey,
           idAds: idAdsAppOpen,
@@ -698,21 +737,19 @@ class Admob {
             stopWatch.stop();
             final secondsShowAds = stopWatch.elapsed.inSeconds;
             print('admob_ads --- open_splash: time show ads splash - $secondsShowAds');
-            EventLog.logEvent(
-              'inter_splash_showad_time',
-              parameters: {'showad_time': '${configAppOpen}_$secondsShowAds'},
-            );
 
-            EventLog.logEvent('inter_splash_impression_${PreferencesUtil.getCountOpenApp()}');
+            logEventSplashToStep(nameEvent: 'splash_ad_show');
           },
           onAdClicked: () {
             EventLog.logEvent('inter_splash_click_${PreferencesUtil.getCountOpenApp()}');
           },
-          onAdFailedToLoad: () {
+          onAdFailedToLoad: (error) {
+            logEventSplashToStep(nameEvent: 'splash_ad_failload', moreParams: {'error': error});
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             onNext();
           },
-          onAdFailedToShow: () {
+          onAdFailedToShow: (error) {
+            logEventSplashToStep(nameEvent: 'splash_ad_failshow', moreParams: {'error': error});
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             onNext();
           },
@@ -724,6 +761,7 @@ class Admob {
       }
     } else if (AdHelper.splashType == AdsSplashType.inter) {
       if (isUseAdPreloading) {
+        logEventSplashToStep(nameEvent: 'splash_ad_start_loadandshow');
         InterAdsManager.instance.loadAndShowInterSplashAdPreload(
           navigatorKey: navigatorKey,
           idAds: idAdsInter,
@@ -733,12 +771,8 @@ class Admob {
             stopWatch.stop();
             final secondsShowAds = stopWatch.elapsed.inSeconds;
             print('admob_ads --- inter_splash: time show ads splash - $secondsShowAds');
-            EventLog.logEvent(
-              'inter_splash_showad_time',
-              parameters: {'showad_time': '${configAppOpen}_$secondsShowAds'},
-            );
 
-            EventLog.logEvent('inter_splash_impression_${PreferencesUtil.getCountOpenApp()}');
+            logEventSplashToStep(nameEvent: 'splash_ad_show');
           },
           onAdClicked: () {
             EventLog.logEvent('inter_splash_click_${PreferencesUtil.getCountOpenApp()}');
@@ -767,7 +801,8 @@ class Admob {
               onNext();
             }
           },
-          onAdFailedToLoad: () {
+          onAdFailedToLoad: (error) {
+            logEventSplashToStep(nameEvent: 'splash_ad_failload', moreParams: {'error': error});
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             if (isUseNativeAfterInter &&
                 navigatorKey.currentContext != null &&
@@ -791,7 +826,8 @@ class Admob {
               onNext();
             }
           },
-          onAdFailedToShow: () {
+          onAdFailedToShow: (error) {
+            logEventSplashToStep(nameEvent: 'splash_ad_failshow', moreParams: {'error': error});
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             if (isUseNativeAfterInter &&
                 navigatorKey.currentContext != null &&
@@ -841,6 +877,7 @@ class Admob {
           },
         );
       } else {
+        logEventSplashToStep(nameEvent: 'splash_ad_start_loadandshow');
         InterAdsManager.instance.loadAndShowInterSplash(
           navigatorKey: navigatorKey,
           idAds: idAdsInter,
@@ -851,12 +888,7 @@ class Admob {
             stopWatch.stop();
             final secondsShowAds = stopWatch.elapsed.inSeconds;
             print('admob_ads --- inter_splash: time show ads splash - $secondsShowAds');
-            EventLog.logEvent(
-              'inter_splash_showad_time',
-              parameters: {'showad_time': '${configAppOpen}_$secondsShowAds'},
-            );
-
-            EventLog.logEvent('inter_splash_impression_${PreferencesUtil.getCountOpenApp()}');
+            logEventSplashToStep(nameEvent: 'splash_ad_show');
           },
           onAdClicked: () {
             EventLog.logEvent('inter_splash_click_${PreferencesUtil.getCountOpenApp()}');
@@ -865,11 +897,13 @@ class Admob {
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             onNext();
           },
-          onAdFailedToLoad: () {
+          onAdFailedToLoad: (e) {
+            logEventSplashToStep(nameEvent: 'splash_ad_failload', moreParams: {'error': e});
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             onNext();
           },
-          onAdFailedToShow: () {
+          onAdFailedToShow: (e) {
+            logEventSplashToStep(nameEvent: 'splash_ad_failshow', moreParams: {'error': e});
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
             onNext();
           },
@@ -913,7 +947,7 @@ class Admob {
           navigatorKey: navigatorKey,
           onAdImpression: () {},
           onAdClicked: () {},
-          onAdFailedToShow: () {
+          onAdFailedToShow: (e) {
             onNext();
           },
           onAdDismiss: () {
@@ -925,7 +959,7 @@ class Admob {
           navigatorKey: navigatorKey,
           onAdImpression: () {},
           onAdClicked: () {},
-          onAdFailedToShow: () {
+          onAdFailedToShow: (error) {
             onNext();
           },
           onAdDismiss: () {
@@ -964,13 +998,13 @@ class Admob {
           }
           onAdDisable?.call();
         },
-        onAdFailedToShow: () {
+        onAdFailedToShow: (error) {
           if (isInterAll == true) {
             AdHelper.isFirstShowInterAll = true;
           }
           onAdFailedToShow?.call();
         },
-        onAdFailedToLoad: () {
+        onAdFailedToLoad: (error) {
           if (isInterAll == true) {
             AdHelper.isFirstShowInterAll = true;
           }
@@ -1000,7 +1034,7 @@ class Admob {
     required String idAds,
     required bool config,
     Function()? onAdLoaded,
-    Function()? onAdFailedToLoad,
+    Function(String)? onAdFailedToLoad,
   }) async {
     InterAdsManager.instance.loadInterAdPreload(
       idAds: idAds,
@@ -1018,7 +1052,7 @@ class Admob {
     required Function() onNext,
     Function()? onAdImpression,
     Function()? onAdClicked,
-    Function()? onAdFailedToShow,
+    Function(String)? onAdFailedToShow,
     Function()? onAdDismiss,
     required String name,
     bool isShowLoading = true,
@@ -1055,10 +1089,10 @@ class Admob {
     required Function() onNext,
     Function()? onAdImpression,
     Function()? onAdClicked,
-    Function()? onAdFailedToShow,
+    Function(String)? onAdFailedToShow,
     Function()? onAdDismiss,
     Function()? onAdLoaded,
-    Function()? onAdFailedToLoad,
+    Function(String)? onAdFailedToLoad,
     required String name,
   }) async {
     if (AdHelper.canShowNextInter(isInterAll: isInterAll)) {

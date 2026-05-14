@@ -25,7 +25,7 @@ class InterAdsManager {
   ///biến check xem đã chuyển màn trong timeout Ads chua
   bool isNextTimeoutAd = false;
 
-  ///preload inter splash
+  ///inter splash
   Future<void> loadAndShowInterSplash({
     required GlobalKey<NavigatorState> navigatorKey,
     required String idAds,
@@ -34,8 +34,8 @@ class InterAdsManager {
     Function()? onAdLoaded,
     Function()? onAdImpression,
     Function()? onAdClicked,
-    Function()? onAdFailedToLoad,
-    Function()? onAdFailedToShow,
+    Function(String)? onAdFailedToLoad,
+    Function(String)? onAdFailedToShow,
     Function()? onAdDismiss,
   }) async {
     ///timeout check 12s
@@ -69,6 +69,9 @@ class InterAdsManager {
         Admob.instance.isShowAllAds == false ||
         (await Admob.instance.isNetworkActive()) == false) {
       print('admob_ads --- inter_ads_splash: not load');
+      EventLog.logEvent(
+        'inter_splash_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}',
+      );
       handleAdsShown();
       onAdDisable?.call();
       return;
@@ -99,7 +102,7 @@ class InterAdsManager {
               revenue: valueMicros,
               currency: currencyCode,
               adUnitId: idAds,
-              adFormat: 'inter_splash'
+              adFormat: 'inter_splash',
             );
           };
 
@@ -123,7 +126,7 @@ class InterAdsManager {
             closeLoadingDialog(context: navigatorKey.currentContext!);
           }
           handleAdsShown();
-          onAdFailedToLoad?.call();
+          onAdFailedToLoad?.call(error.message);
         },
       ),
     );
@@ -137,7 +140,7 @@ class InterAdsManager {
     required GlobalKey<NavigatorState> navigatorKey,
     required Function()? onAdImpression,
     required Function()? onAdClicked,
-    required Function()? onAdFailedToShow,
+    required Function(String)? onAdFailedToShow,
     required Function()? onAdDismiss,
   }) async {
     if (_mInterstitialAdSplash == null) {
@@ -167,7 +170,7 @@ class InterAdsManager {
         }
         Admob.instance.setFullScreenAdShowing(false);
         ad.dispose();
-        onAdFailedToShow?.call();
+        onAdFailedToShow?.call(error.message);
       },
       onAdDismissedFullScreenContent: (ad) {
         print('admob_ads --- inter_ads_splash: onAdDismissedFullScreenContent');
@@ -202,8 +205,8 @@ class InterAdsManager {
     required Function()? onAdLoaded,
     required Function()? onAdImpression,
     required Function()? onAdClicked,
-    required Function()? onAdFailedToLoad,
-    required Function()? onAdFailedToShow,
+    required Function(String)? onAdFailedToLoad,
+    required Function(String)? onAdFailedToShow,
     required Function()? onAdDismiss,
     required String name,
   }) async {
@@ -238,7 +241,7 @@ class InterAdsManager {
               revenue: valueMicros,
               currency: currencyCode,
               adUnitId: idAds,
-              adFormat: name
+              adFormat: name,
             );
           };
 
@@ -259,7 +262,7 @@ class InterAdsManager {
               }
               Admob.instance.setFullScreenAdShowing(false);
               ad.dispose();
-              onAdFailedToShow?.call();
+              onAdFailedToShow?.call(error.message);
             },
             onAdDismissedFullScreenContent: (ad) {
               print('admob_ads --- inter_ads: onAdDismissedFullScreenContent');
@@ -292,7 +295,7 @@ class InterAdsManager {
           if (navigatorKey.currentContext != null) {
             closeLoadingDialog(context: navigatorKey.currentContext!);
           }
-          onAdFailedToLoad?.call();
+          onAdFailedToLoad?.call(error.message);
         },
       ),
     );
@@ -303,15 +306,18 @@ class InterAdsManager {
     required String idAds,
     required bool config,
     required Function()? onAdLoaded,
-    required Function()? onAdFailedToLoad,
+    required Function(String)? onAdFailedToLoad,
   }) async {
     print('admob_ads --- Inter Ad Preload: loadInterAdPreload');
+    var isNetwork = await Admob.instance.isNetworkActive();
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
-        (await Admob.instance.isNetworkActive()) == false) {
+        isNetwork == false) {
       print('admob_ads --- Inter Ad Preload: can not load');
-      onAdFailedToLoad?.call();
+      onAdFailedToLoad?.call(
+        'config_$config,canRequestAds_${ConsentManager.instance.canRequestAds},isShowAllAds_${Admob.instance.isShowAllAds},isNetwork_$isNetwork',
+      );
       return;
     }
 
@@ -324,7 +330,7 @@ class InterAdsManager {
 
     adsPlatform.onAdFailedToLoad = (id, error) {
       print('admob_ads --- Inter Ad Preload: onAdFailedToLoad');
-      onAdFailedToLoad?.call();
+      onAdFailedToLoad?.call(error);
     };
 
     adsPlatform.loadInterAdPreload(idAds, Admob.instance.numberPreload);
@@ -337,7 +343,7 @@ class InterAdsManager {
     required Function() onNext,
     required Function()? onAdImpression,
     required Function()? onAdClicked,
-    required Function()? onAdFailedToShow,
+    required Function(String)? onAdFailedToShow,
     required Function()? onAdDismiss,
     required String name,
     bool isShowLoading = true,
@@ -382,7 +388,7 @@ class InterAdsManager {
       }
       Admob.instance.setFullScreenAdShowing(false);
 
-      onAdFailedToShow?.call();
+      onAdFailedToShow?.call(error);
       onNext();
     };
     adsPlatform.onAdImpression = () {
@@ -392,7 +398,13 @@ class InterAdsManager {
       onAdImpression?.call();
     };
     adsPlatform.onPaidEvent = (network, valueMicros, currency) {
-      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency, adUnitId: idAds, adFormat: name);
+      AdjustUtil.instance.trackRevenue(
+        network: network,
+        revenue: valueMicros,
+        currency: currency,
+        adUnitId: idAds,
+        adFormat: name,
+      );
     };
 
     Admob.instance.setFullScreenAdShowing(true);
@@ -410,10 +422,10 @@ class InterAdsManager {
     required bool config,
     required Function() onNext,
     required Function()? onAdLoaded,
-    required Function()? onAdFailedToLoad,
+    required Function(String)? onAdFailedToLoad,
     required Function()? onAdImpression,
     required Function()? onAdClicked,
-    required Function()? onAdFailedToShow,
+    required Function(String)? onAdFailedToShow,
     required Function()? onAdDismiss,
     required String name,
   }) async {
@@ -469,13 +481,13 @@ class InterAdsManager {
               onAdImpression?.call();
             },
             onAdClicked: onAdClicked,
-            onAdFailedToShow: () {
+            onAdFailedToShow: (error) {
               print('admob_ads --- Inter Ad Preload - loadAndShow: onAdFailedToShow');
               if (navigatorKey.currentContext != null) {
                 closeLoadingDialog(context: navigatorKey.currentContext!);
               }
               Admob.instance.setFullScreenAdShowing(false);
-              onAdFailedToShow?.call();
+              onAdFailedToShow?.call(error);
             },
             onAdDismiss: () {
               print('admob_ads --- Inter Ad Preload - loadAndShow: onAdDismiss');
@@ -499,7 +511,7 @@ class InterAdsManager {
           if (navigatorKey.currentContext != null) {
             closeLoadingDialog(context: navigatorKey.currentContext!);
           }
-          onAdFailedToLoad?.call();
+          onAdFailedToLoad?.call(error);
           onNext.call();
         }
       };
@@ -516,8 +528,8 @@ class InterAdsManager {
     Function()? onAdLoaded,
     Function()? onAdImpression,
     Function()? onAdClicked,
-    Function()? onAdFailedToLoad,
-    Function()? onAdFailedToShow,
+    Function(String)? onAdFailedToLoad,
+    Function(String)? onAdFailedToShow,
     Function()? onAdDismiss,
   }) async {
     ///timeout check 12s
@@ -551,6 +563,9 @@ class InterAdsManager {
         Admob.instance.isShowAllAds == false ||
         (await Admob.instance.isNetworkActive()) == false) {
       print('admob_ads --- Inter Ad Preload Splash: not load');
+      EventLog.logEvent(
+        'inter_splash_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}',
+      );
       handleAdsShown();
       onAdDisable?.call();
       return;
@@ -590,7 +605,7 @@ class InterAdsManager {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
       handleAdsShown();
-      onAdFailedToLoad?.call();
+      onAdFailedToLoad?.call(error);
     };
 
     print('admob_ads --- Inter Ad Preload Splash: load inter splash');
@@ -606,7 +621,7 @@ class InterAdsManager {
     required String idAds,
     required Function()? onAdImpression,
     required Function()? onAdClicked,
-    required Function()? onAdFailedToShow,
+    required Function(String)? onAdFailedToShow,
     required Function()? onAdDismiss,
   }) async {
     final adsPlatform = AmazicAdsFlutterPlatform.instance;
@@ -627,7 +642,7 @@ class InterAdsManager {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
       Admob.instance.setFullScreenAdShowing(false);
-      onAdFailedToShow?.call();
+      onAdFailedToShow?.call(error);
     };
     adsPlatform.onAdImpression = () {
       print('admob_ads --- Inter Ad Preload Splash: onAdImpression');
@@ -637,8 +652,16 @@ class InterAdsManager {
       onAdImpression?.call();
     };
     adsPlatform.onPaidEvent = (network, valueMicros, currency) {
-      print('admob_ads --- Inter Ad Preload Splash: onPaidEvent - network: $network - valueMicros: $valueMicros - currency: $currency');
-      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency, adUnitId: idAds, adFormat: 'inter_splash_preload');
+      print(
+        'admob_ads --- Inter Ad Preload Splash: onPaidEvent - network: $network - valueMicros: $valueMicros - currency: $currency',
+      );
+      AdjustUtil.instance.trackRevenue(
+        network: network,
+        revenue: valueMicros,
+        currency: currency,
+        adUnitId: idAds,
+        adFormat: 'inter_splash_preload',
+      );
     };
 
     Admob.instance.setFullScreenAdShowing(true);

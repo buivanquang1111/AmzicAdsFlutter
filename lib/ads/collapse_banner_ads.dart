@@ -141,6 +141,7 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
     );
     print('admob_ads --- collapse_banner: size = $size');
     if (size == null) {
+      EventLog.logEvent('${widget.name}_fail_size_null');
       setState(() {
         _shouldHide = true;
       });
@@ -148,8 +149,18 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
       return;
     }
 
+    bool? isNetwork = await Admob.instance.isNetworkActive();
     if (!await canShowAds()) {
       print('admob_ads --- collapse_banner: hide collapse');
+      EventLog.logEvent(
+        '${widget.name}_not_request',
+        parameters: {
+          'config': widget.config,
+          'ump': ConsentManager.instance.canRequestAds,
+          'isShowAllAds': Admob.instance.isShowAllAds,
+          'isNetwork': isNetwork == true,
+        },
+      );
       setState(() {
         _shouldHide = true;
       });
@@ -171,6 +182,7 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
       adRequest = AdRequest(extras: {"collapsible": "top"});
     }
     print('admob_ads --- collapse_banner: start request');
+    EventLog.logEvent('${widget.name}_request');
     BannerAd(
       size: size,
       adUnitId: widget.idAds,
@@ -191,6 +203,7 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
         },
         onAdFailedToLoad: (ad, error) {
           print('admob_ads --- collapse_banner: onAdFailedToLoad');
+          EventLog.logEvent('${widget.name}_fail', parameters: {'error': error.message});
           ad.dispose();
           setState(() {
             _bannerAd = null;
@@ -227,7 +240,7 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
             revenue: valueMicros,
             currency: currencyCode,
             adUnitId: widget.idAds,
-            adFormat: widget.name
+            adFormat: widget.name,
           );
         },
       ),

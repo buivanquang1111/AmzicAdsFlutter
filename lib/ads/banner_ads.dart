@@ -17,10 +17,10 @@ class BannerAds extends StatefulWidget {
   final Function()? onAdClicked;
   final Function()? onAdDisable;
   final bool config;
+
   /// dùng trong việc log event của tên quảng cáo vd: banner_all
   final String name;
   final int refreshSec;
-
 
   const BannerAds({
     super.key,
@@ -103,24 +103,32 @@ class _BannerAdsState extends State<BannerAds> with WidgetsBindingObserver {
 
   loadAds() async {
     final size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-      MediaQuery
-          .sizeOf(context)
-          .width
-          .truncate(),
+      MediaQuery.sizeOf(context).width.truncate(),
     );
     print('admob_ads --- banner_ads: size= $size');
     if (size == null) {
       setState(() {
         _shouldHide = true;
       });
+      EventLog.logEvent('${widget.name}_fail_size_null');
       widget.onAdDisable?.call();
       return;
     }
+    bool? isNetwork = await Admob.instance.isNetworkActive();
     if (widget.config == false ||
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
-        (await Admob.instance.isNetworkActive()) == false) {
+        isNetwork == false) {
       print('admob_ads --- banner_ads: hide banner');
+      EventLog.logEvent(
+        '${widget.name}_not_request',
+        parameters: {
+          'config': widget.config,
+          'ump': ConsentManager.instance.canRequestAds,
+          'isShowAllAds': Admob.instance.isShowAllAds,
+          'isNetwork': isNetwork == true,
+        },
+      );
       setState(() {
         _shouldHide = true;
       });
@@ -133,6 +141,7 @@ class _BannerAdsState extends State<BannerAds> with WidgetsBindingObserver {
       _shouldHide = false;
     });
     print('admob_ads --- banner_ads: start request');
+    EventLog.logEvent('${widget.name}_request');
     BannerAd(
       size: size,
       adUnitId: widget.idAds,
@@ -147,6 +156,7 @@ class _BannerAdsState extends State<BannerAds> with WidgetsBindingObserver {
         },
         onAdFailedToLoad: (ad, error) {
           print('admob_ads --- banner_ads: onAdFailedToLoad');
+          EventLog.logEvent('${widget.name}_fail', parameters: {'error': error.message});
           ad.dispose();
           setState(() {
             _bannerAd = null;
@@ -183,7 +193,7 @@ class _BannerAdsState extends State<BannerAds> with WidgetsBindingObserver {
             revenue: valueMicros,
             currency: currencyCode,
             adUnitId: widget.idAds,
-            adFormat: widget.name
+            adFormat: widget.name,
           );
         },
       ),
@@ -191,7 +201,7 @@ class _BannerAdsState extends State<BannerAds> with WidgetsBindingObserver {
     ).load();
   }
 
-  void startRefreshTime(){
+  void startRefreshTime() {
     if (widget.refreshSec == 0) {
       return;
     }
@@ -202,14 +212,12 @@ class _BannerAdsState extends State<BannerAds> with WidgetsBindingObserver {
         print('admob_ads --- banner_ads: RefreshSec - ${widget.refreshSec} Done');
         loadAds();
       } else {
-        print(
-          'admob_ads --- banner_ads: Can not refresh ad isCanRefreshAd = $isCanRefreshAd'
-        );
+        print('admob_ads --- banner_ads: Can not refresh ad isCanRefreshAd = $isCanRefreshAd');
       }
     });
   }
 
-  void stopRefreshTime(){
+  void stopRefreshTime() {
     _timerRefresh?.cancel();
     _timerRefresh = null;
   }
