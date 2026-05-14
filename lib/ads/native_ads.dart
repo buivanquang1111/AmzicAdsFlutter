@@ -106,10 +106,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
         child: SizedBox(
           width: MediaQuery.of(context).size.width,
           height: widget.height,
-          child: AdWidget(
-            key: ValueKey('${widget.name}_${_nativeAd.hashCode}'),
-            ad: _nativeAd!,
-          ),
+          child: AdWidget(key: ValueKey('${widget.name}_${_nativeAd.hashCode}'), ad: _nativeAd!),
         ),
       );
     }
@@ -125,9 +122,18 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
   }
 
   loadAds() async {
+    bool? isNetwork = await Admob.instance.isNetworkActive();
     if (!await canShowAds()) {
       print('admob_ads --- native_ads: ${widget.name} hide native');
-      EventLog.logEvent('${widget.name}_hide');
+      EventLog.logEvent(
+        '${widget.name}_not_request',
+        parameters: {
+          'config': widget.config,
+          'ump': ConsentManager.instance.canRequestAds,
+          'isShowAllAds': Admob.instance.isShowAllAds,
+          'isNetwork': isNetwork == true,
+        },
+      );
       if (mounted) {
         setState(() {
           _shouldHide = true;
@@ -164,7 +170,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
         },
         onAdFailedToLoad: (ad, error) {
           print('admob_ads --- native_ads: ${widget.name} onAdFailedToLoad');
-          EventLog.logEvent('${widget.name}_load_failed');
+          EventLog.logEvent('${widget.name}_fail', parameters: {'error': error.message});
           if (mounted) {
             setState(() {
               _nativeAd = null;
@@ -189,16 +195,18 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
           print('admob_ads --- native_ads: ${widget.name} onAdImpression');
           startRefreshTime();
           widget.onAdImpression?.call();
-          EventLog.logEvent('${widget.name}_view');
+          EventLog.logEvent('${widget.name}_impression');
         },
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {
-          print('admob_ads --- native_ads: ${widget.name} onPaidEvent - valueMicros= $valueMicros - currencyCode= $currencyCode');
+          print(
+            'admob_ads --- native_ads: ${widget.name} onPaidEvent - valueMicros= $valueMicros - currencyCode= $currencyCode',
+          );
           AdjustUtil.instance.trackRevenue(
             network: ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName,
             revenue: valueMicros,
             currency: currencyCode,
             adUnitId: widget.idAds,
-            adFormat: widget.name
+            adFormat: widget.name,
           );
         },
         onAdClicked: (ad) {
@@ -232,13 +240,23 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
 
   ///load ads before show
   loadAdsQuietly() async {
+    bool? isNetwork = await Admob.instance.isNetworkActive();
     if (!await canShowAds()) {
       print('admob_ads --- native_ads: ${widget.name} Quietly - hide native');
+      EventLog.logEvent(
+        '${widget.name}_not_request',
+        parameters: {
+          'config': widget.config,
+          'ump': ConsentManager.instance.canRequestAds,
+          'isShowAllAds': Admob.instance.isShowAllAds,
+          'isNetwork': isNetwork == true,
+        },
+      );
       return;
     }
     late NativeAd tempAd;
 
-    EventLog.logEvent('${widget.name}_quietly_request');
+    EventLog.logEvent('${widget.name}_request');
     tempAd = NativeAd(
       adUnitId: widget.idAds,
       factoryId: widget.factoryId,
@@ -247,7 +265,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
           final oldAd = _nativeAd;
           final newAd = ad as NativeAd;
 
-          EventLog.logEvent('${widget.name}_quietly_load');
+          EventLog.logEvent('${widget.name}_load');
 
           logNativeMediation(ad: ad, nameAds: '${widget.name} Quietly');
 
@@ -268,8 +286,8 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
         },
         onAdFailedToLoad: (ad, error) {
           print('admob_ads --- native_ads: ${widget.name} Quietly - onAdFailedToLoad');
+          EventLog.logEvent('${widget.name}_fail', parameters: {'error': error.message});
           ad.dispose();
-          EventLog.logEvent('${widget.name}_quietly_load_failed');
         },
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {
           print('admob_ads --- native_ads: ${widget.name} Quietly - onPaidEvent');
@@ -278,16 +296,16 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
             revenue: valueMicros,
             currency: currencyCode,
             adUnitId: widget.idAds,
-            adFormat: widget.name
+            adFormat: widget.name,
           );
         },
         onAdImpression: (ad) {
           print('admob_ads --- native_ads: ${widget.name} Quietly - onAdImpression');
-          EventLog.logEvent('${widget.name}_quietly_view');
+          EventLog.logEvent('${widget.name}_impression');
         },
         onAdClicked: (ad) {
           print('admob_ads --- native_ads: ${widget.name} Quietly - onAdClicked');
-          EventLog.logEvent('${widget.name}_quietly_click');
+          EventLog.logEvent('${widget.name}_click');
         },
       ),
       request: const AdRequest(),

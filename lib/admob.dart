@@ -419,7 +419,7 @@ class Admob {
           ///init app open resume
           appLifecycleReactor = AppLifecycleReactor(
             navigatorKey: navigatorKey,
-            idAds: CallApi.instance.getListIDByName(nameIdAdsResume)[0],
+            idAds: CallApi.instance.getFirstIDByName(nameIdAdsResume),
             nameResumeConfig: nameResumeConfig,
             isShowWelComeScreenAfterAppOpenAds: isShowWelComeScreenAfterAppOpenAds,
             onGotoWelcomeBack: onGotoScreenWelcomeBack,
