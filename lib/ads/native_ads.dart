@@ -151,6 +151,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
     _nativeAd?.dispose();
     print('admob_ads --- native_ads: ${widget.name} start request');
     EventLog.logEvent('${widget.name}_request');
+    EventLog.logEvent('${widget.name}_request_first');
     _nativeAd = NativeAd(
       adUnitId: widget.idAds,
       factoryId: widget.factoryId,

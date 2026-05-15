@@ -134,6 +134,8 @@ class Admob {
 
   String get jsonIdAdsDefault => _jsonIdAdsDefault;
 
+  int _timeLastStep = 0;
+
   Future<void> startShowNativeAfterInter({
     required BuildContext context,
     required String adsKey,
@@ -192,6 +194,12 @@ class Admob {
   }) async {
     ///start count time show ads
     stopWatch.start();
+    _timeLastStep = DateTime.now().second;
+
+    ///logevent internet
+    if (await isNetworkActive() == true) {
+      EventLog.logEvent('splash_open_have_internet');
+    }
 
     ///set json id default
     setJsonIdAdsDefault(jsonIdAdsDefault);
@@ -199,11 +207,6 @@ class Admob {
     ///init Preferences
     await PreferencesUtil.init();
     PreferencesUtil.increaseCountOpenApp();
-
-    ///logevent internet
-    if (await isNetworkActive() == true) {
-      EventLog.logEvent('splash_open_have_internet');
-    }
 
     ///set event adjust
     if (eventAdjustTracking != null) {
@@ -308,12 +311,15 @@ class Admob {
     Map<String, Object>? moreParams,
   }) async {
     final seconds = stopWatch.elapsed.inSeconds;
+    final timeBetweenStep = DateTime.now().second - _timeLastStep;
     final Map<String, Object> fullParams = {
       "time_to_step": seconds,
+      "time_between_step": timeBetweenStep,
       if (moreParams != null) ...moreParams,
     };
     EventLog.logEvent(nameEvent, parameters: fullParams);
     print('admob_ads --- $nameEvent - parameters = $fullParams');
+    _timeLastStep = DateTime.now().second;
   }
 
   ///test call dong thoi
@@ -401,7 +407,7 @@ class Admob {
     await ConsentManager.instance.handleRequestUmp(
       onPostExecute: () async {
         if (ConsentManager.instance.canRequestAds) {
-          logEventSplashToStep(nameEvent: 'splash_ump_consent');
+          logEventSplashToStep(nameEvent: 'splash_ump_done_consent');
           print('admob_ads --- ✅ Done UMP, await call id ads');
           await callIdAdsDone;
           print('admob_ads --- 🚀 Continue process show ads splash');
@@ -415,6 +421,7 @@ class Admob {
           }
 
           onStartLoadBanner();
+          logEventSplashToStep(nameEvent: 'splash_init_ad_splash');
 
           ///init app open resume
           appLifecycleReactor = AppLifecycleReactor(
@@ -426,8 +433,6 @@ class Admob {
             name: nameIdAdsResume,
           );
           appLifecycleReactor?.listenToAppStateChanges();
-
-          logEventSplashToStep(nameEvent: 'splash_init_ad_splash');
 
           ///init ads splash
           AdHelper.init(
@@ -464,13 +469,12 @@ class Admob {
           handleTimeOut();
           if (!isNextTimeout) {
             print('admob_ads --- onNext DO NOT CONSENT');
-            logEventSplashToStep(nameEvent: 'splash_ump_notconsent');
+            logEventSplashToStep(nameEvent: 'splash_ump_done_donotconsent');
             onNext();
           }
         }
       },
     );
-    logEventSplashToStep(nameEvent: 'splash_done_ump');
     print('admob_ads --- ✅ Kết thúc UMP');
   }
 
