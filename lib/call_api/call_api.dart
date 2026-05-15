@@ -27,6 +27,25 @@ class CallApi {
     required Function() onResponse,
     required Function(String) onError,
   }) async {
+    var time = DateTime.now().second;
+    print('admob_ads --- call id: time = ${time}');
+
+    var isSetId = false;
+    Future.delayed(const Duration(seconds: 4), () {
+      print('admob_ads --- timeout call id ads');
+      if (!isSetId) {
+        isSetId = true;
+        EventLog.logEvent('splash_jsonid_ad_default', parameters: {'error': 'time out 4s'});
+        print(
+          'admob_ads --- splash_jsonid_ad_default - json_id_timeout: ${Admob.instance.jsonIdAdsDefault}',
+        );
+
+        convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
+
+        onResponse.call();
+      }
+    });
+
     /// http://language-master.top/api/getidv2/ca-app-pub-4973559944609228~2346710863+com.example.lib
     var url = linkServer != '' && appId != ''
         ? Uri.parse('$linkServer/api/getidv2/$appId+$packageName')
@@ -36,57 +55,55 @@ class CallApi {
     try {
       var response = await http.get(url);
       if (response.statusCode == 200) {
-        // print('json_id: ${response.body}');
-        EventLog.logEvent('splash_jsonid_ad_normal');
-        print('admob_ads --- splash_jsonid_ad_normal - json_id: ${response.body}');
-        // List<AdsModel> listAds = await compute(parseAdsModel, response.body);
-        //
-        // for (final model in listAds) {
-        //   if (model.name != null) {
-        //     // Khởi tạo danh sách nếu chưa tồn tại
-        //     listAdsId.putIfAbsent(model.name!, () => []);
-        //
-        //     if (model.adsId != null) {
-        //       listAdsId[model.name!]!.add(model.adsId!);
-        //     }
-        //   }
-        // }
-        convertJsonIdToList(json: response.body);
+        if (!isSetId) {
+          isSetId = true;
+          EventLog.logEvent('splash_jsonid_ad_normal');
+          var seconds = DateTime.now().second - time;
+          print('admob_ads --- call id: time2 = ${DateTime.now().second}');
+          print(
+            'admob_ads --- splash_jsonid_ad_normal - second = $seconds - json_id: ${response.body}',
+          );
+          convertJsonIdToList(json: response.body);
 
-        onResponse.call();
+          onResponse.call();
+        }
       } else if (response.statusCode == 404) {
-        // onError.call('Not Found');
-        // throw Exception('Not Found');
-        EventLog.logEvent('splash_jsonid_ad_default');
-        print(
-          'admob_ads --- splash_jsonid_ad_default - json_id1: ${Admob.instance.jsonIdAdsDefault}',
-        );
+        if (!isSetId) {
+          isSetId = true;
+          EventLog.logEvent('splash_jsonid_ad_default', parameters: {'error': '404'});
+          print(
+            'admob_ads --- splash_jsonid_ad_default - json_id1: ${Admob.instance.jsonIdAdsDefault}',
+          );
 
-        convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
+          convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
 
-        onResponse.call();
+          onResponse.call();
+        }
       } else {
-        // onError.call('Can\'t get ads id');
-        // throw Exception('Can\'t get ads id');
-        EventLog.logEvent('splash_jsonid_ad_default');
+        if (!isSetId) {
+          isSetId = true;
+          EventLog.logEvent('splash_jsonid_ad_default', parameters: {'error': 'not get id'});
+          print(
+            'admob_ads --- splash_jsonid_ad_default - json_id2: ${Admob.instance.jsonIdAdsDefault}',
+          );
+
+          convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
+
+          onResponse.call();
+        }
+      }
+    } catch (e) {
+      if (!isSetId) {
+        isSetId = true;
+        EventLog.logEvent('splash_jsonid_ad_default', parameters: {'error': e.toString()});
         print(
-          'admob_ads --- splash_jsonid_ad_default - json_id2: ${Admob.instance.jsonIdAdsDefault}',
+          'admob_ads --- splash_jsonid_ad_default - json_id3: ${Admob.instance.jsonIdAdsDefault}',
         );
 
         convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
 
         onResponse.call();
       }
-    } catch (e) {
-      // onError.call(e.toString());
-      EventLog.logEvent('splash_jsonid_ad_default');
-      print(
-        'admob_ads --- splash_jsonid_ad_default - json_id3: ${Admob.instance.jsonIdAdsDefault}',
-      );
-
-      convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
-
-      onResponse.call();
     }
   }
 
