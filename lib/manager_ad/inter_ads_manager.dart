@@ -26,6 +26,8 @@ class InterAdsManager {
   ///biến check xem đã chuyển màn trong timeout Ads chua
   bool isNextTimeoutAd = false;
 
+  var isAdSplashFinished = false; //check show 1 ads splash => no fill => start next screen
+
   ///inter splash
   Future<void> loadAndShowInterSplash({
     required GlobalKey<NavigatorState> navigatorKey,
@@ -580,6 +582,7 @@ class InterAdsManager {
     Function(String)? onAdFailedToShow,
     Function()? onAdDismiss,
   }) async {
+    isAdSplashFinished = false;
     ///timeout check 12s
     bool adHasShown = false;
     final timeoutCompleter = Completer<void>(); //kiểm soát timeout 12s
@@ -639,7 +642,8 @@ class InterAdsManager {
       );
       print('admob_ads --- inter_splash_check_show isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}');
       ///show ad splash
-      if (!isNextTimeoutAd && !Admob.instance.isNextTimeout) {
+      if (!isNextTimeoutAd && !Admob.instance.isNextTimeout && !isAdSplashFinished) {
+        isAdSplashFinished = true;
         showInterSplashAdPreload(
           navigatorKey: navigatorKey,
           idAds: idAds,
@@ -655,6 +659,7 @@ class InterAdsManager {
     };
 
     adsPlatform.onAdFailedToLoad = (id, error) {
+      isAdSplashFinished = true;
       print('admob_ads --- Inter Ad Preload Splash: onAdFailedToLoad');
       EventLog.logEvent('inter_splash_fail',parameters: {
         'error': error
@@ -665,6 +670,7 @@ class InterAdsManager {
       }
       handleAdsShown();
       onAdFailedToLoad?.call(error);
+      adsPlatform.destroyInterAdPreload(idAds);
     };
 
     print('admob_ads --- Inter Ad Preload Splash: load inter splash');
