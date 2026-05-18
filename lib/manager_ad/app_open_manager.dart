@@ -26,6 +26,8 @@ class AppOpenManager {
   ///biến check xem đã chuyển màn trong timeout Ads chua
   bool isNextTimeoutAd = false;
 
+  var isAdSplashFinished = false; //check show 1 ads splash => no fill => start next screen
+
   ///preload app open splash
   Future<void> loadAndShowAppOpenSplash({
     required GlobalKey<NavigatorState> navigatorKey,
@@ -110,13 +112,13 @@ class AppOpenManager {
             'open_splash_check_show',
             parameters: {
               'message':
-                  'isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}',
+                  'isNextTimeoutAdSplash_${isNextTimeoutAd}',
             },
           );
           print(
-            'admob_ads --- open_splash_check_show isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}',
+            'admob_ads --- open_splash_check_show isNextTimeoutAdSplash_${isNextTimeoutAd}',
           );
-          if (!isNextTimeoutAd && !Admob.instance.isNextTimeout) {
+          if (!isNextTimeoutAd) {
             showAppOpenAdsSplash(
               navigatorKey: navigatorKey,
               onAdImpression: () {
@@ -547,6 +549,7 @@ class AppOpenManager {
     Function(String)? onAdFailedToShow,
     Function()? onAdDismiss,
   }) async {
+    isAdSplashFinished = false;
     ///timeout check 12s
     bool adHasShown = false;
     final timeoutCompleter = Completer<void>(); //kiểm soát timeout 12s
@@ -599,7 +602,8 @@ class AppOpenManager {
       print('admob_ads --- App Open Ad preload: onAdLoaded');
       onAdLoaded?.call();
 
-      if (!isNextTimeoutAd) {
+      if (!isNextTimeoutAd && !isAdSplashFinished) {
+        isAdSplashFinished = true;
         showAppOpenSplashApPreload(
           navigatorKey: navigatorKey,
           idAds: idAds,
@@ -614,6 +618,7 @@ class AppOpenManager {
       }
     };
     adsPlatform.onAdFailedToLoad = (id, error) {
+      isAdSplashFinished = true;
       print('admob_ads --- App Open Ad preload: onAdFailedToLoad');
       EventLog.logEvent('open_splash_fal', parameters: {'error': error});
       Admob.instance.setFullScreenAdShowing(false);
@@ -622,6 +627,7 @@ class AppOpenManager {
       if (navigatorKey.currentContext != null) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
+      adsPlatform.destroyAppOpenAdPreload(idAds);
     };
 
     adsPlatform.loadAppOpenAdPreload(idAds, Admob.instance.numberPreloadSplash);

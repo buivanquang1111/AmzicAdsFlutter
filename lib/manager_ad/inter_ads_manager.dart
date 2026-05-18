@@ -113,11 +113,11 @@ class InterAdsManager {
             'inter_splash_check_show',
             parameters: {
               'message':
-                  'isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}',
+                  'isNextTimeoutAdSplash_${isNextTimeoutAd}',
             },
           );
-          print('admob_ads --- inter_splash_check_show isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}');
-          if (!isNextTimeoutAd && !Admob.instance.isNextTimeout) {
+          print('admob_ads --- inter_splash_check_show isNextTimeoutAdSplash_$isNextTimeoutAd');
+          if (!isNextTimeoutAd) {
             showInterAdsSplash(
               navigatorKey: navigatorKey,
               onAdImpression: () {
@@ -637,12 +637,12 @@ class InterAdsManager {
         'inter_splash_check_show',
         parameters: {
           'message':
-          'isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}',
+          'isNextTimeoutAdSplash_${isNextTimeoutAd}',
         },
       );
-      print('admob_ads --- inter_splash_check_show isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}');
+      print('admob_ads --- inter_splash_check_show isNextTimeoutAdSplash_$isNextTimeoutAd');
       ///show ad splash
-      if (!isNextTimeoutAd && !Admob.instance.isNextTimeout && !isAdSplashFinished) {
+      if (!isNextTimeoutAd && !isAdSplashFinished) {
         isAdSplashFinished = true;
         showInterSplashAdPreload(
           navigatorKey: navigatorKey,
