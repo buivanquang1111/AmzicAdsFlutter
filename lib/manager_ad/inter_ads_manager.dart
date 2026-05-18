@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:amazic_ads_flutter/admob.dart';
 import 'package:amazic_ads_flutter/amazic_ads_flutter_platform_interface.dart';
 import 'package:amazic_ads_flutter/utils/event_log.dart';
+import 'package:amazic_ads_flutter/utils/remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -63,14 +64,14 @@ class InterAdsManager {
         if (!timeoutCompleter.isCompleted) timeoutCompleter.complete();
       }
     }
-
+    var isNetwork = await Admob.instance.isNetworkActive();
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
-        (await Admob.instance.isNetworkActive()) == false) {
+        (isNetwork) == false) {
       print('admob_ads --- inter_ads_splash: not load');
       EventLog.logEvent(
-        'inter_splash_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}',
+        'inter_splash_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
       );
       handleAdsShown();
       onAdDisable?.call();
@@ -106,7 +107,15 @@ class InterAdsManager {
             );
           };
 
-          if (!isNextTimeoutAd) {
+          EventLog.logEvent(
+            'inter_splash_check_show',
+            parameters: {
+              'message':
+                  'isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}',
+            },
+          );
+          print('admob_ads --- inter_splash_check_show isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}');
+          if (!isNextTimeoutAd && !Admob.instance.isNextTimeout) {
             showInterAdsSplash(
               navigatorKey: navigatorKey,
               onAdImpression: () {
@@ -121,6 +130,7 @@ class InterAdsManager {
         },
         onAdFailedToLoad: (error) {
           print('admob_ads --- inter_ads_splash: onAdFailedToLoad ${error.message}');
+          EventLog.logEvent('inter_splash_fail', parameters: {'error': error.message});
           Admob.instance.setFullScreenAdShowing(false);
           if (navigatorKey.currentContext != null) {
             closeLoadingDialog(context: navigatorKey.currentContext!);
@@ -145,6 +155,10 @@ class InterAdsManager {
   }) async {
     if (_mInterstitialAdSplash == null) {
       print('admob_ads --- inter_ads_splash: not show ad = null');
+      EventLog.logEvent(
+        'inter_splash_show_fail',
+        parameters: {"error": "mInterstitialAdSplash_null"},
+      );
       if (navigatorKey.currentContext != null) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
@@ -159,12 +173,14 @@ class InterAdsManager {
       },
       onAdImpression: (ad) {
         print('admob_ads --- inter_ads_splash: onAdImpression');
+        EventLog.logEvent('inter_splash_view');
         Admob.instance.setFullScreenAdShowing(true);
         _mInterstitialAdSplash = null;
         onAdImpression?.call();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         print('admob_ads --- inter_ads_splash: onAdFailedToShowFullScreenContent $error');
+        EventLog.logEvent('inter_splash_fail', parameters: {'error': error.message});
         if (navigatorKey.currentContext != null) {
           closeLoadingDialog(context: navigatorKey.currentContext!);
         }
@@ -215,6 +231,9 @@ class InterAdsManager {
         Admob.instance.isShowAllAds == false ||
         (await Admob.instance.isNetworkActive()) == false) {
       print('admob_ads --- inter_ads: not load');
+      EventLog.logEvent(
+        '${name}_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}',
+      );
       onAdDisable?.call();
       return;
     }
@@ -223,6 +242,7 @@ class InterAdsManager {
       showLoadingDialog(context: navigatorKey.currentContext!);
     }
 
+    EventLog.logEvent('${name}_true');
     InterstitialAd.load(
       adUnitId: idAds,
       request: const AdRequest(),
@@ -257,6 +277,7 @@ class InterAdsManager {
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
               print('admob_ads --- inter_ads: onAdFailedToShowFullScreenContent ${error.message}');
+              EventLog.logEvent('${name}_fail', parameters: {'error': error.message});
               if (navigatorKey.currentContext != null) {
                 closeLoadingDialog(context: navigatorKey.currentContext!);
               }
@@ -291,6 +312,9 @@ class InterAdsManager {
         },
         onAdFailedToLoad: (error) {
           print('admob_ads --- inter_ads: onAdFailedToLoad ${error.message}');
+          EventLog.logEvent('${name}_fail',parameters: {
+            'error': error.message
+          });
           Admob.instance.setFullScreenAdShowing(false);
           if (navigatorKey.currentContext != null) {
             closeLoadingDialog(context: navigatorKey.currentContext!);
@@ -304,19 +328,23 @@ class InterAdsManager {
   //ad preloading
   Future<void> loadInterAdPreload({
     required String idAds,
-    required bool config,
+    required String nameConfig,
     required Function()? onAdLoaded,
     required Function(String)? onAdFailedToLoad,
   }) async {
     print('admob_ads --- Inter Ad Preload: loadInterAdPreload');
     var isNetwork = await Admob.instance.isNetworkActive();
-    if (config == false ||
+
+    if (RemoteConfig.getBool(nameConfig) == false ||
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
         isNetwork == false) {
       print('admob_ads --- Inter Ad Preload: can not load');
+      EventLog.logEvent(
+        '${nameConfig}_config_${RemoteConfig.getBool(nameConfig)}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
+      );
       onAdFailedToLoad?.call(
-        'config_$config,canRequestAds_${ConsentManager.instance.canRequestAds},isShowAllAds_${Admob.instance.isShowAllAds},isNetwork_$isNetwork',
+        'config_$nameConfig,canRequestAds_${ConsentManager.instance.canRequestAds},isShowAllAds_${Admob.instance.isShowAllAds},isNetwork_$isNetwork',
       );
       return;
     }
@@ -330,6 +358,9 @@ class InterAdsManager {
 
     adsPlatform.onAdFailedToLoad = (id, error) {
       print('admob_ads --- Inter Ad Preload: onAdFailedToLoad');
+      EventLog.logEvent('${idAds}_fail', parameters: {
+        'error': error
+      });
       onAdFailedToLoad?.call(error);
     };
 
@@ -348,11 +379,15 @@ class InterAdsManager {
     required String name,
     bool isShowLoading = true,
   }) async {
+    var isNetwork = await Admob.instance.isNetworkActive();
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
-        (await Admob.instance.isNetworkActive()) == false) {
+        (isNetwork) == false) {
       print('admob_ads --- Inter Ad Preload: can not show');
+      EventLog.logEvent(
+        '${name}_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
+      );
       onNext.call();
       return;
     }
@@ -388,12 +423,17 @@ class InterAdsManager {
       }
       Admob.instance.setFullScreenAdShowing(false);
 
+      EventLog.logEvent('${name}_fail',parameters: {
+        'error': error
+      });
+
       onAdFailedToShow?.call(error);
       onNext();
     };
     adsPlatform.onAdImpression = () {
       print('admob_ads --- Inter Ad Preload: onAdImpression');
       Admob.instance.setFullScreenAdShowing(true);
+      EventLog.logEvent('${name}_view');
 
       onAdImpression?.call();
     };
@@ -433,6 +473,7 @@ class InterAdsManager {
     print('admob_ads --- Inter Ad Preload - loadAndShow: isAdAvailable = $abc');
     if (await AmazicAdsFlutterPlatform.instance.isAdAvailableInter(idAds) == true) {
       print('admob_ads --- Inter Ad Preload - loadAndShow: HAVE DATA -> Show Ads');
+      EventLog.logEvent('${name}_true');
       showInterAdPreload(
         navigatorKey: navigatorKey,
         idAds: idAds,
@@ -446,11 +487,15 @@ class InterAdsManager {
       );
     } else {
       print('admob_ads --- Inter Ad Preload - loadAndShow: NO DATA -> Load And Show Ads');
+      var isNetwork = await Admob.instance.isNetworkActive();
       if (config == false ||
           ConsentManager.instance.canRequestAds == false ||
           Admob.instance.isShowAllAds == false ||
-          (await Admob.instance.isNetworkActive()) == false) {
+          (isNetwork) == false) {
         print('admob_ads --- Inter Ad Preload - loadAndShow: can not load');
+        EventLog.logEvent(
+          '${name}_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
+        );
         onNext.call();
         return;
       }
@@ -512,6 +557,9 @@ class InterAdsManager {
             closeLoadingDialog(context: navigatorKey.currentContext!);
           }
           onAdFailedToLoad?.call(error);
+          EventLog.logEvent('${name}_fail',parameters: {
+            'error': error
+          });
           onNext.call();
         }
       };
@@ -557,14 +605,14 @@ class InterAdsManager {
         if (!timeoutCompleter.isCompleted) timeoutCompleter.complete();
       }
     }
-
+    var isNetwork = await Admob.instance.isNetworkActive();
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
-        (await Admob.instance.isNetworkActive()) == false) {
+        (isNetwork) == false) {
       print('admob_ads --- Inter Ad Preload Splash: not load');
       EventLog.logEvent(
-        'inter_splash_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}',
+        'inter_splash_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
       );
       handleAdsShown();
       onAdDisable?.call();
@@ -582,8 +630,16 @@ class InterAdsManager {
 
       onAdLoaded?.call();
 
+      EventLog.logEvent(
+        'inter_splash_check_show',
+        parameters: {
+          'message':
+          'isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}',
+        },
+      );
+      print('admob_ads --- inter_splash_check_show isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}');
       ///show ad splash
-      if (!isNextTimeoutAd) {
+      if (!isNextTimeoutAd && !Admob.instance.isNextTimeout) {
         showInterSplashAdPreload(
           navigatorKey: navigatorKey,
           idAds: idAds,
@@ -600,6 +656,9 @@ class InterAdsManager {
 
     adsPlatform.onAdFailedToLoad = (id, error) {
       print('admob_ads --- Inter Ad Preload Splash: onAdFailedToLoad');
+      EventLog.logEvent('inter_splash_fail',parameters: {
+        'error': error
+      });
       Admob.instance.setFullScreenAdShowing(false);
       if (navigatorKey.currentContext != null) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
@@ -642,6 +701,9 @@ class InterAdsManager {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
       Admob.instance.setFullScreenAdShowing(false);
+      EventLog.logEvent('inter_splash_fail',parameters: {
+        'error': error
+      });
       onAdFailedToShow?.call(error);
     };
     adsPlatform.onAdImpression = () {

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:amazic_ads_flutter/admob.dart';
+import 'package:amazic_ads_flutter/utils/remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -64,11 +65,15 @@ class AppOpenManager {
       }
     }
 
+    var isNetwork = await Admob.instance.isNetworkActive();
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
-        (await Admob.instance.isNetworkActive()) == false) {
+        (isNetwork) == false) {
       print('admob_ads --- app_open_ads_splash: not load');
+      EventLog.logEvent(
+        'open_splash_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
+      );
       handleAdShown();
       onAdDisable?.call();
       return;
@@ -98,11 +103,20 @@ class AppOpenManager {
               revenue: valueMicros,
               currency: currencyCode,
               adUnitId: idAds,
-              adFormat: 'app_open_splash'
+              adFormat: 'app_open_splash',
             );
           };
-
-          if (!isNextTimeoutAd) {
+          EventLog.logEvent(
+            'open_splash_check_show',
+            parameters: {
+              'message':
+                  'isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}',
+            },
+          );
+          print(
+            'admob_ads --- open_splash_check_show isNextTimeoutAdSplash_${isNextTimeoutAd}_isNextTimeOutInit_${Admob.instance.isNextTimeout}',
+          );
+          if (!isNextTimeoutAd && !Admob.instance.isNextTimeout) {
             showAppOpenAdsSplash(
               navigatorKey: navigatorKey,
               onAdImpression: () {
@@ -117,6 +131,7 @@ class AppOpenManager {
         },
         onAdFailedToLoad: (error) {
           print('admob_ads --- app_open_ads_splash: onAdFailedToLoad $error');
+          EventLog.logEvent('open_splash_fail', parameters: {'error': error.message});
           Admob.instance.setFullScreenAdShowing(false);
           handleAdShown();
           onAdFailedToLoad?.call(error.message);
@@ -140,6 +155,7 @@ class AppOpenManager {
   }) async {
     if (_mAppOpenAdSplash == null) {
       print('admob_ads --- app_open_ads_splash: not show ad = null');
+      EventLog.logEvent('open_splash_show_fail', parameters: {'error': 'mAppOpenAdSplash_null'});
       if (navigatorKey.currentContext != null) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
@@ -160,6 +176,7 @@ class AppOpenManager {
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         print('admob_ads --- app_open_ads_splash: onAdFailedToShowFullScreenContent $error');
+        EventLog.logEvent('open_splash_fail', parameters: {'error': error.message});
         if (navigatorKey.currentContext != null) {
           closeLoadingDialog(context: navigatorKey.currentContext!);
         }
@@ -205,11 +222,15 @@ class AppOpenManager {
     required Function()? onAdDismiss,
     required String name,
   }) async {
+    var isNetwork = await Admob.instance.isNetworkActive();
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
-        (await Admob.instance.isNetworkActive()) == false) {
+        (isNetwork) == false) {
       print('admob_ads --- app_open_ads: not load');
+      EventLog.logEvent(
+        '${name}_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
+      );
       onAdDisable?.call();
       return;
     }
@@ -219,6 +240,7 @@ class AppOpenManager {
       showLoadingDialog(context: navigatorKey.currentContext!);
     }
 
+    EventLog.logEvent('${name}_true');
     AppOpenAd.load(
       adUnitId: idAds,
       request: const AdRequest(),
@@ -234,7 +256,7 @@ class AppOpenManager {
               revenue: valueMicros,
               currency: currencyCode,
               adUnitId: idAds,
-              adFormat: name
+              adFormat: name,
             );
           };
 
@@ -253,6 +275,7 @@ class AppOpenManager {
               if (navigatorKey.currentContext != null) {
                 closeLoadingDialog(context: navigatorKey.currentContext!);
               }
+              EventLog.logEvent('${name}_fail', parameters: {'error': error.message});
               Admob.instance.setFullScreenAdShowing(false);
               ad.dispose();
               onAdFailedToShow?.call();
@@ -283,6 +306,7 @@ class AppOpenManager {
         },
         onAdFailedToLoad: (error) {
           print('admob_ads --- app_open_ads: onAdFailedToLoad');
+          EventLog.logEvent('${name}_fail', parameters: {'error': error.message});
           Admob.instance.setFullScreenAdShowing(false);
           onAdFailedToLoad?.call();
           if (navigatorKey.currentContext != null) {
@@ -296,15 +320,19 @@ class AppOpenManager {
   //ad preloading
   Future<void> loadAppOpenAdPreload({
     required String idAds,
-    required bool config,
+    required String nameConfig,
     required Function()? onAdLoaded,
     required Function()? onAdFailedToLoad,
   }) async {
-    if (config == false ||
+    var isNetwork = await Admob.instance.isNetworkActive();
+    if (RemoteConfig.getBool(nameConfig) == false ||
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
-        (await Admob.instance.isNetworkActive()) == false) {
+        (isNetwork) == false) {
       print('admob_ads --- App Open Ad Preload: can not load');
+      EventLog.logEvent(
+        '${nameConfig}_config_${RemoteConfig.getBool(nameConfig)}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
+      );
       onAdFailedToLoad?.call();
       return;
     }
@@ -316,6 +344,7 @@ class AppOpenManager {
     };
     adsPlatform.onAdFailedToLoad = (id, error) {
       print('admob_ads --- App Open Ad Preload: onAdFailedToLoad');
+      EventLog.logEvent('${nameConfig}_fail', parameters: {'error': error});
       onAdFailedToLoad?.call();
     };
 
@@ -334,11 +363,15 @@ class AppOpenManager {
     required String name,
     bool isShowLoading = true,
   }) async {
+    var isNetwork = await Admob.instance.isNetworkActive();
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
-        (await Admob.instance.isNetworkActive()) == false) {
+        (isNetwork) == false) {
       print('admob_ads --- App Open Ad Preload: can not load');
+      EventLog.logEvent(
+        '${name}_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
+      );
       onNext.call();
       return;
     }
@@ -367,6 +400,7 @@ class AppOpenManager {
     };
     adsPlatform.onAdFailedToShow = (id, error) {
       print('admob_ads --- App Open Ad Preload: onAdFailedToShow');
+      EventLog.logEvent('${name}_fail', parameters: {'error': error});
 
       if (navigatorKey.currentContext != null && isShowLoading) {
         print('admob_ads --- App Open Ad Preload: onAdFailedToShow - close dialog loading');
@@ -385,7 +419,13 @@ class AppOpenManager {
       EventLog.logEvent('${name}_view');
     };
     adsPlatform.onPaidEvent = (network, valueMicros, currency) {
-      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency, adUnitId: idAds, adFormat: name);
+      AdjustUtil.instance.trackRevenue(
+        network: network,
+        revenue: valueMicros,
+        currency: currency,
+        adUnitId: idAds,
+        adFormat: name,
+      );
     };
 
     Admob.instance.setFullScreenAdShowing(true);
@@ -412,6 +452,7 @@ class AppOpenManager {
   }) async {
     if (await AmazicAdsFlutterPlatform.instance.isAdAvailableAppOpen(idAds) == true) {
       print('admob_ads --- App Open Ad Preload - loadAndShow: HAVE DATA -> Show Ads');
+      EventLog.logEvent('${name}_true');
       showAppOpenAdPreload(
         navigatorKey: navigatorKey,
         idAds: idAds,
@@ -425,12 +466,15 @@ class AppOpenManager {
       );
     } else {
       print('admob_ads --- App Open Ad Preload - loadAndShow: NOT HAVE DATA -> Loand And Show Ads');
-
+      var isNetwork = await Admob.instance.isNetworkActive();
       if (config == false ||
           ConsentManager.instance.canRequestAds == false ||
           Admob.instance.isShowAllAds == false ||
-          (await Admob.instance.isNetworkActive()) == false) {
+          (isNetwork) == false) {
         print('admob_ads --- App Open Ad Preload - loadAndShow: not load');
+        EventLog.logEvent(
+          '${name}_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
+        );
         onNext.call();
         return;
       }
@@ -455,7 +499,6 @@ class AppOpenManager {
             onAdImpression: () {
               Admob.instance.setFullScreenAdShowing(true);
               onAdImpression?.call();
-              EventLog.logEvent('${name}_view');
             },
             onAdClicked: onAdClicked,
             onAdFailedToShow: () {
@@ -530,11 +573,15 @@ class AppOpenManager {
       }
     }
 
+    var isNetwork = await Admob.instance.isNetworkActive();
     if (config == false ||
         ConsentManager.instance.canRequestAds == false ||
         Admob.instance.isShowAllAds == false ||
-        (await Admob.instance.isNetworkActive()) == false) {
+        (isNetwork) == false) {
       print('admob_ads --- App Open Ad preload: not load');
+      EventLog.logEvent(
+        'open_splash_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
+      );
       handleAdShown();
       onAdDisable?.call();
       return;
@@ -545,7 +592,7 @@ class AppOpenManager {
       showLoadingDialog(context: navigatorKey.currentContext!);
     }
 
-    EventLog.logEvent('app_open_splash_true');
+    EventLog.logEvent('open_splash_true');
 
     final adsPlatform = AmazicAdsFlutterPlatform.instance;
     adsPlatform.onAdLoaded = (id) {
@@ -568,6 +615,7 @@ class AppOpenManager {
     };
     adsPlatform.onAdFailedToLoad = (id, error) {
       print('admob_ads --- App Open Ad preload: onAdFailedToLoad');
+      EventLog.logEvent('open_splash_fal', parameters: {'error': error});
       Admob.instance.setFullScreenAdShowing(false);
       handleAdShown();
       onAdFailedToLoad?.call(error);
@@ -605,7 +653,7 @@ class AppOpenManager {
     };
     adsPlatform.onAdFailedToShow = (id, error) {
       print('admob_ads --- App Open Ad preload: onAdFailedToShow');
-
+      EventLog.logEvent('open_splash_fail', parameters: {'error': error});
       if (navigatorKey.currentContext != null) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
@@ -620,7 +668,13 @@ class AppOpenManager {
       onAdImpression?.call();
     };
     adsPlatform.onPaidEvent = (network, valueMicros, currency) {
-      AdjustUtil.instance.trackRevenue(network: network, revenue: valueMicros, currency: currency, adUnitId: idAds, adFormat: 'app_open_splash_preload');
+      AdjustUtil.instance.trackRevenue(
+        network: network,
+        revenue: valueMicros,
+        currency: currency,
+        adUnitId: idAds,
+        adFormat: 'app_open_splash_preload',
+      );
     };
     Admob.instance.setFullScreenAdShowing(true);
     Admob.instance.checkAndShowAdForeground(

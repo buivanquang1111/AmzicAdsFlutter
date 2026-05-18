@@ -1036,13 +1036,13 @@ class Admob {
   //Inter ad preloading
   Future<void> loadInterAdPreload({
     required String idAds,
-    required bool config,
+    required String nameConfig,
     Function()? onAdLoaded,
     Function(String)? onAdFailedToLoad,
   }) async {
     InterAdsManager.instance.loadInterAdPreload(
       idAds: idAds,
-      config: config,
+      nameConfig: nameConfig,
       onAdLoaded: onAdLoaded,
       onAdFailedToLoad: onAdFailedToLoad,
     );

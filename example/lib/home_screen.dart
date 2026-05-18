@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     AppOpenManager.instance.loadAppOpenAdPreload(
       idAds: 'ca-app-pub-3940256099942544/9257395921',
-      config: true,
+      nameConfig: 'inter_all',
       onAdLoaded: () {},
       onAdFailedToLoad: () {},
     );
