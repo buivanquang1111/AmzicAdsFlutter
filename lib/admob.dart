@@ -136,6 +136,19 @@ class Admob {
 
   int _timeLastStep = 0;
 
+  //native splash
+  int _timeDelayNativeSplash = 7;
+
+  setTimeDelayNativeSplash(int value) => _timeDelayNativeSplash = value;
+
+  int get timeDelayNativeSplash => _timeDelayNativeSplash;
+
+  bool _isUseNativeSplash = false;
+
+  setUseNativeSplash(bool value) => _isUseNativeSplash = value;
+
+  bool get isUseNativeSplash => _isUseNativeSplash;
+
   Future<void> startShowNativeAfterInter({
     required BuildContext context,
     required String adsKey,
@@ -445,25 +458,19 @@ class Admob {
           );
 
           handleTimeOut();
-          logEventSplashToStep(nameEvent: 'splash_start_await_7s');
-          print('admob_ads --- start await 7s splash');
+
           if (!isNextTimeout) {
-            /// await check 7s show ads splash
-            await Future.delayed(const Duration(seconds: 7), () {
-              print('admob_ads --- 7s await splash DONE');
-              logEventSplashToStep(nameEvent: 'splash_done_await_7s');
-              initAndShowAdSplash(
-                navigatorKey: navigatorKey,
-                idAdsAppOpen: CallApi.instance.getFirstIDByName(nameIdAdsAppOpenSplash),
-                idAdsInter: CallApi.instance.getFirstIDByName(nameIdAdsInterSplash),
-                adsKeyNativeAfterInter: nameIdNativeAfterInter,
-                configAppOpen: RemoteConfig.getBool(nameConfigAppOpenSplash),
-                configInter: RemoteConfig.getBool(nameConfigInterSplash),
-                remoteKeyNativeAfterInter: nameConfigNativeAfterInter,
-                rateAoa: RemoteConfig.getString(nameRateAoa),
-                onNext: onNext,
-              );
-            });
+            initAndShowAdSplash(
+              navigatorKey: navigatorKey,
+              idAdsAppOpen: CallApi.instance.getFirstIDByName(nameIdAdsAppOpenSplash),
+              idAdsInter: CallApi.instance.getFirstIDByName(nameIdAdsInterSplash),
+              adsKeyNativeAfterInter: nameIdNativeAfterInter,
+              configAppOpen: RemoteConfig.getBool(nameConfigAppOpenSplash),
+              configInter: RemoteConfig.getBool(nameConfigInterSplash),
+              remoteKeyNativeAfterInter: nameConfigNativeAfterInter,
+              rateAoa: RemoteConfig.getString(nameRateAoa),
+              onNext: onNext,
+            );
           }
         } else {
           handleTimeOut();
