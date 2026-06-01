@@ -14,6 +14,7 @@ class CollapsibleNativeAds extends StatefulWidget {
   final String idAds;
   final bool config;
   final String factoryId;
+  final String smallFactoryId;
   final Widget? shimmer;
   final double bigHeight;
   final double smallHeight;
@@ -23,12 +24,14 @@ class CollapsibleNativeAds extends StatefulWidget {
   final Function()? onAdClicked;
   final int refreshSec;
   final String name;
+  final bool isAlwaysShowCollapse; //check có cho reload sổ collapse lên
 
   const CollapsibleNativeAds({
     super.key,
     required this.idAds,
     required this.config,
     required this.factoryId,
+    required this.smallFactoryId,
     required this.refreshSec,
     required this.name,
     this.bigHeight = 268,
@@ -38,6 +41,7 @@ class CollapsibleNativeAds extends StatefulWidget {
     this.onAdFailedToLoad,
     this.onAdImpression,
     this.onAdClicked,
+    this.isAlwaysShowCollapse = false,
   });
 
   @override
@@ -49,6 +53,7 @@ class _CollapsibleNativeAdsState extends State<CollapsibleNativeAds> with Widget
   bool _isLoading = false;
   bool _isExpanded = true;
   bool _shouldHide = false;
+  bool _isCurrentAdLoadedAsBig = true; //kiểm tra quảng cáo đang hiển thị là dạng to hay nhỏ
 
   Timer? _timerRefresh;
 
@@ -140,6 +145,9 @@ class _CollapsibleNativeAdsState extends State<CollapsibleNativeAds> with Widget
   }
 
   Widget _buildAdContent(double currentHeight) {
+    double renderHeight = widget.isAlwaysShowCollapse
+        ? widget.bigHeight
+        : (_isCurrentAdLoadedAsBig ? widget.bigHeight : widget.smallHeight);
     return Stack(
       alignment: Alignment.topRight,
       children: [
@@ -154,10 +162,10 @@ class _CollapsibleNativeAdsState extends State<CollapsibleNativeAds> with Widget
             ],
           ),
           child: OverflowBox(
-            minHeight: widget.bigHeight,
-            maxHeight: widget.bigHeight,
+            minHeight: renderHeight,
+            maxHeight: renderHeight,
             alignment: Alignment.bottomCenter,
-            child: AdWidget(ad: _nativeAd!),
+            child: AdWidget(key: ValueKey('${widget.name}_${_nativeAd.hashCode}'), ad: _nativeAd!),
           ),
         ),
         Positioned(
@@ -259,9 +267,13 @@ class _CollapsibleNativeAdsState extends State<CollapsibleNativeAds> with Widget
     EventLog.logEvent('${widget.name}_request');
     EventLog.logEvent('${widget.name}_request_first');
 
+    String currentFactoryId = widget.isAlwaysShowCollapse
+        ? widget.factoryId
+        : (_isExpanded ? widget.factoryId : widget.smallFactoryId);
+
     _nativeAd = NativeAd(
       adUnitId: widget.idAds,
-      factoryId: widget.factoryId,
+      factoryId: currentFactoryId,
       listener: NativeAdListener(
         onAdLoaded: (ad) {
           print('admob_ads --- collapsible_native: ${widget.name} onAdLoaded');
@@ -270,6 +282,9 @@ class _CollapsibleNativeAdsState extends State<CollapsibleNativeAds> with Widget
             _removeOverlay();
             setState(() {
               _isLoading = false;
+              if (!widget.isAlwaysShowCollapse) {
+                _isCurrentAdLoadedAsBig = _isExpanded;
+              }
             });
             _showOverlay();
           }
@@ -365,9 +380,14 @@ class _CollapsibleNativeAdsState extends State<CollapsibleNativeAds> with Widget
     late NativeAd tempAd;
 
     EventLog.logEvent('${widget.name}_request');
+
+    String currentFactoryId = widget.isAlwaysShowCollapse
+        ? widget.factoryId
+        : (_isExpanded ? widget.factoryId : widget.smallFactoryId);
+
     tempAd = NativeAd(
       adUnitId: widget.idAds,
-      factoryId: widget.factoryId,
+      factoryId: currentFactoryId,
       listener: NativeAdListener(
         onAdLoaded: (ad) {
           final oldAd = _nativeAd;
@@ -381,9 +401,14 @@ class _CollapsibleNativeAdsState extends State<CollapsibleNativeAds> with Widget
             WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
               setState(() {
                 _nativeAd = newAd;
-                _isExpanded = true;
                 _isLoading = false;
                 _shouldHide = false;
+
+                if (widget.isAlwaysShowCollapse) {
+                  _isExpanded = true;
+                }else{
+                  _isCurrentAdLoadedAsBig = _isExpanded;
+                }
               });
               _showOverlay();
             });

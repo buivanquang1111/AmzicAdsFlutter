@@ -30,6 +30,12 @@ class MainActivity : FlutterActivity() {
 
         GoogleMobileAdsPlugin.registerNativeAdFactory(
             flutterEngine,
+            "native_small_above",
+            NativeSmallAboveFactoryExample(layoutInflater)
+        )
+
+        GoogleMobileAdsPlugin.registerNativeAdFactory(
+            flutterEngine,
             "native_after_inter",
             NativeAfterInterAd(layoutInflater, nativeChannel)
         )
@@ -37,6 +43,7 @@ class MainActivity : FlutterActivity() {
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "native_ad")
+        GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "native_small_above")
 
     }
 }
@@ -122,6 +129,59 @@ class NativeAdFactoryExample : NativeAdFactory {
 //            (adView.advertiserView as TextView).text = nativeAd.advertiser
 //        }
 
+        // This method tells the Google Mobile Ads SDK that you have finished populating your
+        // native ad view with this native ad.
+        if (nativeAd != null) {
+            adView.setNativeAd(nativeAd)
+        }
+
+        return adView
+    }
+}
+
+class NativeSmallAboveFactoryExample : NativeAdFactory {
+    private var layoutInflater: LayoutInflater
+
+    constructor(layoutInflater: LayoutInflater) {
+        this.layoutInflater = layoutInflater
+    }
+
+    override fun createNativeAd(
+        nativeAd: NativeAd?,
+        customOptions: MutableMap<String, Any>?
+    ): NativeAdView {
+        val adView = layoutInflater.inflate(R.layout.native_small_above, null) as NativeAdView
+        // Set other ad assets.
+        adView.headlineView = adView.findViewById(R.id.ad_headline)
+        adView.bodyView = adView.findViewById(R.id.ad_body)
+        adView.callToActionView = adView.findViewById(R.id.ad_call_to_action)
+        adView.iconView = adView.findViewById(R.id.ad_app_icon)
+
+        // The headline and mediaContent are guaranteed to be in every NativeAd.
+        (adView.headlineView as TextView).text = nativeAd?.headline
+
+        // These assets aren't guaranteed to be in every NativeAd, so it's important to
+        // check before trying to display them.
+        if (nativeAd?.body == null) {
+            adView.bodyView?.visibility = View.INVISIBLE
+        } else {
+            adView.bodyView?.visibility = View.VISIBLE
+            (adView.bodyView as TextView).text = nativeAd.body
+        }
+
+        if (nativeAd?.callToAction == null) {
+            adView.callToActionView?.visibility = View.INVISIBLE
+        } else {
+            adView.callToActionView?.visibility = View.VISIBLE
+            (adView.callToActionView as Button).text = nativeAd.callToAction
+        }
+
+        if (nativeAd?.icon == null) {
+            adView.iconView?.visibility = View.GONE
+        } else {
+            (adView.iconView as ImageView).setImageDrawable(nativeAd.icon!!.drawable)
+            adView.iconView?.visibility = View.VISIBLE
+        }
         // This method tells the Google Mobile Ads SDK that you have finished populating your
         // native ad view with this native ad.
         if (nativeAd != null) {

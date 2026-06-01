@@ -48,6 +48,7 @@ class _DetailScreenState extends State<DetailScreen> {
             idAds: 'ca-app-pub-3940256099942544/2247696110',
             config: true,
             factoryId: 'native_ad',
+            smallFactoryId: 'native_small_above',
             refreshSec: 5,
             name: 'native_all_detail',
           ),
