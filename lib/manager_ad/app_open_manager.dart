@@ -468,6 +468,7 @@ class AppOpenManager {
       );
     } else {
       print('admob_ads --- App Open Ad Preload - loadAndShow: NOT HAVE DATA -> Loand And Show Ads');
+      var isAdResumeFinished = false;
       var isNetwork = await Admob.instance.isNetworkActive();
       if (config == false ||
           ConsentManager.instance.canRequestAds == false ||
@@ -489,7 +490,8 @@ class AppOpenManager {
       final adsPlatform = AmazicAdsFlutterPlatform.instance;
       adsPlatform.onAdLoaded = (id) {
         print('admob_ads --- App Open Ad Preload - loadAndShow: onAdLoaded');
-        if (isFirstLoadAd) {
+        if (isFirstLoadAd && !isAdResumeFinished) {
+          isAdResumeFinished = true;
           isFirstLoadAd = false;
           onAdLoaded?.call();
           showAppOpenAdPreload(
@@ -528,6 +530,7 @@ class AppOpenManager {
         }
       };
       adsPlatform.onAdFailedToLoad = (id, error) {
+        isAdResumeFinished = true;
         print('admob_ads --- App Open Ad Preload - loadAndShow: onAdFailedToLoad');
         if (navigatorKey.currentContext != null) {
           closeLoadingDialog(context: navigatorKey.currentContext!);
