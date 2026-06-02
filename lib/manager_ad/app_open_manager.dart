@@ -529,6 +529,10 @@ class AppOpenManager {
       };
       adsPlatform.onAdFailedToLoad = (id, error) {
         print('admob_ads --- App Open Ad Preload - loadAndShow: onAdFailedToLoad');
+        if (navigatorKey.currentContext != null) {
+          closeLoadingDialog(context: navigatorKey.currentContext!);
+        }
+        Admob.instance.setFullScreenAdShowing(false);
         onAdFailedToLoad?.call();
         onNext();
       };
