@@ -541,6 +541,7 @@ class AppOpenManager {
       };
 
       adsPlatform.loadAppOpenAdPreload(idAds, Admob.instance.numberPreload);
+      print('admob_ads --- App Open Ad Preload - loadAndShow: start loadAppOpenAdPreload');
     }
   }
 
