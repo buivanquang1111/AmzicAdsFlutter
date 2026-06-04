@@ -499,10 +499,10 @@ class AppOpenManager {
         showLoadingDialog(context: navigatorKey.currentContext!);
       }
 
-      // Thiết lập Timeout 20 giây
-      Timer(const Duration(seconds: 20), () {
+      // Thiết lập Timeout 12 giây
+      Timer(const Duration(seconds: 12), () {
         if (!isActionFinished) {
-          print('admob_ads --- App Open Ad Preload: TIMEOUT 20s -> Skip to onNext');
+          print('admob_ads --- App Open Ad Preload: TIMEOUT 12s -> Skip to onNext');
           EventLog.logEvent('${name}_load_timeout');
           finishAction(onNext);
         }
