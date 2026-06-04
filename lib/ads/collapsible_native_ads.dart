@@ -107,24 +107,31 @@ class _CollapsibleNativeAdsState extends State<CollapsibleNativeAds> with Widget
     _overlayEntry = OverlayEntry(
       builder: (context) {
         double targetHeight = _isExpanded ? widget.bigHeight : widget.smallHeight;
-        return TweenAnimationBuilder(
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.fastOutSlowIn,
-          tween: Tween<double>(end: targetHeight),
-          builder: (context, animHeight, child) {
-            // Tính toán offset dựa trên chiều cao đang chạy animation
-            // Khi animHeight tăng, offsetY sẽ âm nhiều hơn -> Đẩy ad vươn lên trên
-            double offsetY = widget.smallHeight - animHeight;
+        return ValueListenableBuilder<bool>(
+          valueListenable: Admob.instance.isShowDialogLoadingAds,
+          builder: (context, value, child) {
+            if (value) return const SizedBox.shrink();
 
-            return Positioned(
-              width: MediaQuery.of(context).size.width,
-              child: CompositedTransformFollower(
-                link: _layerLink,
-                showWhenUnlinked: false,
-                // Đẩy quảng cáo lên trên sao cho đáy của nó dính vào đáy của Widget mục tiêu
-                offset: Offset(0, offsetY),
-                child: Material(color: Colors.transparent, child: _buildAdContent(animHeight)),
-              ),
+            return TweenAnimationBuilder(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.fastOutSlowIn,
+              tween: Tween<double>(end: targetHeight),
+              builder: (context, animHeight, child) {
+                // Tính toán offset dựa trên chiều cao đang chạy animation
+                // Khi animHeight tăng, offsetY sẽ âm nhiều hơn -> Đẩy ad vươn lên trên
+                double offsetY = widget.smallHeight - animHeight;
+
+                return Positioned(
+                  width: MediaQuery.of(context).size.width,
+                  child: CompositedTransformFollower(
+                    link: _layerLink,
+                    showWhenUnlinked: false,
+                    // Đẩy quảng cáo lên trên sao cho đáy của nó dính vào đáy của Widget mục tiêu
+                    offset: Offset(0, offsetY),
+                    child: Material(color: Colors.transparent, child: _buildAdContent(animHeight)),
+                  ),
+                );
+              },
             );
           },
         );
@@ -406,7 +413,7 @@ class _CollapsibleNativeAdsState extends State<CollapsibleNativeAds> with Widget
 
                 if (widget.isAlwaysShowCollapse) {
                   _isExpanded = true;
-                }else{
+                } else {
                   _isCurrentAdLoadedAsBig = _isExpanded;
                 }
               });

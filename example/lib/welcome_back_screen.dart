@@ -15,25 +15,26 @@ class WelcomeBackScreen extends StatelessWidget {
           Builder(
             builder: (context) => GestureDetector(
               onTap: () {
-                Admob.instance.appLifecycleReactor?.loadAndShowAppOpenAds(
-                  name: 'app_open_welcome',
-                  onAdDisable: () {
-                    Admob.instance.appLifecycleReactor?.onReloadCollapseBanner?.call();
-                    Navigator.pop(context);
-                  },
-                  onAdFailedToLoad: () {
-                    Admob.instance.appLifecycleReactor?.onReloadCollapseBanner?.call();
-                    Navigator.pop(context);
-                  },
-                  onAdFailedToShow: () {
-                    Admob.instance.appLifecycleReactor?.onReloadCollapseBanner?.call();
-                    Navigator.pop(context);
-                  },
-                  onAdDismiss: () {
-                    Admob.instance.appLifecycleReactor?.onReloadCollapseBanner?.call();
-                    Navigator.pop(context);
-                  },
-                );
+                // Admob.instance.appLifecycleReactor?.loadAndShowAppOpenAds(
+                //   name: 'app_open_welcome',
+                //   onAdDisable: () {
+                //     Admob.instance.appLifecycleReactor?.onReloadCollapseBanner?.call();
+                //     Navigator.pop(context);
+                //   },
+                //   onAdFailedToLoad: () {
+                //     Admob.instance.appLifecycleReactor?.onReloadCollapseBanner?.call();
+                //     Navigator.pop(context);
+                //   },
+                //   onAdFailedToShow: () {
+                //     Admob.instance.appLifecycleReactor?.onReloadCollapseBanner?.call();
+                //     Navigator.pop(context);
+                //   },
+                //   onAdDismiss: () {
+                //     Admob.instance.appLifecycleReactor?.onReloadCollapseBanner?.call();
+                //     Navigator.pop(context);
+                //   },
+                // );
+                Navigator.pop(context);
               },
               child: Center(
                 child: Container(

@@ -55,6 +55,15 @@ class Admob {
   bool isTimeoutSplash = false;
   final timeoutSplashCompleter = Completer<void>();
 
+  ///check when show dialog loading hide ads CollapsibleNative
+  final ValueNotifier<bool> isShowDialogLoadingAds = ValueNotifier<bool>(false);
+  void showLoading(){
+    isShowDialogLoadingAds.value = true;
+  }
+  void hideLoading(){
+    isShowDialogLoadingAds.value = false;
+  }
+
   void handleTimeOut() {
     if (!isTimeoutSplash) {
       isTimeoutSplash = true;

@@ -1,3 +1,4 @@
+import 'package:amazic_ads_flutter/admob.dart';
 import 'package:amazic_ads_flutter/dialog/loading_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -7,6 +8,7 @@ bool _isDialogShow = false;
 showLoadingDialog({required BuildContext context}) {
   print('admob_ads --- showLoadingDialog');
   _isDialogShow = true;
+  Admob.instance.showLoading();
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -21,6 +23,7 @@ closeLoadingDialog({required BuildContext context}) {
     print('admob_ads --- closeLoadingDialog');
     Navigator.of(context, rootNavigator: true).pop();
     _isDialogShow = false;
+    Admob.instance.hideLoading();
   }
 }
 
