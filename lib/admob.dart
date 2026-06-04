@@ -178,7 +178,7 @@ class Admob {
     required String remoteKey,
     String? factoryId,
   }) async {
-    print('preload_native --- load id - ${CallApi.instance.getFirstIDByName(adsKey)}');
+    print('admob_ads --- preload_native: load $adsKey id - ${CallApi.instance.getFirstIDByName(adsKey)}');
     NativeAdManager().preloadAd(
       adUnitId: CallApi.instance.getFirstIDByName(adsKey),
       config: RemoteConfig.getBool(remoteKey),
@@ -824,6 +824,10 @@ class Admob {
           onAdFailedToLoad: (error) {
             logEventSplashToStep(nameEvent: 'splash_ad_failload', moreParams: {'error': error});
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
+
+            print('admob_ads --- Inter Ad Preload Splash: 1.splash_ad_failload --- isUseNativeAfterInter = $isUseNativeAfterInter, context = ${navigatorKey.currentContext != null},'
+                ' adsKeyNativeAfterInter = $adsKeyNativeAfterInter, remoteKeyNativeAfterInter = $remoteKeyNativeAfterInter, containsKey = ${NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)},'
+                'adsCache = ${NativeAdManager().adsCache[adsKeyNativeAfterInter] != null}');
             if (isUseNativeAfterInter &&
                 navigatorKey.currentContext != null &&
                 adsKeyNativeAfterInter != null &&
@@ -831,8 +835,7 @@ class Admob {
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter) &&
                 NativeAdManager().adsCache[adsKeyNativeAfterInter] != null) {
               if (RemoteConfig.getBool(remoteKeyNativeAfterInter) ||
-                  NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink ==
-                      false) {
+                  NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false) {
                 startShowNativeAfterInter(
                   context: navigatorKey.currentContext!,
                   adsKey: adsKeyNativeAfterInter,
@@ -840,9 +843,11 @@ class Admob {
                   onClose: onNext,
                 );
               } else {
+                print('admob_ads --- Inter Ad Preload Splash: 2.splash_ad_failload --- remote = ${RemoteConfig.getBool(remoteKeyNativeAfterInter)}, sink = ${NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false}');
                 onNext();
               }
             } else {
+              print('admob_ads --- Inter Ad Preload Splash: 3.splash_ad_failload');
               onNext();
             }
           },

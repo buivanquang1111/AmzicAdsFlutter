@@ -49,9 +49,9 @@ class NativeAdManager {
     Function()? onAdLoaded,
     Function(String)? onAdFailed,
   }) async {
-    print('preload_native --- start load $nameIdAds');
+    print('admob_ads --- preload_native: start load $nameIdAds');
     if (!await canShowAds(config: config)) {
-      print('preload_native --- canShowAds = false => not preload ads $nameIdAds');
+      print('admob_ads --- preload_native: canShowAds = false => not preload ads $nameIdAds');
       return;
     }
 
@@ -64,13 +64,13 @@ class NativeAdManager {
       request: const AdRequest(),
       listener: NativeAdListener(
         onAdLoaded: (ad) {
-          print('preload_native --- load xong $nameIdAds');
+          print('admob_ads --- preload_native: load xong $nameIdAds');
           adsCache[nameIdAds] = ad as NativeAd;
           getLoadingSink(nameIdAds).add(false); // Báo loading kết thúc
           onAdLoaded?.call();
         },
         onAdFailedToLoad: (ad, error) {
-          print('preload_native --- load false $nameIdAds');
+          print('admob_ads --- preload_native: load false $nameIdAds, error: ${error.message}');
           adsCache[nameIdAds] = null;
           getLoadingSink(nameIdAds).add(false); // Báo loading kết thúc (dù lỗi)
           onAdFailed?.call(error.message);
@@ -112,17 +112,17 @@ class NativeAdManager {
     Function()? onAdLoaded,
     Function(String)? onAdFailed,
   }) {
-    print('preload_native --- start show $nameIdAds');
+    print('admob_ads --- preload_native: start show $nameIdAds');
 
     if (!loadingStateControllers.containsKey(nameIdAds)) {
-      print('preload_native --- Error: $nameIdAds không tồn tại, config = $config');
+      print('admob_ads --- preload_native: Error: $nameIdAds không tồn tại, config = $config');
       return placeholder ?? const SizedBox.shrink();
     }
     return FutureBuilder<bool>(
       future: canShowAds(config: config),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          print('preload_native --- await canShowAds $nameIdAds chua xong');
+          print('admob_ads --- preload_native: await canShowAds $nameIdAds chua xong');
           return placeholder ?? const SizedBox.shrink();
         } else if (snapshot.hasData && snapshot.data == true) {
           return StreamBuilder<bool>(
@@ -130,7 +130,7 @@ class NativeAdManager {
             initialData: !isAdReady(nameIdAds),
             builder: (context, snapshot) {
               if (snapshot.hasData && snapshot.data == true ) {
-                print('preload_native --- shimmer $nameIdAds');
+                print('admob_ads --- preload_native: shimmer $nameIdAds');
                 // Đang loading -> Hiển thị loading indicator
                 return shimmer ?? ShimmerNativeAds(height: height);
               } else {
@@ -138,7 +138,7 @@ class NativeAdManager {
                 final ad = adsCache[nameIdAds];
                 if (ad != null) {
                   print(
-                    'preload_native --- show ads $nameIdAds}',
+                    'admob_ads --- preload_native: show ads $nameIdAds}',
                   );
                   //start Timer
                   // _schedulePreload(
@@ -158,7 +158,7 @@ class NativeAdManager {
                     child: AdWidget(ad: ad),
                   );
                 } else {
-                  print('preload_native --- not show $nameIdAds');
+                  print('admob_ads --- preload_native: not show $nameIdAds');
                   //start Timer
                   // _schedulePreload(
                   //   adUnitId,
@@ -178,7 +178,7 @@ class NativeAdManager {
           );
         } else {
           print(
-            'preload_native --- $nameIdAds - canShowAds: config = $config,  ump = ${ConsentManager.instance.canRequestAds}, isShowAllAds = ${Admob.instance.isShowAllAds}, ',
+            'admob_ads --- preload_native: $nameIdAds - canShowAds: config = $config,  ump = ${ConsentManager.instance.canRequestAds}, isShowAllAds = ${Admob.instance.isShowAllAds}, ',
           );
           return const SizedBox.shrink();
         }

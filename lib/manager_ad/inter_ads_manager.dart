@@ -30,6 +30,8 @@ class InterAdsManager {
 
   bool isTimeDelayNativeSplash = false;
 
+  bool isLoadFailInter = false; // check load fail inter splash
+
   ///inter splash
   Future<void> loadAndShowInterSplash({
     required GlobalKey<NavigatorState> navigatorKey,
@@ -43,6 +45,9 @@ class InterAdsManager {
     Function(String)? onAdFailedToShow,
     Function()? onAdDismiss,
   }) async {
+    isLoadFailInter = false;
+    var mesErrorLoadFail = '';
+
     ///timeout check 12s
     bool adHasShown = false;
     final timeoutCompleter = Completer<void>(); //kiểm soát timeout 12s
@@ -90,6 +95,10 @@ class InterAdsManager {
           onAdClicked: onAdClicked,
           onAdFailedToShow: onAdFailedToShow,
           onAdDismiss: onAdDismiss,
+          onAdFailLoad: () {
+            print('admob_ads --- Inter Ad Preload Splash: FailToLoad => onNext');
+            onAdFailedToLoad?.call(mesErrorLoadFail);
+          },
         );
       });
     } else {
@@ -111,7 +120,7 @@ class InterAdsManager {
       return;
     }
     print('admob_ads --- inter_ads_splash: start request');
-    if (navigatorKey.currentContext != null) {
+    if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
       showLoadingDialog(context: navigatorKey.currentContext!);
     }
 
@@ -159,14 +168,18 @@ class InterAdsManager {
           );
         },
         onAdFailedToLoad: (error) {
+          isLoadFailInter = true;
+          mesErrorLoadFail = error.message;
           print('admob_ads --- inter_ads_splash: onAdFailedToLoad ${error.message}');
           EventLog.logEvent('inter_splash_fail', parameters: {'error': error.message});
           Admob.instance.setFullScreenAdShowing(false);
-          if (navigatorKey.currentContext != null) {
+          if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
             closeLoadingDialog(context: navigatorKey.currentContext!);
           }
           handleAdsShown();
-          onAdFailedToLoad?.call(error.message);
+          if (!Admob.instance.isUseNativeSplash) {
+            onAdFailedToLoad?.call(error.message);
+          }
         },
       ),
     );
@@ -184,19 +197,26 @@ class InterAdsManager {
     required Function()? onAdClicked,
     required Function(String)? onAdFailedToShow,
     required Function()? onAdDismiss,
+    Function()? onAdFailLoad,
   }) {
-    if (isTimeDelayNativeSplash && !isNextTimeoutAd) {
-      // Tính tổng thời gian đã chờ
-      double totalWait = DateTime.now().difference(startTime).inMilliseconds / 1000.0;
-      print("admob_ads --- ===> TỔNG THỜI GIAN CHỜ: $totalWait giây");
+    if (isLoadFailInter) {
+      if(onAdFailLoad != null){
+        onAdFailLoad();
+      }
+    } else {
+      if (isTimeDelayNativeSplash && !isNextTimeoutAd) {
+        // Tính tổng thời gian đã chờ
+        double totalWait = DateTime.now().difference(startTime).inMilliseconds / 1000.0;
+        print("admob_ads --- ===> TỔNG THỜI GIAN CHỜ: $totalWait giây");
 
-      showInterAdsSplash(
-        navigatorKey: navigatorKey,
-        onAdImpression: onAdImpression,
-        onAdClicked: onAdClicked,
-        onAdFailedToShow: onAdFailedToShow,
-        onAdDismiss: onAdDismiss,
-      );
+        showInterAdsSplash(
+          navigatorKey: navigatorKey,
+          onAdImpression: onAdImpression,
+          onAdClicked: onAdClicked,
+          onAdFailedToShow: onAdFailedToShow,
+          onAdDismiss: onAdDismiss,
+        );
+      }
     }
   }
 
@@ -213,7 +233,7 @@ class InterAdsManager {
         'inter_splash_show_fail',
         parameters: {"error": "mInterstitialAdSplash_null"},
       );
-      if (navigatorKey.currentContext != null) {
+      if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
       Admob.instance.setFullScreenAdShowing(false);
@@ -235,7 +255,7 @@ class InterAdsManager {
       onAdFailedToShowFullScreenContent: (ad, error) {
         print('admob_ads --- inter_ads_splash: onAdFailedToShowFullScreenContent $error');
         EventLog.logEvent('inter_splash_fail', parameters: {'error': error.message});
-        if (navigatorKey.currentContext != null) {
+        if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
           closeLoadingDialog(context: navigatorKey.currentContext!);
         }
         Admob.instance.setFullScreenAdShowing(false);
@@ -244,7 +264,7 @@ class InterAdsManager {
       },
       onAdDismissedFullScreenContent: (ad) {
         print('admob_ads --- inter_ads_splash: onAdDismissedFullScreenContent');
-        if (navigatorKey.currentContext != null) {
+        if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
           closeLoadingDialog(context: navigatorKey.currentContext!);
         }
         Admob.instance.setFullScreenAdShowing(false);
@@ -627,6 +647,9 @@ class InterAdsManager {
     Function()? onAdDismiss,
   }) async {
     isAdSplashFinished = false;
+    isLoadFailInter = false;
+
+    var mesErrorLoadFail = '';
 
     ///timeout check 12s
     bool adHasShown = false;
@@ -675,6 +698,11 @@ class InterAdsManager {
           onAdClicked: onAdClicked,
           onAdFailedToShow: onAdFailedToShow,
           onAdDismiss: onAdDismiss,
+          onAdFailToLoad: () {
+            print('admob_ads --- Inter Ad Preload Splash: FailToLoad => onNext');
+            handleAdsShown();
+            onAdFailedToLoad?.call(mesErrorLoadFail);
+          },
         );
       });
     } else {
@@ -695,7 +723,7 @@ class InterAdsManager {
       onAdDisable?.call();
       return;
     }
-    if (navigatorKey.currentContext != null) {
+    if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
       showLoadingDialog(context: navigatorKey.currentContext!);
     }
 
@@ -730,14 +758,20 @@ class InterAdsManager {
 
     adsPlatform.onAdFailedToLoad = (id, error) {
       isAdSplashFinished = true;
+      isLoadFailInter = true;
+      mesErrorLoadFail = error;
       print('admob_ads --- Inter Ad Preload Splash: onAdFailedToLoad');
-      EventLog.logEvent('inter_splash_fail', parameters: {'error': error});
+      // EventLog.logEvent('inter_splash_fail', parameters: {'error': error});
       Admob.instance.setFullScreenAdShowing(false);
-      if (navigatorKey.currentContext != null) {
+      if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
-      handleAdsShown();
-      onAdFailedToLoad?.call(error);
+
+      if (!Admob.instance.isUseNativeSplash) {
+        handleAdsShown();
+        onAdFailedToLoad?.call(error);
+      }
+
       adsPlatform.destroyInterAdPreload(idAds);
     };
 
@@ -757,21 +791,28 @@ class InterAdsManager {
     required Function()? onAdClicked,
     required Function(String)? onAdFailedToShow,
     required Function()? onAdDismiss,
+    Function()? onAdFailToLoad,
   }) {
-    if (isTimeDelayNativeSplash && !isNextTimeoutAd && !isAdSplashFinished) {
-      // Tính tổng thời gian đã chờ
-      double totalWait = DateTime.now().difference(startTime).inMilliseconds / 1000.0;
-      print("admob_ads --- ===> TỔNG THỜI GIAN CHỜ: $totalWait giây");
+    if (isLoadFailInter) {
+      if (onAdFailToLoad != null) {
+        onAdFailToLoad();
+      }
+    } else {
+      if (isTimeDelayNativeSplash && !isNextTimeoutAd && !isAdSplashFinished) {
+        // Tính tổng thời gian đã chờ
+        double totalWait = DateTime.now().difference(startTime).inMilliseconds / 1000.0;
+        print("admob_ads --- ===> TỔNG THỜI GIAN CHỜ: $totalWait giây");
 
-      isAdSplashFinished = true;
-      showInterSplashAdPreload(
-        navigatorKey: navigatorKey,
-        idAds: idAds,
-        onAdImpression: onAdImpression,
-        onAdClicked: onAdClicked,
-        onAdFailedToShow: onAdFailedToShow,
-        onAdDismiss: onAdDismiss,
-      );
+        isAdSplashFinished = true;
+        showInterSplashAdPreload(
+          navigatorKey: navigatorKey,
+          idAds: idAds,
+          onAdImpression: onAdImpression,
+          onAdClicked: onAdClicked,
+          onAdFailedToShow: onAdFailedToShow,
+          onAdDismiss: onAdDismiss,
+        );
+      }
     }
   }
 
@@ -789,7 +830,7 @@ class InterAdsManager {
     };
     adsPlatform.onAdDismissed = () {
       print('admob_ads --- Inter Ad Preload Splash: onAdDismissed');
-      if (navigatorKey.currentContext != null) {
+      if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
       Admob.instance.setFullScreenAdShowing(false);
@@ -797,7 +838,7 @@ class InterAdsManager {
     };
     adsPlatform.onAdFailedToShow = (id, error) {
       print('admob_ads --- Inter Ad Preload Splash: onAdFailedToShow');
-      if (navigatorKey.currentContext != null) {
+      if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
       Admob.instance.setFullScreenAdShowing(false);
