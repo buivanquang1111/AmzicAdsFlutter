@@ -482,9 +482,31 @@ class AppOpenManager {
         return;
       }
 
+      // --- LOGIC XỬ LÝ TIMEOUT ĐỂ TRÁNH TREO DIALOG ---
+      bool isActionFinished = false; // Cờ đánh dấu đã xử lý xong (để không gọi onNext 2 lần)
+
+      void finishAction(Function()? action) {
+        if (!isActionFinished) {
+          isActionFinished = true;
+          if (navigatorKey.currentContext != null) {
+            closeLoadingDialog(context: navigatorKey.currentContext!);
+          }
+          action?.call();
+        }
+      }
+
       if (navigatorKey.currentContext != null) {
         showLoadingDialog(context: navigatorKey.currentContext!);
       }
+
+      // Thiết lập Timeout 20 giây
+      Timer(const Duration(seconds: 20), () {
+        if (!isActionFinished) {
+          print('admob_ads --- App Open Ad Preload: TIMEOUT 20s -> Skip to onNext');
+          EventLog.logEvent('${name}_load_timeout');
+          finishAction(onNext);
+        }
+      });
 
       bool isFirstLoadAd = true;
       final adsPlatform = AmazicAdsFlutterPlatform.instance;
@@ -509,21 +531,23 @@ class AppOpenManager {
               print(
                 'admob_ads --- App Open Ad Preload - loadAndShow: onAdFailedToShowFullScreenContent',
               );
-              if (navigatorKey.currentContext != null) {
-                closeLoadingDialog(context: navigatorKey.currentContext!);
-              }
+              // if (navigatorKey.currentContext != null) {
+              //   closeLoadingDialog(context: navigatorKey.currentContext!);
+              // }
               Admob.instance.setFullScreenAdShowing(false);
-              onAdFailedToShow?.call();
+              // onAdFailedToShow?.call();
+              finishAction(onAdFailedToShow);
             },
             onAdDismiss: () {
               print(
                 'admob_ads --- App Open Ad Preload - loadAndShow: onAdDismissedFullScreenContent',
               );
-              if (navigatorKey.currentContext != null) {
-                closeLoadingDialog(context: navigatorKey.currentContext!);
-              }
+              // if (navigatorKey.currentContext != null) {
+              //   closeLoadingDialog(context: navigatorKey.currentContext!);
+              // }
               Admob.instance.setFullScreenAdShowing(false);
-              onAdDismiss?.call();
+              // onAdDismiss?.call();
+              finishAction(onAdDismiss);
             },
             isShowLoading: false,
           );
@@ -532,11 +556,12 @@ class AppOpenManager {
       adsPlatform.onAdFailedToLoad = (id, error) {
         isAdResumeFinished = true;
         print('admob_ads --- App Open Ad Preload - loadAndShow: onAdFailedToLoad');
-        if (navigatorKey.currentContext != null) {
-          closeLoadingDialog(context: navigatorKey.currentContext!);
-        }
+        // if (navigatorKey.currentContext != null) {
+        //   closeLoadingDialog(context: navigatorKey.currentContext!);
+        // }
         Admob.instance.setFullScreenAdShowing(false);
-        onAdFailedToLoad?.call();
+        // onAdFailedToLoad?.call();
+        finishAction(onAdFailedToLoad);
         onNext();
       };
 
