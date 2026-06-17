@@ -128,10 +128,10 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
       EventLog.logEvent(
         '${widget.name}_not_request',
         parameters: {
-          'config': widget.config,
-          'ump': ConsentManager.instance.canRequestAds,
-          'isShowAllAds': Admob.instance.isShowAllAds,
-          'isNetwork': isNetwork == true,
+          'config': '${widget.config}',
+          'ump': '${ConsentManager.instance.canRequestAds}',
+          'isShowAllAds': '${Admob.instance.isShowAllAds}',
+          'isNetwork': '${isNetwork == true}',
         },
       );
       if (mounted) {
@@ -250,7 +250,7 @@ class _NativeAdsState extends State<NativeAds> with WidgetsBindingObserver {
           'config': widget.config,
           'ump': ConsentManager.instance.canRequestAds,
           'isShowAllAds': Admob.instance.isShowAllAds,
-          'isNetwork': isNetwork == true,
+          'isNetwork': '${isNetwork == true}',
         },
       );
       return;

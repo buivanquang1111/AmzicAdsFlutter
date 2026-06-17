@@ -172,7 +172,7 @@ class AdHelper {
     }
 
     Random random = Random();
-    int randomNumber = random.nextInt(100);
+    int randomNumber = random.nextInt(100)+1;
 
     return randomNumber <= appOpenRate;
   }

@@ -158,7 +158,7 @@ class CollapseBannerAdsState extends State<CollapseBannerAds> with WidgetsBindin
           'config': widget.config,
           'ump': ConsentManager.instance.canRequestAds,
           'isShowAllAds': Admob.instance.isShowAllAds,
-          'isNetwork': isNetwork == true,
+          'isNetwork': '${isNetwork == true}',
         },
       );
       setState(() {

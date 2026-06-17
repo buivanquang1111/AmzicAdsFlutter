@@ -251,7 +251,7 @@ class _CollapsibleNativeAdsState extends State<CollapsibleNativeAds> with Widget
           'config': widget.config,
           'ump': ConsentManager.instance.canRequestAds,
           'isShowAllAds': Admob.instance.isShowAllAds,
-          'isNetwork': isNetwork == true,
+          'isNetwork': '${isNetwork == true}',
         },
       );
       if (mounted) {
@@ -379,7 +379,7 @@ class _CollapsibleNativeAdsState extends State<CollapsibleNativeAds> with Widget
           'config': widget.config,
           'ump': ConsentManager.instance.canRequestAds,
           'isShowAllAds': Admob.instance.isShowAllAds,
-          'isNetwork': isNetwork == true,
+          'isNetwork': '${isNetwork == true}',
         },
       );
       return;

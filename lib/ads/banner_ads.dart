@@ -126,7 +126,7 @@ class _BannerAdsState extends State<BannerAds> with WidgetsBindingObserver {
           'config': widget.config,
           'ump': ConsentManager.instance.canRequestAds,
           'isShowAllAds': Admob.instance.isShowAllAds,
-          'isNetwork': isNetwork == true,
+          'isNetwork': '${isNetwork == true}',
         },
       );
       setState(() {
