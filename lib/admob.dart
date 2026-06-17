@@ -57,10 +57,12 @@ class Admob {
 
   ///check when show dialog loading hide ads CollapsibleNative
   final ValueNotifier<bool> isShowDialogLoadingAds = ValueNotifier<bool>(false);
-  void showLoading(){
+
+  void showLoading() {
     isShowDialogLoadingAds.value = true;
   }
-  void hideLoading(){
+
+  void hideLoading() {
     isShowDialogLoadingAds.value = false;
   }
 
@@ -178,7 +180,9 @@ class Admob {
     required String remoteKey,
     String? factoryId,
   }) async {
-    print('admob_ads --- preload_native: load $adsKey id - ${CallApi.instance.getFirstIDByName(adsKey)}');
+    print(
+      'admob_ads --- preload_native: load $adsKey id - ${CallApi.instance.getFirstIDByName(adsKey)}',
+    );
     NativeAdManager().preloadAd(
       adUnitId: CallApi.instance.getFirstIDByName(adsKey),
       config: RemoteConfig.getBool(remoteKey),
@@ -219,16 +223,25 @@ class Admob {
     _timeLastStep = DateTime.now().second;
 
     ///logevent internet
-    if (await isNetworkActive() == true) {
-      EventLog.logEvent('splash_open_have_internet');
-    }
+    // if (await isNetworkActive() == true) {
+    //   EventLog.logEvent('splash_open_have_internet');
+    // }
 
     ///set json id default
     setJsonIdAdsDefault(jsonIdAdsDefault);
 
     ///init Preferences
-    await PreferencesUtil.init();
-    PreferencesUtil.increaseCountOpenApp();
+    // await PreferencesUtil.init();
+    // PreferencesUtil.increaseCountOpenApp();
+
+    await Future.wait([
+      isNetworkActive().then((hasNet) {
+        if (hasNet == true) EventLog.logEvent('splash_open_have_internet');
+      }),
+      PreferencesUtil.init().then((value) {
+        PreferencesUtil.increaseCountOpenApp();
+      },)
+    ]);
 
     ///set event adjust
     if (eventAdjustTracking != null) {
@@ -307,6 +320,7 @@ class Admob {
         print('admob_ads --- Timeout Splash 12s');
         EventLog.logEvent('timeout_splash_12s');
         timeoutSplashCompleter.complete();
+        isTimeoutSplash = true;
         isNextTimeout = true;
         onNext();
         print('admob_ads --- onNext Timeout Splash 12s');
@@ -324,8 +338,6 @@ class Admob {
     } else {
       print('admob_ads --- 🎉 Tất cả task đã hoàn thành trong vòng <= 12 giây');
     }
-
-    // runConcurrentTasksWithDependency();
   }
 
   Future<void> logEventSplashToStep({
@@ -343,65 +355,6 @@ class Admob {
     print('admob_ads --- $nameEvent - parameters = $fullParams');
     _timeLastStep = DateTime.now().second;
   }
-
-  ///test call dong thoi
-  // Future<void> runConcurrentTasksWithDependency() async {
-  //   final Completer<void> remoteDoneCompleter = Completer<void>();
-  //
-  //   late Future<void> imageTask;
-  //   late Future<void> remoteTask;
-  //   late Future<void> otherTask;
-  //
-  //   imageTask = fetchImageData(remoteDoneCompleter.future); // truyền Future
-  //   remoteTask = fetchRemote().then((_) {
-  //     print('✅ [FIREBASE_REMOTE] Done');
-  //     remoteDoneCompleter.complete(); // thông báo là đã xong
-  //   });
-  //   otherTask = fetchOtherApi();
-  //
-  //   // Chạy đồng thời cả 3 task
-  //   final tasks = {'API_IMAGE': imageTask, 'FIREBASE_REMOTE': remoteTask, 'API_OTHER': otherTask};
-  //
-  //   final taskCompleted = {'API_IMAGE': false, 'FIREBASE_REMOTE': false, 'API_OTHER': false};
-  //   print('✅ start all');
-  //   for (final entry in tasks.entries) {
-  //     entry.value.then((_) {
-  //       taskCompleted[entry.key] = true;
-  //     });
-  //   }
-  //
-  //   await Future.delayed(Duration(seconds: 12));
-  //
-  //   final notFinished = taskCompleted.entries.where((e) => !e.value).map((e) => e.key).toList();
-  //
-  //   if (notFinished.isNotEmpty) {
-  //     for (var task in notFinished) {
-  //       print('❌ Task chưa xong: $task');
-  //     }
-  //   } else {
-  //     print('✅ Tất cả task đã xong trong 12s');
-  //   }
-  // }
-  //
-  // Future<void> fetchImageData(Future remoteDone) async {
-  //   print('➡️ [API_IMAGE] Start fetch');
-  //   await Future.delayed(Duration(seconds: 5)); // giả lập fetch ảnh
-  //   print('✅ [API_IMAGE] Done fetch, đợi remote...');
-  //   await remoteDone; // Đợi firebase xong mới làm tiếp
-  //   print('🚀 [API_IMAGE] Tiếp tục xử lý sau khi có dữ liệu remote');
-  // }
-  //
-  // Future<void> fetchRemote() async {
-  //   print('➡️ [FIREBASE_REMOTE] Start fetch');
-  //   await Future.delayed(Duration(seconds: 14));
-  // }
-  //
-  // Future<void> fetchOtherApi() async {
-  //   print('➡️ [API_OTHER] Start fetch');
-  //   await Future.delayed(Duration(seconds: 8));
-  //   print('✅ [API_OTHER] Done');
-  // }
-  ///end call dong thoi
 
   Future<void> fetchUMP(
     Future callIdAdsDone, {
@@ -430,6 +383,7 @@ class Admob {
       onPostExecute: () async {
         if (ConsentManager.instance.canRequestAds) {
           logEventSplashToStep(nameEvent: 'splash_ump_done_consent');
+          handleTimeOut();
           print('admob_ads --- ✅ Done UMP, await call id ads');
           await callIdAdsDone;
           print('admob_ads --- 🚀 Continue process show ads splash');
@@ -465,8 +419,6 @@ class Admob {
             configInter: RemoteConfig.getBool(nameConfigInterSplash),
             rateAoa: RemoteConfig.getString(nameRateAoa),
           );
-
-          handleTimeOut();
 
           if (!isNextTimeout) {
             initAndShowAdSplash(
@@ -825,9 +777,11 @@ class Admob {
             logEventSplashToStep(nameEvent: 'splash_ad_failload', moreParams: {'error': error});
             Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
 
-            print('admob_ads --- Inter Ad Preload Splash: 1.splash_ad_failload --- isUseNativeAfterInter = $isUseNativeAfterInter, context = ${navigatorKey.currentContext != null},'
-                ' adsKeyNativeAfterInter = $adsKeyNativeAfterInter, remoteKeyNativeAfterInter = $remoteKeyNativeAfterInter, containsKey = ${NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)},'
-                'adsCache = ${NativeAdManager().adsCache[adsKeyNativeAfterInter] != null}');
+            print(
+              'admob_ads --- Inter Ad Preload Splash: 1.splash_ad_failload --- isUseNativeAfterInter = $isUseNativeAfterInter, context = ${navigatorKey.currentContext != null},'
+              ' adsKeyNativeAfterInter = $adsKeyNativeAfterInter, remoteKeyNativeAfterInter = $remoteKeyNativeAfterInter, containsKey = ${NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)},'
+              'adsCache = ${NativeAdManager().adsCache[adsKeyNativeAfterInter] != null}',
+            );
             if (isUseNativeAfterInter &&
                 navigatorKey.currentContext != null &&
                 adsKeyNativeAfterInter != null &&
@@ -835,7 +789,8 @@ class Admob {
                 NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter) &&
                 NativeAdManager().adsCache[adsKeyNativeAfterInter] != null) {
               if (RemoteConfig.getBool(remoteKeyNativeAfterInter) ||
-                  NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false) {
+                  NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink ==
+                      false) {
                 startShowNativeAfterInter(
                   context: navigatorKey.currentContext!,
                   adsKey: adsKeyNativeAfterInter,
@@ -843,7 +798,9 @@ class Admob {
                   onClose: onNext,
                 );
               } else {
-                print('admob_ads --- Inter Ad Preload Splash: 2.splash_ad_failload --- remote = ${RemoteConfig.getBool(remoteKeyNativeAfterInter)}, sink = ${NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false}');
+                print(
+                  'admob_ads --- Inter Ad Preload Splash: 2.splash_ad_failload --- remote = ${RemoteConfig.getBool(remoteKeyNativeAfterInter)}, sink = ${NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false}',
+                );
                 onNext();
               }
             } else {
