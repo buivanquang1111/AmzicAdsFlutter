@@ -69,7 +69,7 @@ class Admob {
   void handleTimeOut() {
     if (!isTimeoutSplash) {
       isTimeoutSplash = true;
-      print('admob_ads --- handle Timeout kết thúc check timeout');
+      print('admob_ads --- handle Timeout kết thúc check timeout Splash 12s');
       if (!timeoutSplashCompleter.isCompleted) timeoutSplashCompleter.complete();
     }
   }
@@ -336,7 +336,8 @@ class Admob {
         print('admob_ads --- ❌ Task chưa xong: $task');
       }
     } else {
-      print('admob_ads --- 🎉 Tất cả task đã hoàn thành trong vòng <= 12 giây');
+      final secondsShowAds = stopWatch.elapsed.inSeconds;
+      print('admob_ads --- 🎉 Tất cả task đã hoàn thành trong vòng $secondsShowAds giây');
     }
   }
 

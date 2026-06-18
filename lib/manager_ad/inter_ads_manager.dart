@@ -648,6 +648,8 @@ class InterAdsManager {
   }) async {
     isAdSplashFinished = false;
     isLoadFailInter = false;
+    isNextTimeoutAd = false;
+    isTimeDelayNativeSplash = false;
 
     var mesErrorLoadFail = '';
 
