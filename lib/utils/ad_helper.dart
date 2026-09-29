@@ -26,13 +26,20 @@ class AdHelper {
   /// sau lần show đầu tiên của inter_all mới bắt đầu tính  interval_inter_all
   static bool isFirstShowInterAll = false;
 
+  ///[configAppOpen] và [rateAoa] hiện không còn được dùng để quyết định
+  ///show App Open hay Interstitial ở splash nữa (xem
+  ///SplashAdsController.initAndShowAdSplash - mặc định chỉ show
+  ///Interstitial), nên để optional với default = giá trị field gốc bên
+  ///dưới, cho phép nơi gọi bỏ qua không cần khởi tạo 2 giá trị này nữa.
+  ///Logic tính splashType/isValidFormat/getRandomOpenAd bên dưới vẫn giữ
+  ///nguyên, không xoá, để dùng lại được sau này nếu cần.
   static void init({
     required int intervalBetweenInter,
     required int intervalFromStart,
     required int intervalInterAll,
-    required bool configAppOpen,
+    bool configAppOpen = true,
     required bool configInter,
-    required String rateAoa,
+    String rateAoa = '0_100',
   }) {
     _lastTimeDismissInter = -1;
     _timeStartApp = DateTime.now().millisecondsSinceEpoch;

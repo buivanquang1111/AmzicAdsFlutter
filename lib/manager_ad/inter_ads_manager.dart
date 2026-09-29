@@ -23,12 +23,7 @@ class InterAdsManager {
 
   InterstitialAd? get mInterstitialAdSplash => _mInterstitialAdSplash;
 
-  ///biến check xem đã chuyển màn trong timeout Ads chua
-  bool isNextTimeoutAd = false;
-
   var isAdSplashFinished = false; //check show 1 ads splash => no fill => start next screen
-
-  bool isTimeDelayNativeSplash = false;
 
   bool isLoadFailInter = false; // check load fail inter splash
 
@@ -48,63 +43,7 @@ class InterAdsManager {
     isLoadFailInter = false;
     var mesErrorLoadFail = '';
 
-    ///timeout check 12s
-    bool adHasShown = false;
-    final timeoutCompleter = Completer<void>(); //kiểm soát timeout 12s
     DateTime startTime = DateTime.now();
-
-    Future.delayed(const Duration(seconds: 20), () {
-      if (!adHasShown) {
-        print('admob_ads --- inter_ads_splash: Timeout 20s - cancel show ads splash');
-        EventLog.logEvent('inter_splash_id_timeout');
-        Admob.instance.setFullScreenAdShowing(false);
-        if (navigatorKey.currentContext != null) {
-          closeLoadingDialog(context: navigatorKey.currentContext!);
-        }
-        timeoutCompleter.complete();
-        isNextTimeoutAd = true;
-        onAdDisable?.call();
-      }
-    });
-
-    void handleAdsShown() {
-      if (!adHasShown) {
-        adHasShown = true;
-        print('admob_ads --- inter_ads_splash: inter splash đã show Xong hoặc bị False');
-        if (!timeoutCompleter.isCompleted) timeoutCompleter.complete();
-      }
-    }
-
-    //timeout 7s native splash
-    if (Admob.instance.isUseNativeSplash) {
-      Admob.instance.logEventSplashToStep(nameEvent: 'splash_start_await_7s');
-      print('admob_ads --- inter_ads_splash: start await 7s splash');
-      Future.delayed(Duration(seconds: Admob.instance.timeDelayNativeSplash), () {
-        Admob.instance.logEventSplashToStep(nameEvent: 'splash_done_await_7s');
-        print('admob_ads --- inter_ads_splash: count done 7s');
-        isTimeDelayNativeSplash = true;
-
-        _checkConditionAdSplash(
-          navigatorKey: navigatorKey,
-          idAds: idAds,
-          startTime: startTime,
-          onAdImpression: () {
-            handleAdsShown();
-            onAdImpression?.call();
-          },
-          onAdClicked: onAdClicked,
-          onAdFailedToShow: onAdFailedToShow,
-          onAdDismiss: onAdDismiss,
-          onAdFailLoad: () {
-            print('admob_ads --- Inter Ad Preload Splash: FailToLoad => onNext');
-            onAdFailedToLoad?.call(mesErrorLoadFail);
-          },
-        );
-      });
-    } else {
-      print('admob_ads --- inter_ads_splash: do not use delay 7s');
-      isTimeDelayNativeSplash = true;
-    }
 
     var isNetwork = await Admob.instance.isNetworkActive();
     if (config == false ||
@@ -115,7 +54,6 @@ class InterAdsManager {
       EventLog.logEvent(
         'inter_splash_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
       );
-      handleAdsShown();
       onAdDisable?.call();
       return;
     }
@@ -149,17 +87,11 @@ class InterAdsManager {
             );
           };
 
-          EventLog.logEvent(
-            'inter_splash_check_show',
-            parameters: {'message': 'isNextTimeoutAdSplash_${isNextTimeoutAd}'},
-          );
-          print('admob_ads --- inter_splash_check_show isNextTimeoutAdSplash_$isNextTimeoutAd');
           _checkConditionAdSplash(
             navigatorKey: navigatorKey,
             idAds: idAds,
             startTime: startTime,
             onAdImpression: () {
-              handleAdsShown();
               onAdImpression?.call();
             },
             onAdClicked: onAdClicked,
@@ -176,17 +108,12 @@ class InterAdsManager {
           if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
             closeLoadingDialog(context: navigatorKey.currentContext!);
           }
-          handleAdsShown();
           if (!Admob.instance.isUseNativeSplash) {
             onAdFailedToLoad?.call(error.message);
           }
         },
       ),
     );
-
-    print('admob_ads --- inter_ads_splash: đợi timeout xem đã xong hay được huỷ chưa');
-    await timeoutCompleter.future;
-    print('admob_ads --- inter_ads_splash: timeout ads splash đã xong tiếp tục xử lý');
   }
 
   void _checkConditionAdSplash({
@@ -200,23 +127,21 @@ class InterAdsManager {
     Function()? onAdFailLoad,
   }) {
     if (isLoadFailInter) {
-      if(onAdFailLoad != null){
+      if (onAdFailLoad != null) {
         onAdFailLoad();
       }
     } else {
-      if (isTimeDelayNativeSplash && !isNextTimeoutAd) {
-        // Tính tổng thời gian đã chờ
-        double totalWait = DateTime.now().difference(startTime).inMilliseconds / 1000.0;
-        print("admob_ads --- ===> TỔNG THỜI GIAN CHỜ: $totalWait giây");
+      // Tính tổng thời gian đã chờ
+      double totalWait = DateTime.now().difference(startTime).inMilliseconds / 1000.0;
+      print("admob_ads --- ===> TỔNG THỜI GIAN CHỜ: $totalWait giây");
 
-        showInterAdsSplash(
-          navigatorKey: navigatorKey,
-          onAdImpression: onAdImpression,
-          onAdClicked: onAdClicked,
-          onAdFailedToShow: onAdFailedToShow,
-          onAdDismiss: onAdDismiss,
-        );
-      }
+      showInterAdsSplash(
+        navigatorKey: navigatorKey,
+        onAdImpression: onAdImpression,
+        onAdClicked: onAdClicked,
+        onAdFailedToShow: onAdFailedToShow,
+        onAdDismiss: onAdDismiss,
+      );
     }
   }
 
@@ -648,69 +573,10 @@ class InterAdsManager {
   }) async {
     isAdSplashFinished = false;
     isLoadFailInter = false;
-    isNextTimeoutAd = false;
-    isTimeDelayNativeSplash = false;
 
     var mesErrorLoadFail = '';
 
-    ///timeout check 12s
-    bool adHasShown = false;
-    final timeoutCompleter = Completer<void>(); //kiểm soát timeout 12s
     DateTime startTime = DateTime.now();
-
-    Future.delayed(const Duration(seconds: 20), () {
-      if (!adHasShown) {
-        print('admob_ads --- Inter Ad Preload Splash: Timeout 20s - cancel show ads splash');
-        EventLog.logEvent('inter_splash_id_timeout');
-        Admob.instance.setFullScreenAdShowing(false);
-        if (navigatorKey.currentContext != null) {
-          closeLoadingDialog(context: navigatorKey.currentContext!);
-        }
-        timeoutCompleter.complete();
-        isNextTimeoutAd = true;
-        onAdDisable?.call();
-      }
-    });
-
-    void handleAdsShown() {
-      if (!adHasShown) {
-        adHasShown = true;
-        print('admob_ads --- Inter Ad Preload Splash: inter splash đã show Xong hoặc bị False');
-        if (!timeoutCompleter.isCompleted) timeoutCompleter.complete();
-      }
-    }
-
-    //timeout 7s native splash
-    if (Admob.instance.isUseNativeSplash) {
-      Admob.instance.logEventSplashToStep(nameEvent: 'splash_start_await_7s');
-      print('admob_ads --- Inter Ad Preload Splash: start await 7s splash');
-      Future.delayed(Duration(seconds: Admob.instance.timeDelayNativeSplash), () {
-        Admob.instance.logEventSplashToStep(nameEvent: 'splash_done_await_7s');
-        print('admob_ads --- Inter Ad Preload Splash: count done 7s');
-        isTimeDelayNativeSplash = true;
-
-        _checkConditionAdPreloadSplash(
-          navigatorKey: navigatorKey,
-          idAds: idAds,
-          startTime: startTime,
-          onAdImpression: () {
-            handleAdsShown();
-            onAdImpression?.call();
-          },
-          onAdClicked: onAdClicked,
-          onAdFailedToShow: onAdFailedToShow,
-          onAdDismiss: onAdDismiss,
-          onAdFailToLoad: () {
-            print('admob_ads --- Inter Ad Preload Splash: FailToLoad => onNext');
-            handleAdsShown();
-            onAdFailedToLoad?.call(mesErrorLoadFail);
-          },
-        );
-      });
-    } else {
-      print('admob_ads --- Inter Ad Preload Splash: do not use delay 7s');
-      isTimeDelayNativeSplash = true;
-    }
 
     var isNetwork = await Admob.instance.isNetworkActive();
     if (config == false ||
@@ -721,7 +587,6 @@ class InterAdsManager {
       EventLog.logEvent(
         'inter_splash_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
       );
-      handleAdsShown();
       onAdDisable?.call();
       return;
     }
@@ -737,19 +602,12 @@ class InterAdsManager {
 
       onAdLoaded?.call();
 
-      EventLog.logEvent(
-        'inter_splash_check_show',
-        parameters: {'message': 'isNextTimeoutAdSplash_${isNextTimeoutAd}'},
-      );
-      print('admob_ads --- inter_splash_check_show isNextTimeoutAdSplash_$isNextTimeoutAd');
-
       ///show ad splash
       _checkConditionAdPreloadSplash(
         navigatorKey: navigatorKey,
         idAds: idAds,
         startTime: startTime,
         onAdImpression: () {
-          handleAdsShown();
           onAdImpression?.call();
         },
         onAdClicked: onAdClicked,
@@ -763,14 +621,13 @@ class InterAdsManager {
       isLoadFailInter = true;
       mesErrorLoadFail = error;
       print('admob_ads --- Inter Ad Preload Splash: onAdFailedToLoad');
-      // EventLog.logEvent('inter_splash_fail', parameters: {'error': error});
+      EventLog.logEvent('inter_splash_fail', parameters: {'error': error});
       Admob.instance.setFullScreenAdShowing(false);
       if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
 
       if (!Admob.instance.isUseNativeSplash) {
-        handleAdsShown();
         onAdFailedToLoad?.call(error);
       }
 
@@ -779,10 +636,6 @@ class InterAdsManager {
 
     print('admob_ads --- Inter Ad Preload Splash: load inter splash');
     adsPlatform.loadInterAdPreload(idAds, Admob.instance.numberPreloadSplash);
-
-    print('admob_ads --- inter_ads_splash: đợi timeout xem đã xong hay được huỷ chưa');
-    await timeoutCompleter.future;
-    print('admob_ads --- inter_ads_splash: timeout ads splash đã xong tiếp tục xử lý');
   }
 
   void _checkConditionAdPreloadSplash({
@@ -800,7 +653,7 @@ class InterAdsManager {
         onAdFailToLoad();
       }
     } else {
-      if (isTimeDelayNativeSplash && !isNextTimeoutAd && !isAdSplashFinished) {
+      if (!isAdSplashFinished) {
         // Tính tổng thời gian đã chờ
         double totalWait = DateTime.now().difference(startTime).inMilliseconds / 1000.0;
         print("admob_ads --- ===> TỔNG THỜI GIAN CHỜ: $totalWait giây");

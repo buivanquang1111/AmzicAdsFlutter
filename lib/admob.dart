@@ -1,22 +1,28 @@
 import 'dart:async';
 
-import 'package:amazic_ads_flutter/amazic_ads_flutter.dart';
-import 'package:amazic_ads_flutter/call_api/call_api.dart';
+import 'package:amazic_ads_flutter/admob_config.dart';
 import 'package:amazic_ads_flutter/manager_ad/app_open_manager.dart';
 import 'package:amazic_ads_flutter/manager_ad/inter_ads_manager.dart';
-import 'package:amazic_ads_flutter/ump/consent_manager.dart';
+import 'package:amazic_ads_flutter/manager_ad/reward_ad_manager.dart';
+import 'package:amazic_ads_flutter/splash_ads/native_after_inter_handler.dart';
+import 'package:amazic_ads_flutter/splash_ads/splash_ads_controller.dart';
 import 'package:amazic_ads_flutter/utils/ad_foreground_observer.dart';
 import 'package:amazic_ads_flutter/utils/ad_helper.dart';
+import 'package:amazic_ads_flutter/utils/admob_platform_service.dart';
 import 'package:amazic_ads_flutter/utils/app_lifecycle_reactor.dart';
-import 'package:amazic_ads_flutter/utils/event_log.dart';
-import 'package:amazic_ads_flutter/utils/preferences_util.dart';
 import 'package:amazic_ads_flutter/utils/remote_config.dart';
-import 'package:amazic_ads_flutter/view/native_after_inter_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import 'amazic_ads_flutter_platform_interface.dart';
-
+/// Facade duy nhất mà app dùng thư viện gọi vào (`Admob.instance.xxx`).
+///
+/// Toàn bộ logic khởi tạo/luồng splash được tách sang
+/// `splash_ads/splash_ads_controller.dart` (package `splash_ads`), các cờ
+/// cấu hình được gom vào [AdmobConfig], và các lời gọi platform channel
+/// được gom vào `AdmobPlatformService`. Class này chỉ giữ vai trò
+/// forward + là nơi lưu 1 vài state runtime (navigatorKey,
+/// appLifecycleReactor) — API public (tên hàm, tên getter/setter, chữ ký)
+/// giữ nguyên 100% so với trước khi tách, nên code ở app khác không cần
+/// sửa gì.
 class Admob {
   Admob._Admob();
 
@@ -24,39 +30,29 @@ class Admob {
 
   GlobalKey<NavigatorState>? navigatorKey;
 
-  bool _isAdmobInitialized = false;
-
-  ///enable show full ads
-  bool _isShowAllAds = true;
-
-  setShowAllAds(bool value) => _isShowAllAds = value;
-
-  bool get isShowAllAds => _isShowAllAds;
-
-  ///true when ads show full screen
-  bool _isFullScreenAdShowing = false;
-
-  setFullScreenAdShowing(bool value) => _isFullScreenAdShowing = value;
-
-  bool get isFullScreenAdShowing => _isFullScreenAdShowing;
+  /// Gom các cờ cấu hình/trạng thái vào 1 object cho gọn, xem [AdmobConfig].
+  final AdmobConfig _config = AdmobConfig();
 
   ///ads app open
   AppLifecycleReactor? appLifecycleReactor;
 
+  ///enable show full ads
+  setShowAllAds(bool value) => _config.isShowAllAds = value;
+
+  bool get isShowAllAds => _config.isShowAllAds;
+
+  ///true when ads show full screen
+  setFullScreenAdShowing(bool value) => _config.isFullScreenAdShowing = value;
+
+  bool get isFullScreenAdShowing => _config.isFullScreenAdShowing;
+
   ///token event tracking Adjust
-  String _eventTracking = '';
+  setEventTrackingAdjust(String value) => _config.eventTrackingAdjust = value;
 
-  setEventTrackingAdjust(String value) => _eventTracking = value;
-
-  String get eventTrackingAdjust => _eventTracking;
-
-  ///timeout check 12s
-  bool isNextTimeout = false; // biến check xem đã chuyển màn trong timeout splash
-  bool isTimeoutSplash = false;
-  final timeoutSplashCompleter = Completer<void>();
+  String get eventTrackingAdjust => _config.eventTrackingAdjust;
 
   ///check when show dialog loading hide ads CollapsibleNative
-  final ValueNotifier<bool> isShowDialogLoadingAds = ValueNotifier<bool>(false);
+  ValueNotifier<bool> get isShowDialogLoadingAds => _config.isShowDialogLoadingAds;
 
   void showLoading() {
     isShowDialogLoadingAds.value = true;
@@ -66,133 +62,59 @@ class Admob {
     isShowDialogLoadingAds.value = false;
   }
 
-  void handleTimeOut() {
-    if (!isTimeoutSplash) {
-      isTimeoutSplash = true;
-      print('admob_ads --- handle Timeout kết thúc check timeout Splash 12s');
-      if (!timeoutSplashCompleter.isCompleted) timeoutSplashCompleter.complete();
-    }
-  }
-
-  ///timeout check 7s
-  // bool isTimeout7sSplash = false; //check timeout await 7s splash
-  // final timeout7sSplashCompleter = Completer<void>();
-  //
-  // void handleTimeOut7s() {
-  //   if (!isTimeout7sSplash) {
-  //     isTimeout7sSplash = true;
-  //     print('admob_ads --- handle Timeout kết thúc check 7s timeout Splash');
-  //     if (!timeout7sSplashCompleter.isCompleted) timeout7sSplashCompleter.complete();
-  //   }
-  // }
-
-  ///đếm thời gian từ lúc vào màn đến khi show ads splash
-  final stopWatch = Stopwatch();
-
   ///list danh sách các vị trí remote config false khi là Detect Test Ad
-  List<String> _detectedTestAds = [];
+  void addDetectedTestAd(String adUnitId) => _config.addDetectedTestAd(adUnitId);
 
-  void addDetectedTestAd(String adUnitId) {
-    if (!_detectedTestAds.contains(adUnitId)) {
-      _detectedTestAds.add(adUnitId);
-    }
-  }
+  List<String> get detectedTestAds => _config.detectedTestAds;
 
-  List<String> get detectedTestAds => _detectedTestAds;
-
-  bool isAdUnitDetected(String adUnitId) {
-    return _detectedTestAds.contains(adUnitId);
-  }
+  bool isAdUnitDetected(String adUnitId) => _config.isAdUnitDetected(adUnitId);
 
   //use ad preload
-  bool _isUseAdPreloading = false;
+  setUseAdPreloading(bool value) => _config.isUseAdPreloading = value;
 
-  setUseAdPreloading(bool value) => _isUseAdPreloading = value;
-
-  bool get isUseAdPreloading => _isUseAdPreloading;
-
-  //end
+  bool get isUseAdPreloading => _config.isUseAdPreloading;
 
   //number buffer preload
-  int _numberPreload = 3;
+  setNumberPreload(int value) => _config.numberPreload = value;
 
-  setNumberPreload(int value) => _numberPreload = value;
-
-  int get numberPreload => _numberPreload;
-
-  //end
+  int get numberPreload => _config.numberPreload;
 
   //number buffer preload splash
-  int _numberPreloadSplash = 1;
+  setNumberPreloadSplash(int value) => _config.numberPreloadSplash = value;
 
-  setNumberPreloadSplash(int value) => _numberPreloadSplash = value;
-
-  int get numberPreloadSplash => _numberPreloadSplash;
-
-  //end
+  int get numberPreloadSplash => _config.numberPreloadSplash;
 
   ///native after inter ( moi dung cho moi man Splash)
-  bool _isUseNativeAfterInter = false;
+  setUseNativeAfterInter(bool value) => _config.isUseNativeAfterInter = value;
 
-  setUseNativeAfterInter(bool value) => _isUseNativeAfterInter = value;
-
-  bool get isUseNativeAfterInter => _isUseNativeAfterInter;
+  bool get isUseNativeAfterInter => _config.isUseNativeAfterInter;
 
   //json id default
-  String _jsonIdAdsDefault = "";
+  setJsonIdAdsDefault(String json) => _config.jsonIdAdsDefault = json;
 
-  setJsonIdAdsDefault(String json) => _jsonIdAdsDefault = json;
-
-  String get jsonIdAdsDefault => _jsonIdAdsDefault;
-
-  int _timeLastStep = 0;
+  String get jsonIdAdsDefault => _config.jsonIdAdsDefault;
 
   //native splash
-  int _timeDelayNativeSplash = 7;
+  setTimeDelayNativeSplash(int value) => _config.timeDelayNativeSplash = value;
 
-  setTimeDelayNativeSplash(int value) => _timeDelayNativeSplash = value;
+  int get timeDelayNativeSplash => _config.timeDelayNativeSplash;
 
-  int get timeDelayNativeSplash => _timeDelayNativeSplash;
+  setUseNativeSplash(bool value) => _config.isUseNativeSplash = value;
 
-  bool _isUseNativeSplash = false;
+  bool get isUseNativeSplash => _config.isUseNativeSplash;
 
-  setUseNativeSplash(bool value) => _isUseNativeSplash = value;
+  ///timeout (giây) chờ 3 task song song lúc splash, mặc định 20s
+  setTimeoutScreenSplash(int value) => _config.timeoutScreenSplash = value;
 
-  bool get isUseNativeSplash => _isUseNativeSplash;
+  int get timeoutScreenSplash => _config.timeoutScreenSplash;
 
-  Future<void> startShowNativeAfterInter({
-    required BuildContext context,
-    required String adsKey,
-    required String remoteKey,
-    required Function() onClose,
-  }) async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            NativeAfterInterScreen(adsKey: adsKey, remoteKey: remoteKey, onClose: onClose),
-      ),
-    );
-  }
+  ///===================== Splash / init flow =====================
+  ///Toàn bộ logic thực thi nằm ở SplashAdsController (package splash_ads).
 
-  Future<void> preloadNativeAfterInter({
-    required String adsKey,
-    required String remoteKey,
-    String? factoryId,
-  }) async {
-    print(
-      'admob_ads --- preload_native: load $adsKey id - ${CallApi.instance.getFirstIDByName(adsKey)}',
-    );
-    NativeAdManager().preloadAd(
-      adUnitId: CallApi.instance.getFirstIDByName(adsKey),
-      config: RemoteConfig.getBool(remoteKey),
-      nameIdAds: adsKey,
-      factoryId: factoryId ?? 'native_after_inter',
-    );
-  }
-
-  //end
-
+  ///Đã bỏ hẳn nameIdAdsAppOpenSplash/nameConfigAppOpenSplash/nameRateAoa -
+  ///SplashAdsController không còn dùng App Open Splash / rateAoa để quyết
+  ///định show ads splash nữa. App nào đang gọi Admob.instance.init(...) với
+  ///3 tham số này cần bỏ chúng ra khi update lên bản này.
   Future<void> init({
     required String linkServer,
     required String appId,
@@ -201,13 +123,10 @@ class Admob {
     required GlobalKey<NavigatorState> navigatorKey,
     required String nameIddAdsResume,
     required String nameResumeConfig,
-    required String nameIdAdsAppOpenSplash,
     required String nameIdAdsInterSplash,
     String? nameIdAdsNativeAfterInter,
-    required String nameConfigAppOpenSplash,
     required String nameConfigInterSplash,
     String? nameConfigNativeAfterInter,
-    required String nameRateAoa,
     required String nameIntervalBetweenInter,
     required String nameIntervalFromStart,
     required String nameIntervalInterAll,
@@ -217,144 +136,39 @@ class Admob {
     required Function() onStartLoadBanner,
     required List<RemoteConfigKey> remoteConfigKeys,
     String? eventAdjustTracking,
-  }) async {
-    ///start count time show ads
-    stopWatch.start();
-    _timeLastStep = DateTime.now().second;
-
-    ///logevent internet
-    // if (await isNetworkActive() == true) {
-    //   EventLog.logEvent('splash_open_have_internet');
-    // }
-
-    ///set json id default
-    setJsonIdAdsDefault(jsonIdAdsDefault);
-
-    ///init Preferences
-    // await PreferencesUtil.init();
-    // PreferencesUtil.increaseCountOpenApp();
-
-    await Future.wait([
-      isNetworkActive().then((hasNet) {
-        if (hasNet == true) EventLog.logEvent('splash_open_have_internet');
-      }),
-      PreferencesUtil.init().then((value) {
-        PreferencesUtil.increaseCountOpenApp();
-      },)
-    ]);
-
-    ///set event adjust
-    if (eventAdjustTracking != null) {
-      setEventTrackingAdjust(eventAdjustTracking);
-    }
-
-    ///call dong thoi task
-    final Completer<void> callIdAdsDoneCompleter = Completer<void>();
-
-    late Future<void> firebaseTask;
-    late Future<void> umpTask;
-    late Future<void> callIDAdsTask;
-
-    firebaseTask = fetchRemoteFirebase(remoteConfigKeys: remoteConfigKeys);
-    umpTask = fetchUMP(
-      callIdAdsDoneCompleter.future,
-      navigatorKey: navigatorKey,
-      nameIdAdsResume: nameIddAdsResume,
-      nameResumeConfig: nameResumeConfig,
-      isShowWelComeScreenAfterAppOpenAds: isShowWelComeScreenAfterAppOpenAds,
-      nameIdAdsAppOpenSplash: nameIdAdsAppOpenSplash,
-      nameIdAdsInterSplash: nameIdAdsInterSplash,
-      nameIdNativeAfterInter: nameIdAdsNativeAfterInter,
-      nameConfigAppOpenSplash: nameConfigAppOpenSplash,
-      nameConfigInterSplash: nameConfigInterSplash,
-      nameConfigNativeAfterInter: nameConfigNativeAfterInter,
-      nameRateAoa: nameRateAoa,
-      onNext: onNext,
-      nameIntervalBetweenInter: nameIntervalBetweenInter,
-      nameIntervalFromStart: nameIntervalFromStart,
-      nameIntervalInterAll: nameIntervalInterAll,
-      onStartLoadBanner: onStartLoadBanner,
-      onGotoScreenWelcomeBack: onGotoScreenWelcomeBack,
-    );
-    callIDAdsTask = fetchApiAds(
+  }) {
+    return SplashAdsController.instance.init(
       linkServer: linkServer,
       appId: appId,
       packageName: packageName,
-      onResponse: () {
-        callIdAdsDoneCompleter.complete();
-      },
-      onError: (p0) {
-        logEventSplashToStep(nameEvent: 'splash_idapi_error', moreParams: {'error': p0});
-      },
+      jsonIdAdsDefault: jsonIdAdsDefault,
+      navigatorKey: navigatorKey,
+      nameIddAdsResume: nameIddAdsResume,
+      nameResumeConfig: nameResumeConfig,
+      nameIdAdsInterSplash: nameIdAdsInterSplash,
+      nameIdAdsNativeAfterInter: nameIdAdsNativeAfterInter,
+      nameConfigInterSplash: nameConfigInterSplash,
+      nameConfigNativeAfterInter: nameConfigNativeAfterInter,
+      nameIntervalBetweenInter: nameIntervalBetweenInter,
+      nameIntervalFromStart: nameIntervalFromStart,
+      nameIntervalInterAll: nameIntervalInterAll,
+      isShowWelComeScreenAfterAppOpenAds: isShowWelComeScreenAfterAppOpenAds,
+      onGotoScreenWelcomeBack: onGotoScreenWelcomeBack,
+      onNext: onNext,
+      onStartLoadBanner: onStartLoadBanner,
+      remoteConfigKeys: remoteConfigKeys,
+      eventAdjustTracking: eventAdjustTracking,
     );
-
-    final Map<String, Future<void>> tasks = {
-      'FIREBASE_REMOTE': firebaseTask,
-      'UMP': umpTask,
-      'CALL_ID_ADS': callIDAdsTask,
-    };
-
-    EventLog.logEvent('splash_async_init');
-    // Đánh dấu tiến trình đã hoàn thành hay chưa
-    final Map<String, bool> taskCompleted = {
-      'FIREBASE_REMOTE': false,
-      'UMP': false,
-      'CALL_ID_ADS': false,
-    };
-
-    // Chạy các tiến trình đồng thời
-    tasks.forEach((key, future) {
-      future
-          .then((_) {
-            taskCompleted[key] = true;
-            print('admob_ads --- ✅ Đã hoàn thành task: $key');
-          })
-          .catchError((e) {
-            print('admob_ads --- ⚠️ Lỗi ở task: $key - $e');
-          });
-    });
-
-    // Đợi 12 giây
-    await Future.delayed(const Duration(seconds: 12), () {
-      if (!isTimeoutSplash) {
-        print('admob_ads --- Timeout Splash 12s');
-        EventLog.logEvent('timeout_splash_12s');
-        timeoutSplashCompleter.complete();
-        isTimeoutSplash = true;
-        isNextTimeout = true;
-        onNext();
-        print('admob_ads --- onNext Timeout Splash 12s');
-      }
-    });
-
-    // Kiểm tra tiến trình chưa hoàn thành
-    final notFinished = taskCompleted.entries.where((e) => !e.value).map((e) => e.key).toList();
-
-    if (notFinished.isNotEmpty) {
-      print('admob_ads --- ⏰ Sau 12 giây, các task chưa hoàn thành là:');
-      for (var task in notFinished) {
-        print('admob_ads --- ❌ Task chưa xong: $task');
-      }
-    } else {
-      final secondsShowAds = stopWatch.elapsed.inSeconds;
-      print('admob_ads --- 🎉 Tất cả task đã hoàn thành trong vòng $secondsShowAds giây');
-    }
   }
 
   Future<void> logEventSplashToStep({
     required String nameEvent,
     Map<String, Object>? moreParams,
-  }) async {
-    final seconds = stopWatch.elapsed.inSeconds;
-    final timeBetweenStep = DateTime.now().second - _timeLastStep;
-    final Map<String, Object> fullParams = {
-      "time_to_step": seconds,
-      "time_between_step": timeBetweenStep,
-      if (moreParams != null) ...moreParams,
-    };
-    EventLog.logEvent(nameEvent, parameters: fullParams);
-    print('admob_ads --- $nameEvent - parameters = $fullParams');
-    _timeLastStep = DateTime.now().second;
+  }) {
+    return SplashAdsController.instance.logEventSplashToStep(
+      nameEvent: nameEvent,
+      moreParams: moreParams,
+    );
   }
 
   Future<void> fetchUMP(
@@ -364,97 +178,37 @@ class Admob {
     required String nameResumeConfig,
     required bool isShowWelComeScreenAfterAppOpenAds,
     Function()? onGotoScreenWelcomeBack,
-    required String nameIdAdsAppOpenSplash,
     required String nameIdAdsInterSplash,
     String? nameIdNativeAfterInter,
-    required String nameConfigAppOpenSplash,
     required String nameConfigInterSplash,
     String? nameConfigNativeAfterInter,
-    required String nameRateAoa,
     required Function() onNext,
     required String nameIntervalBetweenInter,
     required String nameIntervalFromStart,
     required String nameIntervalInterAll,
     required Function() onStartLoadBanner,
-  }) async {
-    print('admob_ads --- ▶️ Bắt đầu UMP');
-    logEventSplashToStep(nameEvent: 'splash_start_ump');
-    //init UMP
-    await ConsentManager.instance.handleRequestUmp(
-      onPostExecute: () async {
-        if (ConsentManager.instance.canRequestAds) {
-          logEventSplashToStep(nameEvent: 'splash_ump_done_consent');
-          handleTimeOut();
-          print('admob_ads --- ✅ Done UMP, await call id ads');
-          await callIdAdsDone;
-          print('admob_ads --- 🚀 Continue process show ads splash');
-
-          ///preload native after inter
-          if (nameIdNativeAfterInter != null && nameConfigNativeAfterInter != null) {
-            preloadNativeAfterInter(
-              adsKey: nameIdNativeAfterInter,
-              remoteKey: nameConfigNativeAfterInter,
-            );
-          }
-
-          onStartLoadBanner();
-          logEventSplashToStep(nameEvent: 'splash_init_ad_splash');
-
-          ///init app open resume
-          appLifecycleReactor = AppLifecycleReactor(
-            navigatorKey: navigatorKey,
-            idAds: CallApi.instance.getFirstIDByName(nameIdAdsResume),
-            nameResumeConfig: nameResumeConfig,
-            isShowWelComeScreenAfterAppOpenAds: isShowWelComeScreenAfterAppOpenAds,
-            onGotoWelcomeBack: onGotoScreenWelcomeBack,
-            name: nameIdAdsResume,
-          );
-          appLifecycleReactor?.listenToAppStateChanges();
-
-          ///init ads splash
-          AdHelper.init(
-            intervalBetweenInter: RemoteConfig.getInt(nameIntervalBetweenInter) * 1000,
-            intervalFromStart: RemoteConfig.getInt(nameIntervalFromStart) * 1000,
-            intervalInterAll: RemoteConfig.getInt(nameIntervalInterAll) * 1000,
-            configAppOpen: RemoteConfig.getBool(nameConfigAppOpenSplash),
-            configInter: RemoteConfig.getBool(nameConfigInterSplash),
-            rateAoa: RemoteConfig.getString(nameRateAoa),
-          );
-
-          if (!isNextTimeout) {
-            initAndShowAdSplash(
-              navigatorKey: navigatorKey,
-              idAdsAppOpen: CallApi.instance.getFirstIDByName(nameIdAdsAppOpenSplash),
-              idAdsInter: CallApi.instance.getFirstIDByName(nameIdAdsInterSplash),
-              adsKeyNativeAfterInter: nameIdNativeAfterInter,
-              configAppOpen: RemoteConfig.getBool(nameConfigAppOpenSplash),
-              configInter: RemoteConfig.getBool(nameConfigInterSplash),
-              remoteKeyNativeAfterInter: nameConfigNativeAfterInter,
-              rateAoa: RemoteConfig.getString(nameRateAoa),
-              onNext: onNext,
-            );
-          }
-        } else {
-          handleTimeOut();
-          if (!isNextTimeout) {
-            print('admob_ads --- onNext DO NOT CONSENT');
-            logEventSplashToStep(nameEvent: 'splash_ump_done_donotconsent');
-            onNext();
-          }
-        }
-      },
+  }) {
+    return SplashAdsController.instance.fetchUMP(
+      callIdAdsDone,
+      navigatorKey: navigatorKey,
+      nameIdAdsResume: nameIdAdsResume,
+      nameResumeConfig: nameResumeConfig,
+      isShowWelComeScreenAfterAppOpenAds: isShowWelComeScreenAfterAppOpenAds,
+      onGotoScreenWelcomeBack: onGotoScreenWelcomeBack,
+      nameIdAdsInterSplash: nameIdAdsInterSplash,
+      nameIdNativeAfterInter: nameIdNativeAfterInter,
+      nameConfigInterSplash: nameConfigInterSplash,
+      nameConfigNativeAfterInter: nameConfigNativeAfterInter,
+      onNext: onNext,
+      nameIntervalBetweenInter: nameIntervalBetweenInter,
+      nameIntervalFromStart: nameIntervalFromStart,
+      nameIntervalInterAll: nameIntervalInterAll,
+      onStartLoadBanner: onStartLoadBanner,
     );
-    print('admob_ads --- ✅ Kết thúc UMP');
   }
 
-  Future<void> fetchRemoteFirebase({required List<RemoteConfigKey> remoteConfigKeys}) async {
-    print('admob_ads --- ▶️ Bắt đầu FIREBASE_REMOTE');
-    // await Future.delayed(const Duration(seconds: 14));
-
-    logEventSplashToStep(nameEvent: 'splash_start_firebase');
-    await RemoteConfig.init(remoteConfigKeys: remoteConfigKeys);
-    print('admob_ads --- ✅ Kết thúc FIREBASE_REMOTE');
-    logEventSplashToStep(nameEvent: 'splash_done_firebase');
+  Future<void> fetchRemoteFirebase({required List<RemoteConfigKey> remoteConfigKeys}) {
+    return SplashAdsController.instance.fetchRemoteFirebase(remoteConfigKeys: remoteConfigKeys);
   }
 
   Future<void> fetchApiAds({
@@ -463,22 +217,72 @@ class Admob {
     required String packageName,
     required Function() onResponse,
     required Function(String) onError,
-  }) async {
-    logEventSplashToStep(nameEvent: 'splash_start_idapi');
-    print('admob_ads --- ▶️ Bắt đầu CALL_ID_ADS');
-    // await Future.delayed(const Duration(seconds: 14));
-    await CallApi.instance.callAds(
+  }) {
+    return SplashAdsController.instance.fetchApiAds(
       linkServer: linkServer,
       appId: appId,
       packageName: packageName,
       onResponse: onResponse,
       onError: onError,
     );
-    logEventSplashToStep(nameEvent: 'splash_done_idapi');
-    print('admob_ads --- ✅ Kết thúc CALL_ID_ADS');
   }
 
-  ///end
+  Future<void> initAndShowAdSplash({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required String idAdsAppOpen,
+    required String idAdsInter,
+    String? adsKeyNativeAfterInter,
+    required bool configAppOpen,
+    required bool configInter,
+    String? remoteKeyNativeAfterInter,
+    required String rateAoa,
+    required Function() onNext,
+  }) {
+    return SplashAdsController.instance.initAndShowAdSplash(
+      navigatorKey: navigatorKey,
+      idAdsInter: idAdsInter,
+      adsKeyNativeAfterInter: adsKeyNativeAfterInter,
+      configInter: configInter,
+      remoteKeyNativeAfterInter: remoteKeyNativeAfterInter,
+      onNext: onNext,
+    );
+  }
+
+  ///show cho trường hợp bị timeout id ads splash => thuong se show tai nut tick man Language
+  Future<void> showAdsSplash({
+    required GlobalKey<NavigatorState> navigatorKey,
+    required Function() onNext,
+  }) {
+    return SplashAdsController.instance.showAdsSplash(navigatorKey: navigatorKey, onNext: onNext);
+  }
+
+  Future<void> startShowNativeAfterInter({
+    required BuildContext context,
+    required String adsKey,
+    required String remoteKey,
+    required Function() onClose,
+  }) {
+    return NativeAfterInterHandler.instance.startShowNativeAfterInter(
+      context: context,
+      adsKey: adsKey,
+      remoteKey: remoteKey,
+      onClose: onClose,
+    );
+  }
+
+  Future<void> preloadNativeAfterInter({
+    required String adsKey,
+    required String remoteKey,
+    String? factoryId,
+  }) {
+    return NativeAfterInterHandler.instance.preloadNativeAfterInter(
+      adsKey: adsKey,
+      remoteKey: remoteKey,
+      factoryId: factoryId,
+    );
+  }
+
+  ///===================== hết phần Splash / init flow =====================
 
   // Future<void> initAdmob() async {
   //   MobileAds.instance.initialize();
@@ -513,19 +317,15 @@ class Admob {
   Future<void> openMediationTest() async {}
 
   Future<String?> getPlatformVersion() {
-    return AmazicAdsFlutterPlatform.instance.getPlatformVersion();
+    return AdmobPlatformService.instance.getPlatformVersion();
   }
 
-  Future<bool?> getConsentResult() async {
-    final canRequest = await AmazicAdsFlutterPlatform.instance.getConsentResult();
-    print('admob_ads --- ump: getConsentResult - $canRequest');
-    return canRequest;
+  Future<bool?> getConsentResult() {
+    return AdmobPlatformService.instance.getConsentResult();
   }
 
-  Future<bool?> isNetworkActive() async {
-    final isConnected = await AmazicAdsFlutterPlatform.instance.isNetworkActive();
-    print('admob_ads --- have_internet: $isConnected');
-    return isConnected;
+  Future<bool?> isNetworkActive() {
+    return AdmobPlatformService.instance.isNetworkActive();
   }
 
   ///dung de check show inter/app open/reward
@@ -642,315 +442,6 @@ class Admob {
       onAdDismiss: onAdDismiss,
       name: name,
     );
-  }
-
-  Future<void> initAndShowAdSplash({
-    required GlobalKey<NavigatorState> navigatorKey,
-    required String idAdsAppOpen,
-    required String idAdsInter,
-    String? adsKeyNativeAfterInter,
-    required bool configAppOpen,
-    required bool configInter,
-    String? remoteKeyNativeAfterInter,
-    required String rateAoa,
-    required Function() onNext,
-  }) async {
-    if (AdHelper.splashType == AdsSplashType.open) {
-      if (isUseAdPreloading) {
-        logEventSplashToStep(nameEvent: 'splash_ad_start_loadandshow');
-        AppOpenManager.instance.loadAndShowAppOpenSplashAdPreload(
-          navigatorKey: navigatorKey,
-          idAds: idAdsAppOpen,
-          config: configAppOpen,
-          onAdDisable: () {
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
-          },
-          onAdLoaded: () {},
-          onAdImpression: () {
-            ///stop dem time show ads
-            stopWatch.stop();
-            final secondsShowAds = stopWatch.elapsed.inSeconds;
-            print('admob_ads --- open_splash: time show ads splash - $secondsShowAds');
-
-            logEventSplashToStep(nameEvent: 'splash_ad_show');
-          },
-          onAdClicked: () {
-            EventLog.logEvent('inter_splash_click_${PreferencesUtil.getCountOpenApp()}');
-          },
-          onAdFailedToLoad: (error) {
-            logEventSplashToStep(nameEvent: 'splash_ad_failload', moreParams: {'error': error});
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
-          },
-          onAdFailedToShow: (error) {
-            logEventSplashToStep(nameEvent: 'splash_ad_failshow', moreParams: {'error': error});
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
-          },
-          onAdDismiss: () {
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
-          },
-        );
-      } else {
-        logEventSplashToStep(nameEvent: 'splash_ad_start_loadandshow');
-        AppOpenManager.instance.loadAndShowAppOpenSplash(
-          navigatorKey: navigatorKey,
-          idAds: idAdsAppOpen,
-          config: configAppOpen,
-          onAdDisable: () {
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
-            print('admob_ads --- onNext onAdDisable Ads Splash');
-          },
-          onAdLoaded: () {},
-          onAdImpression: () {
-            ///stop dem time show ads
-            stopWatch.stop();
-            final secondsShowAds = stopWatch.elapsed.inSeconds;
-            print('admob_ads --- open_splash: time show ads splash - $secondsShowAds');
-
-            logEventSplashToStep(nameEvent: 'splash_ad_show');
-          },
-          onAdClicked: () {
-            EventLog.logEvent('inter_splash_click_${PreferencesUtil.getCountOpenApp()}');
-          },
-          onAdFailedToLoad: (error) {
-            logEventSplashToStep(nameEvent: 'splash_ad_failload', moreParams: {'error': error});
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
-          },
-          onAdFailedToShow: (error) {
-            logEventSplashToStep(nameEvent: 'splash_ad_failshow', moreParams: {'error': error});
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
-          },
-          onAdDismiss: () {
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
-          },
-        );
-      }
-    } else if (AdHelper.splashType == AdsSplashType.inter) {
-      if (isUseAdPreloading) {
-        logEventSplashToStep(nameEvent: 'splash_ad_start_loadandshow');
-        InterAdsManager.instance.loadAndShowInterSplashAdPreload(
-          navigatorKey: navigatorKey,
-          idAds: idAdsInter,
-          config: configInter,
-          onAdImpression: () {
-            ///stop dem time show ads
-            stopWatch.stop();
-            final secondsShowAds = stopWatch.elapsed.inSeconds;
-            print('admob_ads --- inter_splash: time show ads splash - $secondsShowAds');
-
-            logEventSplashToStep(nameEvent: 'splash_ad_show');
-          },
-          onAdClicked: () {
-            EventLog.logEvent('inter_splash_click_${PreferencesUtil.getCountOpenApp()}');
-          },
-          onAdDismiss: () {
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            if (isUseNativeAfterInter &&
-                navigatorKey.currentContext != null &&
-                adsKeyNativeAfterInter != null &&
-                remoteKeyNativeAfterInter != null &&
-                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter) &&
-                NativeAdManager().adsCache[adsKeyNativeAfterInter] != null) {
-              if (RemoteConfig.getBool(remoteKeyNativeAfterInter) ||
-                  NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink ==
-                      false) {
-                startShowNativeAfterInter(
-                  context: navigatorKey.currentContext!,
-                  adsKey: adsKeyNativeAfterInter,
-                  remoteKey: remoteKeyNativeAfterInter,
-                  onClose: onNext,
-                );
-              } else {
-                onNext();
-              }
-            } else {
-              onNext();
-            }
-          },
-          onAdFailedToLoad: (error) {
-            logEventSplashToStep(nameEvent: 'splash_ad_failload', moreParams: {'error': error});
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-
-            print(
-              'admob_ads --- Inter Ad Preload Splash: 1.splash_ad_failload --- isUseNativeAfterInter = $isUseNativeAfterInter, context = ${navigatorKey.currentContext != null},'
-              ' adsKeyNativeAfterInter = $adsKeyNativeAfterInter, remoteKeyNativeAfterInter = $remoteKeyNativeAfterInter, containsKey = ${NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter)},'
-              'adsCache = ${NativeAdManager().adsCache[adsKeyNativeAfterInter] != null}',
-            );
-            if (isUseNativeAfterInter &&
-                navigatorKey.currentContext != null &&
-                adsKeyNativeAfterInter != null &&
-                remoteKeyNativeAfterInter != null &&
-                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter) &&
-                NativeAdManager().adsCache[adsKeyNativeAfterInter] != null) {
-              if (RemoteConfig.getBool(remoteKeyNativeAfterInter) ||
-                  NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink ==
-                      false) {
-                startShowNativeAfterInter(
-                  context: navigatorKey.currentContext!,
-                  adsKey: adsKeyNativeAfterInter,
-                  remoteKey: remoteKeyNativeAfterInter,
-                  onClose: onNext,
-                );
-              } else {
-                print(
-                  'admob_ads --- Inter Ad Preload Splash: 2.splash_ad_failload --- remote = ${RemoteConfig.getBool(remoteKeyNativeAfterInter)}, sink = ${NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink == false}',
-                );
-                onNext();
-              }
-            } else {
-              print('admob_ads --- Inter Ad Preload Splash: 3.splash_ad_failload');
-              onNext();
-            }
-          },
-          onAdFailedToShow: (error) {
-            logEventSplashToStep(nameEvent: 'splash_ad_failshow', moreParams: {'error': error});
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            if (isUseNativeAfterInter &&
-                navigatorKey.currentContext != null &&
-                adsKeyNativeAfterInter != null &&
-                remoteKeyNativeAfterInter != null &&
-                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter) &&
-                NativeAdManager().adsCache[adsKeyNativeAfterInter] != null) {
-              if (RemoteConfig.getBool(remoteKeyNativeAfterInter) ||
-                  NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink ==
-                      false) {
-                startShowNativeAfterInter(
-                  context: navigatorKey.currentContext!,
-                  adsKey: adsKeyNativeAfterInter,
-                  remoteKey: remoteKeyNativeAfterInter,
-                  onClose: onNext,
-                );
-              } else {
-                onNext();
-              }
-            } else {
-              onNext();
-            }
-          },
-          onAdDisable: () {
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            if (isUseNativeAfterInter &&
-                navigatorKey.currentContext != null &&
-                adsKeyNativeAfterInter != null &&
-                remoteKeyNativeAfterInter != null &&
-                NativeAdManager().loadingStateControllers.containsKey(adsKeyNativeAfterInter) &&
-                NativeAdManager().adsCache[adsKeyNativeAfterInter] != null) {
-              if (RemoteConfig.getBool(remoteKeyNativeAfterInter) ||
-                  NativeAdManager().loadingStateControllers[adsKeyNativeAfterInter]?.sink ==
-                      false) {
-                startShowNativeAfterInter(
-                  context: navigatorKey.currentContext!,
-                  adsKey: adsKeyNativeAfterInter,
-                  remoteKey: remoteKeyNativeAfterInter,
-                  onClose: onNext,
-                );
-              } else {
-                onNext();
-              }
-            } else {
-              onNext();
-            }
-          },
-        );
-      } else {
-        logEventSplashToStep(nameEvent: 'splash_ad_start_loadandshow');
-        InterAdsManager.instance.loadAndShowInterSplash(
-          navigatorKey: navigatorKey,
-          idAds: idAdsInter,
-          config: configInter,
-          onAdLoaded: () {},
-          onAdImpression: () {
-            ///stop dem time show ads
-            stopWatch.stop();
-            final secondsShowAds = stopWatch.elapsed.inSeconds;
-            print('admob_ads --- inter_splash: time show ads splash - $secondsShowAds');
-            logEventSplashToStep(nameEvent: 'splash_ad_show');
-          },
-          onAdClicked: () {
-            EventLog.logEvent('inter_splash_click_${PreferencesUtil.getCountOpenApp()}');
-          },
-          onAdDismiss: () {
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
-          },
-          onAdFailedToLoad: (e) {
-            logEventSplashToStep(nameEvent: 'splash_ad_failload', moreParams: {'error': e});
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
-          },
-          onAdFailedToShow: (e) {
-            logEventSplashToStep(nameEvent: 'splash_ad_failshow', moreParams: {'error': e});
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
-          },
-          onAdDisable: () {
-            Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-            onNext();
-          },
-        );
-      }
-    } else {
-      Admob.instance.appLifecycleReactor?.setOnSplashScreen(value: false);
-      onNext();
-    }
-
-    ///logEvent
-    final isHaveInternet = await isNetworkActive();
-    final ump = await getConsentResult();
-    EventLog.logEvent(
-      'inter_splash_tracking',
-      parameters: {
-        'splash_detail': '${ump}_${isHaveInternet}_${isShowAllAds}_$rateAoa',
-        'ump': '$ump',
-        'haveinternet': '$isHaveInternet',
-        'showallad': '$isShowAllAds',
-        'interremote_openremote_aoavalue': '${configInter}_${configAppOpen}_$rateAoa',
-      },
-    );
-  }
-
-  ///show cho trường hợp bị timeout id ads splash => thuong se show tai nut tick man Language
-  Future<void> showAdsSplash({
-    required GlobalKey<NavigatorState> navigatorKey,
-    required Function() onNext,
-  }) async {
-    if (InterAdsManager.instance.mInterstitialAdSplash == null &&
-        AppOpenManager.instance.mAppOpenAdSplash == null) {
-      onNext();
-    } else {
-      if (InterAdsManager.instance.mInterstitialAdSplash != null) {
-        InterAdsManager.instance.showInterAdsSplash(
-          navigatorKey: navigatorKey,
-          onAdImpression: () {},
-          onAdClicked: () {},
-          onAdFailedToShow: (e) {
-            onNext();
-          },
-          onAdDismiss: () {
-            onNext();
-          },
-        );
-      } else if (AppOpenManager.instance.mAppOpenAdSplash != null) {
-        AppOpenManager.instance.showAppOpenAdsSplash(
-          navigatorKey: navigatorKey,
-          onAdImpression: () {},
-          onAdClicked: () {},
-          onAdFailedToShow: (error) {
-            onNext();
-          },
-          onAdDismiss: () {
-            onNext();
-          },
-        );
-      }
-    }
   }
 
   Future<void> loadAndShowInterInterval({

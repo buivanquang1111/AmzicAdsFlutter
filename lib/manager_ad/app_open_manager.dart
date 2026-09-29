@@ -41,31 +41,6 @@ class AppOpenManager {
     required Function(String)? onAdFailedToShow,
     required Function()? onAdDismiss,
   }) async {
-    ///timeout check 12s
-    bool adHasShown = false;
-    final timeoutCompleter = Completer<void>(); //kiểm soát timeout 12s
-
-    Future.delayed(const Duration(seconds: 20), () {
-      if (!adHasShown) {
-        print('admob_ads --- app_open_ads_splash: Timeout 20s - cancel show ads splash');
-        EventLog.logEvent('inter_splash_id_timeout');
-        Admob.instance.setFullScreenAdShowing(false);
-        if (navigatorKey.currentContext != null) {
-          closeLoadingDialog(context: navigatorKey.currentContext!);
-        }
-        timeoutCompleter.complete();
-        isNextTimeoutAd = true;
-        onAdDisable?.call();
-      }
-    });
-
-    void handleAdShown() {
-      if (!adHasShown) {
-        adHasShown = true;
-        print('admob_ads --- app_open_ads_splash: open splash đã show Xong hoặc bị False');
-        if (!timeoutCompleter.isCompleted) timeoutCompleter.complete();
-      }
-    }
 
     var isNetwork = await Admob.instance.isNetworkActive();
     if (config == false ||
@@ -76,7 +51,6 @@ class AppOpenManager {
       EventLog.logEvent(
         'open_splash_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
       );
-      handleAdShown();
       onAdDisable?.call();
       return;
     }
@@ -122,7 +96,6 @@ class AppOpenManager {
             showAppOpenAdsSplash(
               navigatorKey: navigatorKey,
               onAdImpression: () {
-                handleAdShown();
                 onAdImpression?.call();
               },
               onAdClicked: onAdClicked,
@@ -135,7 +108,6 @@ class AppOpenManager {
           print('admob_ads --- app_open_ads_splash: onAdFailedToLoad $error');
           EventLog.logEvent('open_splash_fail', parameters: {'error': error.message});
           Admob.instance.setFullScreenAdShowing(false);
-          handleAdShown();
           onAdFailedToLoad?.call(error.message);
           if (navigatorKey.currentContext != null) {
             closeLoadingDialog(context: navigatorKey.currentContext!);
@@ -143,9 +115,6 @@ class AppOpenManager {
         },
       ),
     );
-    print('admob_ads --- app_open_ads_splash: đợi timeout xem đã Xong hay được Huỷ chưa');
-    await timeoutCompleter.future;
-    print('admob_ads --- app_open_ads_splash: timeout ads splash đã Xong tiếp tục xử lý');
   }
 
   Future<void> showAppOpenAdsSplash({
@@ -583,31 +552,6 @@ class AppOpenManager {
     Function()? onAdDismiss,
   }) async {
     isAdSplashFinished = false;
-    ///timeout check 12s
-    bool adHasShown = false;
-    final timeoutCompleter = Completer<void>(); //kiểm soát timeout 12s
-
-    Future.delayed(const Duration(seconds: 20), () {
-      if (!adHasShown) {
-        print('admob_ads --- App Open Ad preload: Timeout 20s - cancel show ads splash');
-        EventLog.logEvent('inter_splash_id_timeout');
-        Admob.instance.setFullScreenAdShowing(false);
-        if (navigatorKey.currentContext != null) {
-          closeLoadingDialog(context: navigatorKey.currentContext!);
-        }
-        timeoutCompleter.complete();
-        isNextTimeoutAd = true;
-        onAdDisable?.call();
-      }
-    });
-
-    void handleAdShown() {
-      if (!adHasShown) {
-        adHasShown = true;
-        print('admob_ads --- App Open Ad preload: open splash đã show Xong hoặc bị False');
-        if (!timeoutCompleter.isCompleted) timeoutCompleter.complete();
-      }
-    }
 
     var isNetwork = await Admob.instance.isNetworkActive();
     if (config == false ||
@@ -618,7 +562,6 @@ class AppOpenManager {
       EventLog.logEvent(
         'open_splash_config_${config}_${ConsentManager.instance.canRequestAds}_${Admob.instance.isShowAllAds}_$isNetwork',
       );
-      handleAdShown();
       onAdDisable?.call();
       return;
     }
@@ -641,7 +584,6 @@ class AppOpenManager {
           navigatorKey: navigatorKey,
           idAds: idAds,
           onAdImpression: () {
-            handleAdShown();
             onAdImpression?.call();
           },
           onAdClicked: onAdClicked,
@@ -655,7 +597,6 @@ class AppOpenManager {
       print('admob_ads --- App Open Ad preload: onAdFailedToLoad');
       EventLog.logEvent('open_splash_fal', parameters: {'error': error});
       Admob.instance.setFullScreenAdShowing(false);
-      handleAdShown();
       onAdFailedToLoad?.call(error);
       if (navigatorKey.currentContext != null) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
@@ -664,9 +605,6 @@ class AppOpenManager {
     };
 
     adsPlatform.loadAppOpenAdPreload(idAds, Admob.instance.numberPreloadSplash);
-    print('admob_ads --- App Open Ad preload: đợi timeout xem đã Xong hay được Huỷ chưa');
-    await timeoutCompleter.future;
-    print('admob_ads --- App Open Ad preload: timeout ads splash đã Xong tiếp tục xử lý');
   }
 
   Future<void> showAppOpenSplashApPreload({

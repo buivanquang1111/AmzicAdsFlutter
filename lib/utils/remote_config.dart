@@ -1,4 +1,5 @@
 import 'package:amazic_ads_flutter/admob.dart';
+import 'package:amazic_ads_flutter/call_api/call_api.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 class RemoteConfigKey {
@@ -34,8 +35,32 @@ class RemoteConfig {
 
     try {
       await _remoteConfig.fetchAndActivate();
+      _applyAdsIdFromRemoteConfig();
     } catch (e) {
       print('⚠️ RemoteConfig fetch error: $e');
+    }
+  }
+
+  /// Lấy id quảng cáo từ Firebase Remote Config (key dạng "id_<name>", vd:
+  /// "id_banner_all") và ghi đè vào [CallApi.listAdsId] thông qua
+  /// [CallApi.setIdFromRemoteConfig].
+  ///
+  /// Không xoá/thay thế luồng lấy id từ server (CallApi.callAds) - id từ
+  /// Remote Config chỉ được ưu tiên đứng trước, id từ server (nếu fetch xong
+  /// sau) vẫn được thêm vào danh sách như id dự phòng.
+  static void _applyAdsIdFromRemoteConfig() {
+    try {
+      final allValues = _remoteConfig.getAll();
+      allValues.forEach((key, value) {
+        if (!key.startsWith('id_')) return;
+        final adsId = value.asString();
+        if (adsId.isEmpty) return;
+        final nameAds = key.substring('id_'.length);
+        print("admob_ads: ID remote - $nameAds -$adsId");
+        CallApi.instance.setIdFromRemoteConfig(nameAds, adsId);
+      });
+    } catch (e) {
+      print('⚠️ RemoteConfig applyAdsIdFromRemoteConfig error: $e');
     }
   }
 

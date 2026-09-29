@@ -28,7 +28,6 @@ class CallApi {
     required Function(String) onError,
   }) async {
     var time = DateTime.now().second;
-    print('admob_ads --- call id: time = ${time}');
 
     var isSetId = false;
     Future.delayed(const Duration(seconds: 4), () {
@@ -59,7 +58,6 @@ class CallApi {
           isSetId = true;
           EventLog.logEvent('splash_jsonid_ad_normal');
           var seconds = DateTime.now().second - time;
-          print('admob_ads --- call id: time2 = ${DateTime.now().second}');
           print(
             'admob_ads --- splash_jsonid_ad_normal - second = $seconds - json_id: ${response.body}',
           );
@@ -136,5 +134,17 @@ class CallApi {
       return list.first;
     }
     return '';
+  }
+
+  /// Ghi id quảng cáo lấy được từ Firebase Remote Config (xem
+  /// RemoteConfig._applyAdsIdFromRemoteConfig trong utils/remote_config.dart).
+  ///
+  /// Không thay thế/xoá luồng lấy id từ server (callAds) ở trên — id từ
+  /// Remote Config chỉ được ưu tiên đứng trước (getFirstIDByName trả về
+  /// phần tử đầu tiên), còn id lấy được từ server (nếu request sau đó mới
+  /// xong) vẫn được thêm vào cuối danh sách như một id dự phòng.
+  void setIdFromRemoteConfig(String nameAds, String adsId) {
+    if (adsId.isEmpty) return;
+    listAdsId[nameAds] = [adsId];
   }
 }

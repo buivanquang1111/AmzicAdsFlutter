@@ -11166,13 +11166,10 @@ class _SplashScreenState extends State<SplashScreen> {
           MaterialPageRoute(builder: (context) => WelcomeBackScreen()),
         );
       },
-      nameIdAdsAppOpenSplash: 'open_splash',
       nameIdAdsInterSplash: 'inter_splash',
       nameIdAdsNativeAfterInter: 'native_intro',
-      nameConfigAppOpenSplash: 'open_splash',
       nameConfigInterSplash: 'inter_splash',
       nameConfigNativeAfterInter: 'native_intro',
-      nameRateAoa: 'rate_aoa_inter_splash',
       onNext: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
       },
