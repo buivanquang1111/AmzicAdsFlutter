@@ -94,15 +94,6 @@ class Admob {
 
   String get jsonIdAdsDefault => _config.jsonIdAdsDefault;
 
-  //native splash
-  setTimeDelayNativeSplash(int value) => _config.timeDelayNativeSplash = value;
-
-  int get timeDelayNativeSplash => _config.timeDelayNativeSplash;
-
-  setUseNativeSplash(bool value) => _config.isUseNativeSplash = value;
-
-  bool get isUseNativeSplash => _config.isUseNativeSplash;
-
   ///timeout (giây) chờ 3 task song song lúc splash, mặc định 20s
   setTimeoutScreenSplash(int value) => _config.timeoutScreenSplash = value;
 

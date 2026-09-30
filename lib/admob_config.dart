@@ -45,10 +45,6 @@ class AdmobConfig {
   /// json id default
   String jsonIdAdsDefault = '';
 
-  /// native splash
-  int timeDelayNativeSplash = 7;
-  bool isUseNativeSplash = false;
-
   /// timeout (giây) chờ 3 task song song (Firebase Remote Config, UMP,
   /// gọi API lấy id quảng cáo) lúc splash. Hết thời gian này mà chưa xong
   /// thì coi như timeout: chuyển màn ngay và không xử lý thêm gì nữa.

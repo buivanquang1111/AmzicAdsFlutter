@@ -58,7 +58,7 @@ class InterAdsManager {
       return;
     }
     print('admob_ads --- inter_ads_splash: start request');
-    if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
+    if (navigatorKey.currentContext != null) {
       showLoadingDialog(context: navigatorKey.currentContext!);
     }
 
@@ -105,12 +105,10 @@ class InterAdsManager {
           print('admob_ads --- inter_ads_splash: onAdFailedToLoad ${error.message}');
           EventLog.logEvent('inter_splash_fail', parameters: {'error': error.message});
           Admob.instance.setFullScreenAdShowing(false);
-          if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
+          if (navigatorKey.currentContext != null) {
             closeLoadingDialog(context: navigatorKey.currentContext!);
           }
-          if (!Admob.instance.isUseNativeSplash) {
             onAdFailedToLoad?.call(error.message);
-          }
         },
       ),
     );
@@ -158,7 +156,7 @@ class InterAdsManager {
         'inter_splash_show_fail',
         parameters: {"error": "mInterstitialAdSplash_null"},
       );
-      if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
+      if (navigatorKey.currentContext != null) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
       Admob.instance.setFullScreenAdShowing(false);
@@ -180,7 +178,7 @@ class InterAdsManager {
       onAdFailedToShowFullScreenContent: (ad, error) {
         print('admob_ads --- inter_ads_splash: onAdFailedToShowFullScreenContent $error');
         EventLog.logEvent('inter_splash_fail', parameters: {'error': error.message});
-        if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
+        if (navigatorKey.currentContext != null) {
           closeLoadingDialog(context: navigatorKey.currentContext!);
         }
         Admob.instance.setFullScreenAdShowing(false);
@@ -189,7 +187,7 @@ class InterAdsManager {
       },
       onAdDismissedFullScreenContent: (ad) {
         print('admob_ads --- inter_ads_splash: onAdDismissedFullScreenContent');
-        if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
+        if (navigatorKey.currentContext != null) {
           closeLoadingDialog(context: navigatorKey.currentContext!);
         }
         Admob.instance.setFullScreenAdShowing(false);
@@ -590,7 +588,7 @@ class InterAdsManager {
       onAdDisable?.call();
       return;
     }
-    if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
+    if (navigatorKey.currentContext != null) {
       showLoadingDialog(context: navigatorKey.currentContext!);
     }
 
@@ -623,13 +621,10 @@ class InterAdsManager {
       print('admob_ads --- Inter Ad Preload Splash: onAdFailedToLoad');
       EventLog.logEvent('inter_splash_fail', parameters: {'error': error});
       Admob.instance.setFullScreenAdShowing(false);
-      if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
+      if (navigatorKey.currentContext != null) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
-
-      if (!Admob.instance.isUseNativeSplash) {
-        onAdFailedToLoad?.call(error);
-      }
+      onAdFailedToLoad?.call(error);
 
       adsPlatform.destroyInterAdPreload(idAds);
     };
@@ -685,7 +680,7 @@ class InterAdsManager {
     };
     adsPlatform.onAdDismissed = () {
       print('admob_ads --- Inter Ad Preload Splash: onAdDismissed');
-      if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
+      if (navigatorKey.currentContext != null) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
       Admob.instance.setFullScreenAdShowing(false);
@@ -693,7 +688,7 @@ class InterAdsManager {
     };
     adsPlatform.onAdFailedToShow = (id, error) {
       print('admob_ads --- Inter Ad Preload Splash: onAdFailedToShow');
-      if (navigatorKey.currentContext != null && !Admob.instance.isUseNativeSplash) {
+      if (navigatorKey.currentContext != null) {
         closeLoadingDialog(context: navigatorKey.currentContext!);
       }
       Admob.instance.setFullScreenAdShowing(false);
