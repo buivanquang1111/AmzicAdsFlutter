@@ -14,6 +14,41 @@ class CallApi {
 
   LinkedHashMap<String, List<String>> listAdsId = LinkedHashMap<String, List<String>>();
 
+  ///===== Debug / Test Ads (port từ IDRemoteConfigHelper.isUsingIdDebug bên
+  ///Android) =====
+  ///Khi true, [getFirstIDByName] LUÔN trả về AdMob Test Ad Unit ID chính
+  ///thức của Google theo loại quảng cáo (dựa vào tên/prefix của nameAds),
+  ///bỏ qua hoàn toàn id thật lấy được từ Firebase Remote Config / server /
+  ///json default trong [listAdsId] - để tránh vô tình gọi/hiển thị quảng
+  ///cáo thật trên bản test/debug. Mặc định true giống bên Android - nhớ set
+  ///`CallApi.instance.isUsingIdDebug = false;` ở bản release trước khi phát
+  ///hành để dùng id thật.
+  bool isUsingIdDebug = true;
+
+  static const String _nativeIdTest = 'ca-app-pub-3940256099942544/2247696110';
+  static const String _interIdTest = 'ca-app-pub-3940256099942544/1033173712';
+  static const String _resumeIdTest = 'ca-app-pub-3940256099942544/9257395921';
+  static const String _bannerIdTest = 'ca-app-pub-3940256099942544/9214589741';
+  static const String _rewardIdTest = 'ca-app-pub-3940256099942544/5224354917';
+  static const String _collapseIdTest = 'ca-app-pub-3940256099942544/2014213617';
+
+  ///Trả về Test Ad Unit ID tương ứng loại quảng cáo dựa theo prefix của
+  ///[nameAds] (không phân biệt hoa/thường, có hoặc không có tiền tố "id_") -
+  ///y hệt logic getID() bên Android IDRemoteConfigHelper (kể cả việc
+  ///"id_open"/"open" cũng dùng chung test id với resume). Trả về null nếu
+  ///không khớp loại nào.
+  String? _getTestIdByName(String nameAds) {
+    final key = nameAds.toLowerCase();
+    if (key.startsWith('id_native') || key.startsWith('native')) return _nativeIdTest;
+    if (key.startsWith('id_inter') || key.startsWith('inter')) return _interIdTest;
+    if (key.startsWith('id_resume') || key.startsWith('resume')) return _resumeIdTest;
+    if (key.startsWith('id_open') || key.startsWith('open')) return _resumeIdTest;
+    if (key.startsWith('id_banner') || key.startsWith('banner')) return _bannerIdTest;
+    if (key.startsWith('id_reward') || key.startsWith('reward')) return _rewardIdTest;
+    if (key.startsWith('id_collapse') || key.startsWith('collapse')) return _collapseIdTest;
+    return null;
+  }
+
   List<AdsModel> parseAdsModel(String response) {
     List<dynamic> list = json.decode(response);
     List<AdsModel> listAds = list.map((e) => AdsModel.fromJson(e)).toList();
@@ -129,7 +164,17 @@ class CallApi {
   }
 
   String getFirstIDByName(String nameAds) {
+    if (isUsingIdDebug) {
+      final testId = _getTestIdByName(nameAds);
+      print(
+        'admob_ads --- CallApi: isUsingIdDebug=true - dùng test id cho "$nameAds" -> ${testId ?? "(không khớp loại nào - trả rỗng)"}',
+      );
+      return testId ?? '';
+    }
     final list = getListIDByName(nameAds);
+    print(
+      'admob_ads --- CallApi: isUsingIdDebug=false - dùng id real cho "$nameAds" -> ${list.first}',
+    );
     if (list.isNotEmpty) {
       return list.first;
     }

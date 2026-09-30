@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:amazic_ads_flutter/admob_config.dart';
+import 'package:amazic_ads_flutter/call_api/call_api.dart';
 import 'package:amazic_ads_flutter/manager_ad/app_open_manager.dart';
 import 'package:amazic_ads_flutter/manager_ad/inter_ads_manager.dart';
 import 'package:amazic_ads_flutter/manager_ad/reward_ad_manager.dart';
@@ -127,7 +128,16 @@ class Admob {
     required Function() onStartLoadBanner,
     required List<RemoteConfigKey> remoteConfigKeys,
     String? eventAdjustTracking,
+    ///Cho phép app set lại CallApi.instance.isUsingIdDebug (xem
+    ///call_api.dart - true = luôn dùng AdMob Test Ad Unit ID, bất kể id
+    ///thật lấy được từ Firebase Remote Config/server) ngay lúc init, thay
+    ///vì phải tự gọi CallApi.instance.isUsingIdDebug = ... riêng. Bỏ trống
+    ///(null) thì giữ nguyên giá trị hiện tại (mặc định true).
+    bool? isUsingIdDebug,
   }) {
+    if (isUsingIdDebug != null) {
+      CallApi.instance.isUsingIdDebug = isUsingIdDebug;
+    }
     return SplashAdsController.instance.init(
       linkServer: linkServer,
       appId: appId,
