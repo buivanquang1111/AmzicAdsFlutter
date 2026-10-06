@@ -141,7 +141,18 @@ class CallApi {
   }
 
   Future<void> convertJsonIdToList({required String json}) async {
-    List<AdsModel> listAds = await compute(parseAdsModel, json);
+    if (json.trim().isEmpty) {
+      print("admob_ads --- CallApi: convertJsonIdToList nhận json rỗng, bỏ qua (không có id mặc định nào được thêm)");
+      return;
+    }
+
+    List<AdsModel> listAds;
+    try {
+      listAds = await compute(parseAdsModel, json);
+    } catch (e) {
+      print("admob_ads --- CallApi: convertJsonIdToList parse json lỗi, bỏ qua - $e");
+      return;
+    }
 
     for (final model in listAds) {
       if (model.name != null) {
