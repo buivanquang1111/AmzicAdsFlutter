@@ -41,25 +41,24 @@ class RemoteConfig {
     }
   }
 
-  /// Lấy id quảng cáo từ Firebase Remote Config (key dạng "<name>_id", vd:
-  /// "native_play_id", "open_splash_id", "resume_wb_id" - đúng theo cách đặt
-  /// tên param đang dùng trên Firebase console, hậu tố "_id" chứ không phải
-  /// tiền tố "id_" như bên Android) và ghi đè vào [CallApi.listAdsId] thông
+  /// Lấy id quảng cáo từ Firebase Remote Config (key dạng "id_<name>", vd:
+  /// "id_native_play", "id_open_splash", "id_resume_wb" - tiền tố "id_"
+  /// giống convention bên Android) và ghi đè vào [CallApi.listAdsId] thông
   /// qua [CallApi.setIdFromRemoteConfig].
   ///
   /// Không xoá/thay thế luồng lấy id từ server (CallApi.callAds) - id từ
   /// Remote Config chỉ được ưu tiên đứng trước, id từ server (nếu fetch xong
   /// sau) vẫn được thêm vào danh sách như id dự phòng.
-  static const String _adsIdKeySuffix = '_id';
+  static const String _adsIdKeyPrefix = 'id_';
 
   static void _applyAdsIdFromRemoteConfig() {
     try {
       final allValues = _remoteConfig.getAll();
       allValues.forEach((key, value) {
-        if (!key.endsWith(_adsIdKeySuffix)) return;
+        if (!key.startsWith(_adsIdKeyPrefix)) return;
         final adsId = value.asString();
         if (adsId.isEmpty) return;
-        final nameAds = key.substring(0, key.length - _adsIdKeySuffix.length);
+        final nameAds = key.substring(_adsIdKeyPrefix.length);
         print("admob_ads: ID remote - $nameAds -$adsId");
         CallApi.instance.setIdFromRemoteConfig(nameAds, adsId);
       });
