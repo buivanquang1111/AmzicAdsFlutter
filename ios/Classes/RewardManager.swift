@@ -2,10 +2,10 @@ import Foundation
 import UIKit
 import GoogleMobileAds
 
-class RewardManager: NSObject, GADFullScreenContentDelegate {
+class RewardManager: NSObject, FullScreenContentDelegate {
     static let shared = RewardManager()
 
-    private var preloadedAds: [String: [GADRewardedAd]] = [:]
+    private var preloadedAds: [String: [RewardedAd]] = [:]
     private var activeAds: [ObjectIdentifier: String] = [:]
     private var pluginChannelSender: ((String, String, String, [String: Any]?) -> Void)?
 
@@ -29,8 +29,8 @@ class RewardManager: NSObject, GADFullScreenContentDelegate {
 
         let needed = numberPreload - currentCount
         for _ in 0..<needed {
-            let request = GADRequest()
-            GADRewardedAd.load(withAdUnitID: idAds, request: request) { [weak self] ad, error in
+            let request = Request()
+            RewardedAd.load(withAdUnitID: idAds, request: request) { [weak self] ad, error in
                 guard let self = self else { return }
                 if let error = error {
                     print("[RewardManager] Failed to load reward ad \(idAds): \(error.localizedDescription)")
@@ -94,29 +94,29 @@ class RewardManager: NSObject, GADFullScreenContentDelegate {
         preloadedAds[idAds] = []
     }
 
-    // MARK: - GADFullScreenContentDelegate
-    func adDidRecordImpression(_ ad: GADFullScreenPresentingAd) {
+    // MARK: - FullScreenContentDelegate
+    func adDidRecordImpression(_ ad: FullScreenPresentingAd) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("reward", "onAdImpression", idAds, nil)
         }
     }
 
-    func adDidRecordClick(_ ad: GADFullScreenPresentingAd) {
+    func adDidRecordClick(_ ad: FullScreenPresentingAd) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("reward", "onAdClicked", idAds, nil)
         }
     }
 
-    func adWillPresentFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("reward", "onAdShowed", idAds, nil)
         }
     }
 
-    func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+    func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("reward", "onAdFailedToShow", idAds, ["error": error.localizedDescription])
@@ -125,7 +125,7 @@ class RewardManager: NSObject, GADFullScreenContentDelegate {
         }
     }
 
-    func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("reward", "onAdDismissed", idAds, nil)

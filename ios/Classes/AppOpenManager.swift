@@ -2,10 +2,10 @@ import Foundation
 import UIKit
 import GoogleMobileAds
 
-class AppOpenManager: NSObject, GADFullScreenContentDelegate {
+class AppOpenManager: NSObject, FullScreenContentDelegate {
     static let shared = AppOpenManager()
 
-    private var preloadedAds: [String: [GADAppOpenAd]] = [:]
+    private var preloadedAds: [String: [AppOpenAd]] = [:]
     private var activeAds: [ObjectIdentifier: String] = [:]
     private var pluginChannelSender: ((String, String, String, [String: Any]?) -> Void)?
 
@@ -29,8 +29,8 @@ class AppOpenManager: NSObject, GADFullScreenContentDelegate {
 
         let needed = numberPreload - currentCount
         for _ in 0..<needed {
-            let request = GADRequest()
-            GADAppOpenAd.load(withAdUnitID: idAds, request: request) { [weak self] ad, error in
+            let request = Request()
+            AppOpenAd.load(withAdUnitID: idAds, request: request) { [weak self] ad, error in
                 guard let self = self else { return }
                 if let error = error {
                     print("[AppOpenManager] Failed to load app open ad \(idAds): \(error.localizedDescription)")
@@ -91,29 +91,29 @@ class AppOpenManager: NSObject, GADFullScreenContentDelegate {
         preloadedAds[idAds] = []
     }
 
-    // MARK: - GADFullScreenContentDelegate
-    func adDidRecordImpression(_ ad: GADFullScreenPresentingAd) {
+    // MARK: - FullScreenContentDelegate
+    func adDidRecordImpression(_ ad: FullScreenPresentingAd) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("app_open", "onAdImpression", idAds, nil)
         }
     }
 
-    func adDidRecordClick(_ ad: GADFullScreenPresentingAd) {
+    func adDidRecordClick(_ ad: FullScreenPresentingAd) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("app_open", "onAdClicked", idAds, nil)
         }
     }
 
-    func adWillPresentFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("app_open", "onAdShowed", idAds, nil)
         }
     }
 
-    func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+    func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("app_open", "onAdFailedToShow", idAds, ["error": error.localizedDescription])
@@ -122,7 +122,7 @@ class AppOpenManager: NSObject, GADFullScreenContentDelegate {
         }
     }
 
-    func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("app_open", "onAdDismissed", idAds, nil)

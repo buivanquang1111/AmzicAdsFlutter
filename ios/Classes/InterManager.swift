@@ -2,10 +2,10 @@ import Foundation
 import UIKit
 import GoogleMobileAds
 
-class InterManager: NSObject, GADFullScreenContentDelegate {
+class InterManager: NSObject, FullScreenContentDelegate {
     static let shared = InterManager()
 
-    private var preloadedAds: [String: [GADInterstitialAd]] = [:]
+    private var preloadedAds: [String: [InterstitialAd]] = [:]
     private var activeAds: [ObjectIdentifier: String] = [:]
     private var pluginChannelSender: ((String, String, String, [String: Any]?) -> Void)?
 
@@ -29,8 +29,8 @@ class InterManager: NSObject, GADFullScreenContentDelegate {
 
         let needed = numberPreload - currentCount
         for _ in 0..<needed {
-            let request = GADRequest()
-            GADInterstitialAd.load(withAdUnitID: idAds, request: request) { [weak self] ad, error in
+            let request = Request()
+            InterstitialAd.load(withAdUnitID: idAds, request: request) { [weak self] ad, error in
                 guard let self = self else { return }
                 if let error = error {
                     print("[InterManager] Failed to load inter ad \(idAds): \(error.localizedDescription)")
@@ -91,29 +91,29 @@ class InterManager: NSObject, GADFullScreenContentDelegate {
         preloadedAds[idAds] = []
     }
 
-    // MARK: - GADFullScreenContentDelegate
-    func adDidRecordImpression(_ ad: GADFullScreenPresentingAd) {
+    // MARK: - FullScreenContentDelegate
+    func adDidRecordImpression(_ ad: FullScreenPresentingAd) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("inter", "onAdImpression", idAds, nil)
         }
     }
 
-    func adDidRecordClick(_ ad: GADFullScreenPresentingAd) {
+    func adDidRecordClick(_ ad: FullScreenPresentingAd) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("inter", "onAdClicked", idAds, nil)
         }
     }
 
-    func adWillPresentFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("inter", "onAdShowed", idAds, nil)
         }
     }
 
-    func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+    func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("inter", "onAdFailedToShow", idAds, ["error": error.localizedDescription])
@@ -122,7 +122,7 @@ class InterManager: NSObject, GADFullScreenContentDelegate {
         }
     }
 
-    func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         let key = ObjectIdentifier(ad)
         if let idAds = activeAds[key] {
             pluginChannelSender?("inter", "onAdDismissed", idAds, nil)
