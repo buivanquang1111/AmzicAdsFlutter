@@ -30,7 +30,7 @@ class InterManager: NSObject, FullScreenContentDelegate {
         let needed = numberPreload - currentCount
         for _ in 0..<needed {
             let request = Request()
-            InterstitialAd.load(withAdUnitID: idAds, request: request) { [weak self] ad, error in
+            InterstitialAd.load(with: idAds, request: request) { [weak self] ad, error in
                 guard let self = self else { return }
                 if let error = error {
                     print("[InterManager] Failed to load inter ad \(idAds): \(error.localizedDescription)")
@@ -84,7 +84,7 @@ class InterManager: NSObject, FullScreenContentDelegate {
             ])
         }
 
-        ad.present(fromRootViewController: rootVC)
+        ad.present(from: rootVC)
     }
 
     func destroy(idAds: String) {

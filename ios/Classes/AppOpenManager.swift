@@ -30,7 +30,7 @@ class AppOpenManager: NSObject, FullScreenContentDelegate {
         let needed = numberPreload - currentCount
         for _ in 0..<needed {
             let request = Request()
-            AppOpenAd.load(withAdUnitID: idAds, request: request) { [weak self] ad, error in
+            AppOpenAd.load(with: idAds, request: request) { [weak self] ad, error in
                 guard let self = self else { return }
                 if let error = error {
                     print("[AppOpenManager] Failed to load app open ad \(idAds): \(error.localizedDescription)")
@@ -84,7 +84,7 @@ class AppOpenManager: NSObject, FullScreenContentDelegate {
             ])
         }
 
-        ad.present(fromRootViewController: rootVC)
+        ad.present(from: rootVC)
     }
 
     func destroy(idAds: String) {

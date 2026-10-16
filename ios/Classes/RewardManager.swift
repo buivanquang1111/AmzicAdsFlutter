@@ -30,7 +30,7 @@ class RewardManager: NSObject, FullScreenContentDelegate {
         let needed = numberPreload - currentCount
         for _ in 0..<needed {
             let request = Request()
-            RewardedAd.load(withAdUnitID: idAds, request: request) { [weak self] ad, error in
+            RewardedAd.load(with: idAds, request: request) { [weak self] ad, error in
                 guard let self = self else { return }
                 if let error = error {
                     print("[RewardManager] Failed to load reward ad \(idAds): \(error.localizedDescription)")
@@ -84,7 +84,7 @@ class RewardManager: NSObject, FullScreenContentDelegate {
             ])
         }
 
-        ad.present(fromRootViewController: rootVC) { [weak self] in
+        ad.present(from: rootVC) { [weak self] in
             guard let self = self else { return }
             self.pluginChannelSender?("reward", "onUserEarned", idAds, nil)
         }
