@@ -31,7 +31,7 @@ class CallApi {
     print('admob_ads --- call id: time = ${time}');
 
     var isSetId = false;
-    Future.delayed(const Duration(seconds: 4), () {
+    Future.delayed(const Duration(seconds: 4), () async {
       print('admob_ads --- timeout call id ads');
       if (!isSetId) {
         isSetId = true;
@@ -40,7 +40,7 @@ class CallApi {
           'admob_ads --- splash_jsonid_ad_default - json_id_timeout: ${Admob.instance.jsonIdAdsDefault}',
         );
 
-        convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
+        await convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
 
         onResponse.call();
       }
@@ -63,7 +63,7 @@ class CallApi {
           print(
             'admob_ads --- splash_jsonid_ad_normal - second = $seconds - json_id: ${response.body}',
           );
-          convertJsonIdToList(json: response.body);
+          await convertJsonIdToList(json: response.body);
 
           onResponse.call();
         }
@@ -75,7 +75,7 @@ class CallApi {
             'admob_ads --- splash_jsonid_ad_default - json_id1: ${Admob.instance.jsonIdAdsDefault}',
           );
 
-          convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
+          await convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
 
           onResponse.call();
         }
@@ -87,7 +87,7 @@ class CallApi {
             'admob_ads --- splash_jsonid_ad_default - json_id2: ${Admob.instance.jsonIdAdsDefault}',
           );
 
-          convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
+          await convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
 
           onResponse.call();
         }
@@ -100,7 +100,7 @@ class CallApi {
           'admob_ads --- splash_jsonid_ad_default - json_id3: ${Admob.instance.jsonIdAdsDefault}',
         );
 
-        convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
+        await convertJsonIdToList(json: Admob.instance.jsonIdAdsDefault);
 
         onResponse.call();
       }
